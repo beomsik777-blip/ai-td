@@ -14,6 +14,7 @@
         <div class="nav-logo">PREMIUM HUB</div>
         <div class="nav-links">
             <button class="nav-btn active" data-target="home-view">HOME</button>
+            <button class="nav-btn" data-target="about-view">ABOUT</button>
             <button class="nav-btn" data-target="lotto-view">LOTTO</button>
         </div>
     </nav>
@@ -26,7 +27,7 @@
                 <p class="hero-desc">최첨단 기술과 감각적인 디자인의 조화.<br>당신만을 위한 프리미엄 서비스를 지금 바로 경험하세요.</p>
                 <div class="hero-btns">
                     <button class="primary-btn" onclick="switchView('lotto-view')">로또 추첨하러 가기</button>
-                    <button class="secondary-btn">더 알아보기</button>
+                    <button class="secondary-btn" onclick="switchView('about-view')">더 알아보기</button>
                 </div>
             </div>
             <div class="feature-grid">
@@ -45,6 +46,34 @@
                     <h3>Secure System</h3>
                     <p>신뢰할 수 있는 데이터 처리와 보안 정책</p>
                 </div>
+            </div>
+        </section>
+
+        <!-- About View -->
+        <section id="about-view" class="view">
+            <div class="about-section">
+                <h1 class="title">OUR VISION</h1>
+                <div class="about-content">
+                    <div class="about-text">
+                        <p>PREMIUM HUB는 단순한 웹 서비스를 넘어, 사용자에게 예술적인 경험을 제공하는 것을 목표로 합니다.</p>
+                        <p>우리는 모든 픽셀과 코드 한 줄에 진심을 담아, 가장 직관적이면서도 화려한 인터페이스를 구축합니다.</p>
+                    </div>
+                    <div class="stats-grid">
+                        <div class="stat-item">
+                            <span class="stat-num">99.9%</span>
+                            <span class="stat-label">Stability</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-num">24/7</span>
+                            <span class="stat-label">Support</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-num">Premium</span>
+                            <span class="stat-label">Quality</span>
+                        </div>
+                    </div>
+                </div>
+                <button class="primary-btn" onclick="switchView('home-view')">홈으로 돌아가기</button>
             </div>
         </section>
 

@@ -31,8 +31,63 @@ body {
     left: 0;
     width: 100%;
     height: 100%;
-    background: radial-gradient(circle at center, rgba(0,0,0,0.2) 0%, rgba(0,0,0,0.8) 100%);
+    background: radial-gradient(circle at center, rgba(0,0,0,0.1) 0%, rgba(0,0,0,0.7) 100%);
     z-index: 1;
+}
+
+/* About View Styles */
+#about-view {
+    text-align: center;
+    max-width: 900px;
+    margin: 0 auto;
+    position: relative;
+    z-index: 2;
+}
+
+.about-content {
+    margin: 40px 0;
+    display: flex;
+    flex-direction: column;
+    gap: 50px;
+}
+
+.about-text {
+    font-size: 1.3rem;
+    line-height: 1.8;
+    color: #ddd;
+    font-weight: 300;
+}
+
+.stats-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 20px;
+}
+
+.stat-item {
+    background: var(--card-bg);
+    padding: 30px;
+    border-radius: 15px;
+    border: 1px solid rgba(212, 175, 55, 0.1);
+}
+
+.stat-num {
+    display: block;
+    font-family: 'Orbitron', sans-serif;
+    font-size: 2.5rem;
+    color: var(--gold);
+    margin-bottom: 5px;
+}
+
+.stat-label {
+    color: #888;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    font-size: 0.8rem;
+}
+
+@media (max-width: 600px) {
+    .stats-grid { grid-template-columns: 1fr; }
 }
 
 /* Navbar */
