@@ -1,35 +1,31 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="ko">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Random Tower Defense</title>
+    <title>Premium Lotto Generator</title>
     <link rel="stylesheet" href="style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700&family=Noto+Sans+KR:wght@300;500;700&display=swap" rel="stylesheet">
 </head>
 <body>
-    <h1>Random Tower Defense</h1>
-    <div id="game-container">
-        <canvas id="game-canvas" width="800" height="600"></canvas>
-        <div id="game-controls">
-            <div id="game-stats">
-                <span>Round: <span id="round">1</span>/5</span>
-                <span>Lives: <span id="lives">20</span></span>
-                <span>Money: <span id="money">100</span></span>
-            </div>
-            <div id="tower-selection">
-                <button class="tower-button" data-tower="arrow">Arrow Tower (10g)</button>
-                <button class="tower-button" data-tower="cannon">Cannon Tower (20g)</button>
-            </div>
-            <button id="start-round">Start Round</button>
+    <div class="overlay"></div>
+    <div class="main-container">
+        <header>
+            <h1 class="title">PREMIUM LOTTO</h1>
+            <p class="subtitle">당신의 행운을 위한 고품격 선택</p>
+        </header>
+
+        <div class="generator-section">
+            <button id="generate-btn" class="gold-button">
+                <span>번호 생성하기</span>
+                <div class="shimmer"></div>
+            </button>
+        </div>
+
+        <div id="results-container" class="results-container">
+            <!-- 3 sets will appear here -->
         </div>
     </div>
-
-    <div id="lotto-container">
-        <h2>자동 로또 생성기</h2>
-        <button id="generate-lotto">번호 생성 (5개)</button>
-        <div id="lotto-results"></div>
-    </div>
-
     <script src="main.js"></script>
 </body>
 </html>

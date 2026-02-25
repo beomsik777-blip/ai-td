@@ -1,86 +1,52 @@
-const canvas = document.getElementById('game-canvas');
-const ctx = canvas.getContext('2d');
+document.addEventListener('DOMContentLoaded', () => {
+    const generateBtn = document.getElementById('generate-btn');
+    const resultsContainer = document.getElementById('results-container');
 
-const roundSpan = document.getElementById('round');
-const livesSpan = document.getElementById('lives');
-const moneySpan = document.getElementById('money');
-
-const towerButtons = document.querySelectorAll('.tower-button');
-const startRoundButton = document.getElementById('start-round');
-
-// Game state
-let round = 1;
-let lives = 20;
-let money = 100;
-
-// Game loop (placeholder)
-function gameLoop() {
-    // Clear canvas
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-    // Update and draw game objects (towers, enemies, projectiles)
-
-    requestAnimationFrame(gameLoop);
-}
-
-// Event Listeners
-startRoundButton.addEventListener('click', () => {
-    if (round <= 5) {
-        console.log(`Starting round ${round}`);
-        // Add logic to start the round (e.g., spawn enemies)
-        round++;
-        roundSpan.textContent = round;
-    } else {
-        alert('You have completed all rounds!');
+    function getBallClass(num) {
+        if (num <= 10) return 'ball-1';
+        if (num <= 20) return 'ball-2';
+        if (num <= 30) return 'ball-3';
+        if (num <= 40) return 'ball-4';
+        return 'ball-5';
     }
-});
 
-towerButtons.forEach(button => {
-    button.addEventListener('click', () => {
-        const towerType = button.dataset.tower;
-        console.log(`Selected ${towerType} tower`);
-        // Add logic to place the tower
-    });
-});
-
-// Start the game loop
-// gameLoop();
-
-// Lotto Generator Logic
-const generateLottoButton = document.getElementById('generate-lotto');
-const lottoResults = document.getElementById('lotto-results');
-
-function getBallClass(num) {
-    if (num <= 10) return 'ball-1-10';
-    if (num <= 20) return 'ball-11-20';
-    if (num <= 30) return 'ball-21-30';
-    if (num <= 40) return 'ball-31-40';
-    return 'ball-41-45';
-}
-
-function generateLottoSet() {
-    const numbers = new Set();
-    while (numbers.size < 6) {
-        numbers.add(Math.floor(Math.random() * 45) + 1);
+    function generateLottoNumbers() {
+        const numbers = new Set();
+        while (numbers.size < 6) {
+            numbers.add(Math.floor(Math.random() * 45) + 1);
+        }
+        return Array.from(numbers).sort((a, b) => a - b);
     }
-    return Array.from(numbers).sort((a, b) => a - b);
-}
 
-generateLottoButton.addEventListener('click', () => {
-    lottoResults.innerHTML = ''; // Clear previous results
-    
-    for (let i = 0; i < 5; i++) {
-        const set = generateLottoSet();
+    function createRow(index) {
+        const numbers = generateLottoNumbers();
         const row = document.createElement('div');
         row.className = 'lotto-row';
         
-        set.forEach(num => {
+        numbers.forEach((num, i) => {
             const ball = document.createElement('div');
-            ball.className = `lotto-ball ${getBallClass(num)}`;
+            ball.className = `ball ${getBallClass(num)}`;
             ball.textContent = num;
+            ball.style.transitionDelay = `${i * 0.1}s`;
             row.appendChild(ball);
         });
-        
-        lottoResults.appendChild(row);
+
+        return row;
     }
+
+    generateBtn.addEventListener('click', () => {
+        // Clear previous results with a quick fade
+        resultsContainer.innerHTML = '';
+        
+        // Generate 3 sets
+        for (let i = 0; i < 3; i++) {
+            const row = createRow(i);
+            resultsContainer.appendChild(row);
+            
+            // Trigger animation
+            setTimeout(() => {
+                row.classList.add('show');
+            }, i * 200);
+        }
+    });
 });
