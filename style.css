@@ -1,1 +1,46 @@
-/* Add styles here */
+1body {
+    font-family: sans-serif;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    background-color: #f0f0f0;
+}
+
+#game-container {
+    display: flex;
+    gap: 20px;
+}
+
+#game-canvas {
+    border: 1px solid black;
+    background-color: #fff;
+}
+
+#game-controls {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+#game-stats {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+}
+
+#tower-selection {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+}
+
+.tower-button, #start-round {
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+.tower-button:hover, #start-round:hover {
+    background-color: #eee;
+}

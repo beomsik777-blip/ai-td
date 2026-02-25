@@ -1,14 +1,28 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Hello World</title>
-  <link href='/style.css' rel='stylesheet'>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Random Tower Defense</title>
+    <link rel="stylesheet" href="style.css">
 </head>
 <body>
-  <h1>Hello, world!</h1>
-  <button onclick="console.log('hello');">Press me</button>
-  <script defer type="text/javascript" src="/main.js"></script>
+    <h1>Random Tower Defense</h1>
+    <div id="game-container">
+        <canvas id="game-canvas" width="800" height="600"></canvas>
+        <div id="game-controls">
+            <div id="game-stats">
+                <span>Round: <span id="round">1</span>/5</span>
+                <span>Lives: <span id="lives">20</span></span>
+                <span>Money: <span id="money">100</span></span>
+            </div>
+            <div id="tower-selection">
+                <button class="tower-button" data-tower="arrow">Arrow Tower (10g)</button>
+                <button class="tower-button" data-tower="cannon">Cannon Tower (20g)</button>
+            </div>
+            <button id="start-round">Start Round</button>
+        </div>
+    </div>
+    <script src="main.js"></script>
 </body>
 </html>
