@@ -1,35 +1,58 @@
-// 1. Define switchView globally and attach to window explicitly
-window.switchView = function(viewId) {
-    console.log("Switching to view:", viewId);
+// Function to switch between views
+function switchView(viewId) {
+    console.log("Attempting to switch to:", viewId);
+    
+    // 1. All views and buttons
     const views = document.querySelectorAll('.view');
     const navButtons = document.querySelectorAll('.nav-btn');
 
-    // Hide all views and deactivate buttons
+    // 2. Reset states
     views.forEach(v => v.classList.remove('active'));
     navButtons.forEach(b => b.classList.remove('active'));
 
-    // Show target view
+    // 3. Activate target view
     const targetView = document.getElementById(viewId);
     if (targetView) {
         targetView.classList.add('active');
-    } else {
-        console.error("View not found:", viewId);
+        console.log("View activated:", viewId);
     }
 
-    // Update nav button state
+    // 4. Activate target nav button
     const targetBtn = document.querySelector(`.nav-btn[data-target="${viewId}"]`);
     if (targetBtn) {
         targetBtn.classList.add('active');
     }
 
-    // Scroll to top
+    // 5. Scroll to top
     window.scrollTo({ top: 0, behavior: 'smooth' });
-};
+}
 
 document.addEventListener('DOMContentLoaded', () => {
-    console.log("DOM fully loaded and parsed");
+    console.log("Premium Hub Initialized");
 
-    // Lotto Generator Logic
+    // --- Navigation ---
+    document.querySelectorAll('.nav-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+            switchView(btn.dataset.target);
+        });
+    });
+
+    // --- Hero Buttons (Home Screen) ---
+    const heroLottoBtn = document.getElementById('hero-lotto-btn');
+    const heroAboutBtn = document.getElementById('hero-about-btn');
+    const backHomeBtn = document.getElementById('back-home-btn');
+
+    if (heroLottoBtn) {
+        heroLottoBtn.addEventListener('click', () => switchView('lotto-view'));
+    }
+    if (heroAboutBtn) {
+        heroAboutBtn.addEventListener('click', () => switchView('about-view'));
+    }
+    if (backHomeBtn) {
+        backHomeBtn.addEventListener('click', () => switchView('home-view'));
+    }
+
+    // --- Lotto Generator ---
     const generateBtn = document.getElementById('generate-btn');
     const resultsContainer = document.getElementById('results-container');
 
@@ -49,40 +72,25 @@ document.addEventListener('DOMContentLoaded', () => {
         return Array.from(numbers).sort((a, b) => a - b);
     }
 
-    function createRow() {
-        const numbers = generateLottoNumbers();
-        const row = document.createElement('div');
-        row.className = 'lotto-row';
-        
-        numbers.forEach((num, i) => {
-            const ball = document.createElement('div');
-            ball.className = `ball ${getBallClass(num)}`;
-            ball.textContent = num;
-            ball.style.transitionDelay = `${i * 0.1}s`;
-            row.appendChild(ball);
-        });
-
-        return row;
-    }
-
-    if (generateBtn) {
+    if (generateBtn && resultsContainer) {
         generateBtn.addEventListener('click', () => {
             resultsContainer.innerHTML = '';
             for (let i = 0; i < 3; i++) {
-                const row = createRow();
+                const numbers = generateLottoNumbers();
+                const row = document.createElement('div');
+                row.className = 'lotto-row';
+                
+                numbers.forEach((num, delayIdx) => {
+                    const ball = document.createElement('div');
+                    ball.className = `ball ${getBallClass(num)}`;
+                    ball.textContent = num;
+                    ball.style.transitionDelay = `${delayIdx * 0.1}s`;
+                    row.appendChild(ball);
+                });
+
                 resultsContainer.appendChild(row);
-                setTimeout(() => {
-                    row.classList.add('show');
-                }, i * 200);
+                setTimeout(() => row.classList.add('show'), i * 200);
             }
         });
     }
-
-    // Ensure Navbar buttons work via event listeners too
-    document.querySelectorAll('.nav-btn').forEach(btn => {
-        btn.addEventListener('click', (e) => {
-            const target = e.currentTarget.getAttribute('data-target');
-            window.switchView(target);
-        });
-    });
 });
