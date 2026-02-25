@@ -182,34 +182,15 @@ body {
     max-width: 900px;
     margin: 0 auto 80px;
     position: relative;
-    z-index: 2;
-}
-
-.hero-title {
-    font-family: 'Orbitron', sans-serif;
-    font-size: 5rem;
-    line-height: 1.1;
-    margin-bottom: 30px;
-    font-weight: 700;
-}
-
-.highlight {
-    background: linear-gradient(to right, var(--gold), #fff);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-}
-
-.hero-desc {
-    font-size: 1.2rem;
-    color: #aaa;
-    margin-bottom: 40px;
-    line-height: 1.6;
+    z-index: 10;
 }
 
 .hero-btns {
     display: flex;
     justify-content: center;
     gap: 20px;
+    position: relative;
+    z-index: 20;
 }
 
 .primary-btn {
