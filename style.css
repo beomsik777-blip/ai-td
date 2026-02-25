@@ -44,46 +44,73 @@ body {
     z-index: 2;
 }
 
+.prize-info h2 {
+    font-family: 'Orbitron', sans-serif;
+    color: var(--gold);
+    margin-bottom: 30px;
+    letter-spacing: 2px;
+}
+
+.prize-table {
+    background: var(--card-bg);
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    border-radius: 20px;
+    padding: 20px;
+    margin-bottom: 40px;
+}
+
+.prize-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 15px 20px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.prize-row:last-child {
+    border-bottom: none;
+}
+
+.prize-rank {
+    font-weight: 700;
+    color: var(--gold);
+    width: 60px;
+    text-align: left;
+}
+
+.prize-desc {
+    flex: 1;
+    text-align: left;
+    color: #ccc;
+    padding-left: 20px;
+}
+
+.prize-badge {
+    font-size: 0.7rem;
+    padding: 3px 10px;
+    border-radius: 20px;
+    background: rgba(255, 255, 255, 0.1);
+    color: #888;
+    font-family: 'Orbitron', sans-serif;
+}
+
+.prize-badge.gold {
+    background: var(--gold);
+    color: #000;
+}
+
 .about-content {
     margin: 40px 0;
     display: flex;
     flex-direction: column;
-    gap: 50px;
+    gap: 30px;
 }
 
 .about-text {
-    font-size: 1.3rem;
+    font-size: 1.1rem;
     line-height: 1.8;
-    color: #ddd;
+    color: #aaa;
     font-weight: 300;
-}
-
-.stats-grid {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 20px;
-}
-
-.stat-item {
-    background: var(--card-bg);
-    padding: 30px;
-    border-radius: 15px;
-    border: 1px solid rgba(212, 175, 55, 0.1);
-}
-
-.stat-num {
-    display: block;
-    font-family: 'Orbitron', sans-serif;
-    font-size: 2.5rem;
-    color: var(--gold);
-    margin-bottom: 5px;
-}
-
-.stat-label {
-    color: #888;
-    text-transform: uppercase;
-    letter-spacing: 2px;
-    font-size: 0.8rem;
 }
 
 @media (max-width: 600px) {
