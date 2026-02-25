@@ -1,31 +1,35 @@
-document.addEventListener('DOMContentLoaded', () => {
-    // View Switching Logic
-    const navButtons = document.querySelectorAll('.nav-btn');
+// Global SwitchView Function
+function switchView(viewId) {
     const views = document.querySelectorAll('.view');
+    const navButtons = document.querySelectorAll('.nav-btn');
 
-    function switchView(viewId) {
-        // Remove active class from all views and buttons
-        views.forEach(view => view.classList.remove('active'));
-        navButtons.forEach(btn => btn.classList.remove('active'));
+    // 1. Hide all views and deactivate all nav buttons
+    views.forEach(view => {
+        view.classList.remove('active');
+    });
+    navButtons.forEach(btn => {
+        btn.classList.remove('active');
+    });
 
-        // Activate the target view and corresponding nav button
-        const targetView = document.getElementById(viewId);
-        if (targetView) {
-            targetView.classList.add('active');
-        }
-
-        const targetBtn = document.querySelector(`.nav-btn[data-target="${viewId}"]`);
-        if (targetBtn) {
-            targetBtn.classList.add('active');
-        }
-        
-        // Scroll to top when switching
-        window.scrollTo({ top: 0, behavior: 'smooth' });
+    // 2. Show the target view
+    const targetView = document.getElementById(viewId);
+    if (targetView) {
+        targetView.classList.add('active');
     }
 
-    // Attach switchView to global for inline onclick
-    window.switchView = switchView;
+    // 3. Highlight the corresponding nav button
+    const targetBtn = document.querySelector(`.nav-btn[data-target="${viewId}"]`);
+    if (targetBtn) {
+        targetBtn.classList.add('active');
+    }
 
+    // 4. Smooth scroll to top
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+    // Navigation Buttons Click Event
+    const navButtons = document.querySelectorAll('.nav-btn');
     navButtons.forEach(button => {
         button.addEventListener('click', () => {
             const target = button.dataset.target;
@@ -77,9 +81,12 @@ document.addEventListener('DOMContentLoaded', () => {
                 const row = createRow();
                 resultsContainer.appendChild(row);
                 
-                setTimeout(() => {
-                    row.classList.add('show');
-                }, i * 200);
+                // Trigger animation after a short delay for DOM insertion
+                requestAnimationFrame(() => {
+                    setTimeout(() => {
+                        row.classList.add('show');
+                    }, i * 200);
+                });
             }
         });
     }
