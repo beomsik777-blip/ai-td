@@ -45,3 +45,42 @@ towerButtons.forEach(button => {
 
 // Start the game loop
 // gameLoop();
+
+// Lotto Generator Logic
+const generateLottoButton = document.getElementById('generate-lotto');
+const lottoResults = document.getElementById('lotto-results');
+
+function getBallClass(num) {
+    if (num <= 10) return 'ball-1-10';
+    if (num <= 20) return 'ball-11-20';
+    if (num <= 30) return 'ball-21-30';
+    if (num <= 40) return 'ball-31-40';
+    return 'ball-41-45';
+}
+
+function generateLottoSet() {
+    const numbers = new Set();
+    while (numbers.size < 6) {
+        numbers.add(Math.floor(Math.random() * 45) + 1);
+    }
+    return Array.from(numbers).sort((a, b) => a - b);
+}
+
+generateLottoButton.addEventListener('click', () => {
+    lottoResults.innerHTML = ''; // Clear previous results
+    
+    for (let i = 0; i < 5; i++) {
+        const set = generateLottoSet();
+        const row = document.createElement('div');
+        row.className = 'lotto-row';
+        
+        set.forEach(num => {
+            const ball = document.createElement('div');
+            ball.className = `lotto-ball ${getBallClass(num)}`;
+            ball.textContent = num;
+            row.appendChild(ball);
+        });
+        
+        lottoResults.appendChild(row);
+    }
+});

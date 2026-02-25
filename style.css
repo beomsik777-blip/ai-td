@@ -44,3 +44,56 @@
 .tower-button:hover, #start-round:hover {
     background-color: #eee;
 }
+
+#lotto-container {
+    margin-top: 30px;
+    padding: 20px;
+    background-color: #fff;
+    border-radius: 10px;
+    box-shadow: 0 0 10px rgba(0,0,0,0.1);
+    text-align: center;
+    width: 100%;
+    max-width: 600px;
+}
+
+#generate-lotto {
+    padding: 10px 20px;
+    font-size: 16px;
+    background-color: #4CAF50;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    margin-bottom: 20px;
+}
+
+#generate-lotto:hover {
+    background-color: #45a049;
+}
+
+.lotto-row {
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+    margin-bottom: 10px;
+}
+
+.lotto-ball {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-weight: bold;
+    font-size: 18px;
+    box-shadow: 2px 2px 5px rgba(0,0,0,0.2);
+}
+
+/* Colors for different number ranges */
+.ball-1-10 { background-color: #fbc400; }
+.ball-11-20 { background-color: #69c8f2; }
+.ball-21-30 { background-color: #ff7272; }
+.ball-31-40 { background-color: #aaa; }
+.ball-41-45 { background-color: #b0d840; }
