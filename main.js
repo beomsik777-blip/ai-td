@@ -4,22 +4,23 @@ document.addEventListener('DOMContentLoaded', () => {
     const views = document.querySelectorAll('.view');
 
     function switchView(viewId) {
-        views.forEach(view => {
-            view.classList.remove('active');
-            if (view.id === viewId) {
-                setTimeout(() => view.classList.add('active'), 50);
-            }
-        });
+        // Remove active class from all views and buttons
+        views.forEach(view => view.classList.remove('active'));
+        navButtons.forEach(btn => btn.classList.remove('active'));
 
-        navButtons.forEach(btn => {
-            btn.classList.remove('active');
-            if (btn.dataset.target === viewId) {
-                btn.classList.add('active');
-            }
-        });
+        // Activate the target view and corresponding nav button
+        const targetView = document.getElementById(viewId);
+        if (targetView) {
+            targetView.classList.add('active');
+        }
+
+        const targetBtn = document.querySelector(`.nav-btn[data-target="${viewId}"]`);
+        if (targetBtn) {
+            targetBtn.classList.add('active');
+        }
         
         // Scroll to top when switching
-        window.scrollTo(0, 0);
+        window.scrollTo({ top: 0, behavior: 'smooth' });
     }
 
     // Attach switchView to global for inline onclick
