@@ -41,6 +41,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const heroLottoBtn = document.getElementById('hero-lotto-btn');
     const heroAboutBtn = document.getElementById('hero-about-btn');
     const backHomeBtn = document.getElementById('back-home-btn');
+    const backHomeLottoBtn = document.getElementById('back-home-lotto-btn');
 
     if (heroLottoBtn) {
         heroLottoBtn.addEventListener('click', () => switchView('lotto-view'));
@@ -50,6 +51,9 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     if (backHomeBtn) {
         backHomeBtn.addEventListener('click', () => switchView('home-view'));
+    }
+    if (backHomeLottoBtn) {
+        backHomeLottoBtn.addEventListener('click', () => switchView('home-view'));
     }
 
     // --- Lotto Generator ---
