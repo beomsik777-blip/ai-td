@@ -3,29 +3,71 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Premium Lotto Generator</title>
+    <title>Premium Hub</title>
     <link rel="stylesheet" href="style.css">
-    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700&family=Noto+Sans+KR:wght@300;500;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700&family=Noto+Sans+KR:wght@300;500;700&family=Orbitron:wght@400;700&display=swap" rel="stylesheet">
 </head>
 <body>
     <div class="overlay"></div>
-    <div class="main-container">
-        <header>
-            <h1 class="title">PREMIUM LOTTO</h1>
-            <p class="subtitle">당신의 행운을 위한 고품격 선택</p>
-        </header>
-
-        <div class="generator-section">
-            <button id="generate-btn" class="gold-button">
-                <span>번호 생성하기</span>
-                <div class="shimmer"></div>
-            </button>
+    
+    <nav class="navbar">
+        <div class="nav-logo">PREMIUM HUB</div>
+        <div class="nav-links">
+            <button class="nav-btn active" data-target="home-view">HOME</button>
+            <button class="nav-btn" data-target="lotto-view">LOTTO</button>
         </div>
+    </nav>
 
-        <div id="results-container" class="results-container">
-            <!-- 3 sets will appear here -->
-        </div>
-    </div>
+    <main class="content-wrapper">
+        <!-- Home View -->
+        <section id="home-view" class="view active">
+            <div class="hero-section">
+                <h1 class="hero-title">Experience the<br><span class="highlight">Future</span></h1>
+                <p class="hero-desc">최첨단 기술과 감각적인 디자인의 조화.<br>당신만을 위한 프리미엄 서비스를 지금 바로 경험하세요.</p>
+                <div class="hero-btns">
+                    <button class="primary-btn" onclick="switchView('lotto-view')">로또 추첨하러 가기</button>
+                    <button class="secondary-btn">더 알아보기</button>
+                </div>
+            </div>
+            <div class="feature-grid">
+                <div class="feature-card">
+                    <div class="icon">✨</div>
+                    <h3>Premium Design</h3>
+                    <p>심미성과 기능성을 동시에 잡은 인터페이스</p>
+                </div>
+                <div class="feature-card">
+                    <div class="icon">🚀</div>
+                    <h3>Fast Performance</h3>
+                    <p>최적화된 성능으로 즐기는 끊김없는 경험</p>
+                </div>
+                <div class="feature-card">
+                    <div class="icon">🔒</div>
+                    <h3>Secure System</h3>
+                    <p>신뢰할 수 있는 데이터 처리와 보안 정책</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Lotto View -->
+        <section id="lotto-view" class="view">
+            <header>
+                <h1 class="title">PREMIUM LOTTO</h1>
+                <p class="subtitle">당신의 행운을 위한 고품격 선택</p>
+            </header>
+
+            <div class="generator-section">
+                <button id="generate-btn" class="gold-button">
+                    <span>번호 생성하기 (3세트)</span>
+                    <div class="shimmer"></div>
+                </button>
+            </div>
+
+            <div id="results-container" class="results-container">
+                <!-- 3 sets will appear here -->
+            </div>
+        </section>
+    </main>
+
     <script src="main.js"></script>
 </body>
 </html>

@@ -2,8 +2,9 @@
     --gold: #d4af37;
     --gold-light: #f9f295;
     --gold-dark: #aa841e;
-    --dark-bg: #0f0f0f;
-    --card-bg: rgba(255, 255, 255, 0.05);
+    --dark-bg: #0a0a0b;
+    --card-bg: rgba(255, 255, 255, 0.03);
+    --accent: #00d2ff;
 }
 
 * {
@@ -13,17 +14,14 @@
 }
 
 body {
-    font-family: 'Noto+Sans+KR', sans-serif;
+    font-family: 'Noto Sans KR', sans-serif;
     background-color: var(--dark-bg);
-    background-image: url('https://images.unsplash.com/photo-1614850523296-d8c1af93d400?q=80&w=2070&auto=format&fit=crop');
+    background-image: url('https://images.unsplash.com/photo-1451187580459-43490279c0fa?q=80&w=2072&auto=format&fit=crop');
     background-size: cover;
     background-position: center;
     background-attachment: fixed;
     color: white;
     min-height: 100vh;
-    display: flex;
-    justify-content: center;
-    align-items: center;
     overflow-x: hidden;
 }
 
@@ -33,21 +31,167 @@ body {
     left: 0;
     width: 100%;
     height: 100%;
-    background: radial-gradient(circle, rgba(0,0,0,0.6) 0%, rgba(0,0,0,0.9) 100%);
+    background: radial-gradient(circle at center, rgba(0,0,0,0.4) 0%, rgba(0,0,0,0.95) 100%);
     z-index: 1;
 }
 
-.main-container {
-    position: relative;
-    z-index: 2;
-    width: 90%;
-    max-width: 800px;
-    padding: 40px;
-    text-align: center;
+/* Navbar */
+.navbar {
+    position: fixed;
+    top: 0;
+    width: 100%;
+    padding: 20px 50px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    z-index: 100;
+    background: rgba(0,0,0,0.5);
+    backdrop-filter: blur(10px);
+    border-bottom: 1px solid rgba(255,255,255,0.05);
 }
 
-header {
-    margin-bottom: 50px;
+.nav-logo {
+    font-family: 'Orbitron', sans-serif;
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--gold);
+    letter-spacing: 2px;
+}
+
+.nav-links {
+    display: flex;
+    gap: 20px;
+}
+
+.nav-btn {
+    background: none;
+    border: none;
+    color: #888;
+    font-family: 'Orbitron', sans-serif;
+    font-size: 0.9rem;
+    cursor: pointer;
+    transition: all 0.3s;
+    padding: 5px 10px;
+}
+
+.nav-btn:hover, .nav-btn.active {
+    color: var(--gold);
+    text-shadow: 0 0 10px rgba(212, 175, 55, 0.5);
+}
+
+/* View Control */
+.view {
+    display: none;
+    opacity: 0;
+    transform: translateY(20px);
+    transition: all 0.5s ease;
+}
+
+.view.active {
+    display: block;
+    opacity: 1;
+    transform: translateY(0);
+    padding-top: 120px;
+}
+
+/* Home View - Hero Section */
+.hero-section {
+    text-align: center;
+    max-width: 900px;
+    margin: 0 auto 80px;
+    position: relative;
+    z-index: 2;
+}
+
+.hero-title {
+    font-family: 'Orbitron', sans-serif;
+    font-size: 5rem;
+    line-height: 1.1;
+    margin-bottom: 30px;
+    font-weight: 700;
+}
+
+.highlight {
+    background: linear-gradient(to right, var(--gold), #fff);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
+.hero-desc {
+    font-size: 1.2rem;
+    color: #aaa;
+    margin-bottom: 40px;
+    line-height: 1.6;
+}
+
+.hero-btns {
+    display: flex;
+    justify-content: center;
+    gap: 20px;
+}
+
+.primary-btn {
+    background: var(--gold);
+    color: #000;
+    padding: 15px 35px;
+    border: none;
+    border-radius: 5px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.3s;
+}
+
+.secondary-btn {
+    background: rgba(255,255,255,0.05);
+    color: #fff;
+    padding: 15px 35px;
+    border: 1px solid rgba(255,255,255,0.2);
+    border-radius: 5px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.3s;
+}
+
+.primary-btn:hover { background: var(--gold-light); transform: translateY(-2px); }
+.secondary-btn:hover { background: rgba(255,255,255,0.1); transform: translateY(-2px); }
+
+/* Feature Grid */
+.feature-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 30px;
+    max-width: 1000px;
+    margin: 0 auto;
+    position: relative;
+    z-index: 2;
+}
+
+.feature-card {
+    background: var(--card-bg);
+    border: 1px solid rgba(255,255,255,0.05);
+    padding: 40px;
+    border-radius: 20px;
+    text-align: center;
+    transition: all 0.3s;
+}
+
+.feature-card:hover {
+    background: rgba(255,255,255,0.08);
+    transform: translateY(-10px);
+    border-color: var(--gold);
+}
+
+.feature-card .icon { font-size: 2.5rem; margin-bottom: 20px; }
+.feature-card h3 { font-family: 'Orbitron', sans-serif; margin-bottom: 15px; color: var(--gold); }
+.feature-card p { color: #888; font-size: 0.9rem; line-height: 1.6; }
+
+/* Lotto View Styles (Kept from previous) */
+#lotto-view {
+    text-align: center;
+    max-width: 800px;
+    margin: 0 auto;
+    position: relative;
+    z-index: 2;
 }
 
 .title {
@@ -59,49 +203,28 @@ header {
     margin-bottom: 10px;
 }
 
-.subtitle {
-    font-weight: 300;
-    letter-spacing: 2px;
-    color: #ccc;
-}
-
-.generator-section {
-    margin-bottom: 40px;
-}
+.subtitle { font-weight: 300; letter-spacing: 2px; color: #ccc; margin-bottom: 40px; }
 
 .gold-button {
     background: linear-gradient(45deg, var(--gold-dark), var(--gold-light), var(--gold-dark));
     border: none;
     padding: 15px 40px;
-    font-size: 1.2rem;
+    font-size: 1.1rem;
     font-weight: 700;
     color: #000;
     cursor: pointer;
     border-radius: 50px;
     position: relative;
     overflow: hidden;
-    transition: transform 0.3s, box-shadow 0.3s;
+    transition: all 0.3s;
     box-shadow: 0 5px 20px rgba(0,0,0,0.5);
-}
-
-.gold-button:hover {
-    transform: translateY(-3px);
-    box-shadow: 0 8px 25px rgba(212, 175, 55, 0.4);
-}
-
-.gold-button:active {
-    transform: translateY(-1px);
+    margin-bottom: 40px;
 }
 
 .shimmer {
-    position: absolute;
-    top: -50%;
-    left: -50%;
-    width: 200%;
-    height: 200%;
+    position: absolute; top: -50%; left: -50%; width: 200%; height: 200%;
     background: linear-gradient(45deg, transparent, rgba(255,255,255,0.4), transparent);
-    transform: rotate(45deg);
-    animation: shimmer 3s infinite;
+    transform: rotate(45deg); animation: shimmer 3s infinite;
 }
 
 @keyframes shimmer {
@@ -109,54 +232,32 @@ header {
     100% { transform: translate(100%, 100%) rotate(45deg); }
 }
 
-.results-container {
-    display: flex;
-    flex-direction: column;
-    gap: 20px;
-}
-
+.results-container { display: flex; flex-direction: column; gap: 20px; }
 .lotto-row {
-    background: var(--card-bg);
-    backdrop-filter: blur(10px);
+    background: var(--card-bg); backdrop-filter: blur(10px);
     border: 1px solid rgba(212, 175, 55, 0.2);
-    padding: 20px;
-    border-radius: 15px;
-    display: flex;
-    justify-content: center;
-    gap: 15px;
-    opacity: 0;
-    transform: translateY(20px);
-    transition: all 0.5s ease-out;
+    padding: 20px; border-radius: 15px;
+    display: flex; justify-content: center; gap: 15px;
+    opacity: 0; transform: translateY(20px); transition: all 0.5s ease-out;
 }
-
-.lotto-row.show {
-    opacity: 1;
-    transform: translateY(0);
-}
+.lotto-row.show { opacity: 1; transform: translateY(0); }
 
 .ball {
-    width: 50px;
-    height: 50px;
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-weight: 700;
-    font-size: 1.2rem;
-    color: #fff;
+    width: 50px; height: 50px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-weight: 700; font-size: 1.2rem; color: #fff;
     border: 2px solid rgba(255,255,255,0.1);
     box-shadow: inset -5px -5px 10px rgba(0,0,0,0.5), 5px 5px 15px rgba(0,0,0,0.3);
 }
 
-/* Luxury Ball Colors */
-.ball-1 { background: radial-gradient(circle at 30% 30%, #ffd700, #b8860b); } /* Gold */
-.ball-2 { background: radial-gradient(circle at 30% 30%, #4facfe, #00f2fe); } /* Blue */
-.ball-3 { background: radial-gradient(circle at 30% 30%, #ff0844, #ffb199); } /* Red */
-.ball-4 { background: radial-gradient(circle at 30% 30%, #c1c1c1, #505050); } /* Gray */
-.ball-5 { background: radial-gradient(circle at 30% 30%, #b3ffab, #12fff7); } /* Green */
+.ball-1 { background: radial-gradient(circle at 30% 30%, #ffd700, #b8860b); }
+.ball-2 { background: radial-gradient(circle at 30% 30%, #4facfe, #00f2fe); }
+.ball-3 { background: radial-gradient(circle at 30% 30%, #ff0844, #ffb199); }
+.ball-4 { background: radial-gradient(circle at 30% 30%, #c1c1c1, #505050); }
+.ball-5 { background: radial-gradient(circle at 30% 30%, #b3ffab, #12fff7); }
 
-@media (max-width: 600px) {
-    .title { font-size: 2.2rem; }
-    .ball { width: 40px; height: 40px; font-size: 1rem; }
-    .lotto-row { gap: 8px; padding: 15px; }
+@media (max-width: 900px) {
+    .hero-title { font-size: 3rem; }
+    .feature-grid { grid-template-columns: 1fr; padding: 0 20px; }
+    .navbar { padding: 20px; }
 }

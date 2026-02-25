@@ -1,4 +1,38 @@
 document.addEventListener('DOMContentLoaded', () => {
+    // View Switching Logic
+    const navButtons = document.querySelectorAll('.nav-btn');
+    const views = document.querySelectorAll('.view');
+
+    function switchView(viewId) {
+        views.forEach(view => {
+            view.classList.remove('active');
+            if (view.id === viewId) {
+                setTimeout(() => view.classList.add('active'), 50);
+            }
+        });
+
+        navButtons.forEach(btn => {
+            btn.classList.remove('active');
+            if (btn.dataset.target === viewId) {
+                btn.classList.add('active');
+            }
+        });
+        
+        // Scroll to top when switching
+        window.scrollTo(0, 0);
+    }
+
+    // Attach switchView to global for inline onclick
+    window.switchView = switchView;
+
+    navButtons.forEach(button => {
+        button.addEventListener('click', () => {
+            const target = button.dataset.target;
+            switchView(target);
+        });
+    });
+
+    // Lotto Generator Logic
     const generateBtn = document.getElementById('generate-btn');
     const resultsContainer = document.getElementById('results-container');
 
@@ -18,7 +52,7 @@ document.addEventListener('DOMContentLoaded', () => {
         return Array.from(numbers).sort((a, b) => a - b);
     }
 
-    function createRow(index) {
+    function createRow() {
         const numbers = generateLottoNumbers();
         const row = document.createElement('div');
         row.className = 'lotto-row';
@@ -34,19 +68,18 @@ document.addEventListener('DOMContentLoaded', () => {
         return row;
     }
 
-    generateBtn.addEventListener('click', () => {
-        // Clear previous results with a quick fade
-        resultsContainer.innerHTML = '';
-        
-        // Generate 3 sets
-        for (let i = 0; i < 3; i++) {
-            const row = createRow(i);
-            resultsContainer.appendChild(row);
+    if (generateBtn) {
+        generateBtn.addEventListener('click', () => {
+            resultsContainer.innerHTML = '';
             
-            // Trigger animation
-            setTimeout(() => {
-                row.classList.add('show');
-            }, i * 200);
-        }
-    });
+            for (let i = 0; i < 3; i++) {
+                const row = createRow();
+                resultsContainer.appendChild(row);
+                
+                setTimeout(() => {
+                    row.classList.add('show');
+                }, i * 200);
+            }
+        });
+    }
 });
