@@ -2,119 +2,581 @@
 <html lang="ko">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Premium Lotto Hub</title>
-    <link rel="stylesheet" href="style.css">
-    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700&family=Noto+Sans+KR:wght@300;500;700&family=Orbitron:wght@400;700&display=swap" rel="stylesheet">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Hero Defense TD - Mobile Optimized</title>
+    <style>
+        :root {
+            --bg-color: #0f172a;
+            --sidebar-color: #1e293b;
+            --accent-color: #38bdf8;
+            --text-color: #f8fafc;
+        }
+
+        body {
+            margin: 0;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            font-family: 'Pretendard', sans-serif;
+            display: flex;
+            height: 100vh;
+            overflow: hidden;
+            touch-action: manipulation;
+        }
+
+        #game-container {
+            flex: 1;
+            position: relative;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background: radial-gradient(circle, #1e293b 0%, #0f172a 100%);
+        }
+
+        canvas {
+            background-color: rgba(0, 0, 0, 0.9);
+            border: 3px solid var(--accent-color);
+            box-shadow: 0 0 30px rgba(56, 189, 248, 0.3);
+            cursor: crosshair;
+            max-width: 100%;
+            max-height: 100%;
+        }
+
+        #ui-panel {
+            width: 320px;
+            background-color: var(--sidebar-color);
+            border-left: 2px solid #334155;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .stat-box {
+            background: rgba(0, 0, 0, 0.4);
+            padding: 12px;
+            border-radius: 12px;
+            border-left: 4px solid var(--accent-color);
+        }
+
+        .stat-label { font-size: 0.75rem; color: #94a3b8; text-transform: uppercase; }
+        .stat-value { font-size: 1.4rem; font-weight: bold; color: var(--accent-color); }
+
+        .tower-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 10px;
+        }
+
+        .tower-card {
+            background: #334155;
+            padding: 15px 5px;
+            border-radius: 12px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            border: 2px solid transparent;
+            text-align: center;
+        }
+
+        .tower-card:hover { border-color: var(--accent-color); background: #475569; }
+        .tower-card.selected { border-color: #fbbf24; background: #475569; box-shadow: 0 0 15px rgba(251, 191, 36, 0.5); }
+
+        .tower-icon { font-size: 2.2rem; margin-bottom: 8px; }
+        .tower-name { font-size: 0.85rem; font-weight: 600; color: #e2e8f0; }
+        .tower-cost { font-size: 0.75rem; color: #fbbf24; margin-top: 4px; }
+
+        button#wave-start {
+            margin-top: auto;
+            padding: 18px;
+            background: linear-gradient(135deg, #0ea5e9, #38bdf8);
+            border: none;
+            border-radius: 12px;
+            color: #0f172a;
+            font-weight: 800;
+            font-size: 1.1rem;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+
+        button#wave-start:disabled { background: #475569; cursor: not-allowed; opacity: 0.7; }
+
+        #audio-controls {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            z-index: 100;
+        }
+
+        .audio-btn {
+            background: rgba(0,0,0,0.5);
+            border: 1px solid var(--accent-color);
+            color: white;
+            padding: 5px 10px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 0.8rem;
+        }
+
+        #hero-menu {
+            position: absolute;
+            display: none;
+            flex-direction: column;
+            gap: 10px;
+            z-index: 200;
+            pointer-events: auto;
+        }
+
+        .menu-btn {
+            width: 50px;
+            height: 50px;
+            border-radius: 25px;
+            border: none;
+            color: white;
+            font-size: 1.2rem;
+            cursor: pointer;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.5);
+            transition: transform 0.2s;
+        }
+
+        .menu-btn:active { transform: scale(0.9); }
+        .btn-up { background: #10b981; }
+        .btn-sell { background: #ef4444; }
+    </style>
 </head>
 <body>
-    <div class="overlay"></div>
-    
-    <nav class="navbar">
-        <div class="nav-logo" onclick="location.reload()" style="cursor:pointer">PREMIUM HUB</div>
-        <div class="nav-links">
-            <button class="nav-btn active" data-target="home-view">HOME</button>
-            <button class="nav-btn" data-target="about-view">ABOUT</button>
-            <button class="nav-btn" data-target="lotto-view">LOTTO</button>
+
+    <div id="game-container">
+        <div id="audio-controls">
+            <button class="audio-btn" onclick="toggleMute()" id="mute-btn">🎵 Music On</button>
         </div>
-    </nav>
+        
+        <!-- 모바일용 영웅 조작 메뉴 -->
+        <div id="hero-menu">
+            <button class="menu-btn btn-up" onclick="handleMenuAction('upgrade')" id="menu-up-btn">⬆️</button>
+            <button class="menu-btn btn-sell" onclick="handleMenuAction('sell')">💰</button>
+        </div>
 
-    <main class="content-wrapper">
-        <!-- Home View -->
-        <section id="home-view" class="view active">
-            <div class="hero-section">
-                <h1 class="hero-title">당신의 행운을 여는<br>PREMIUM HUB</h1>
-                <p class="hero-desc">최첨단 알고리즘과 감각적인 디자인의 완벽한 조화.<br>오늘의 행운을 프리미엄 서비스와 함께 확인해보세요.</p>
-                <div class="hero-btns">
-                    <button class="primary-btn" id="hero-lotto-btn">로또 추첨하러 가기</button>
-                    <button class="secondary-btn" id="hero-about-btn">더 알아보기</button>
-                </div>
+        <canvas id="gameCanvas" width="800" height="600"></canvas>
+    </div>
+
+    <div id="ui-panel">
+        <h2 style="text-align:center; color: var(--accent-color); margin: 0 0 10px 0; letter-spacing: 2px;">HERO DEFENSE</h2>
+        
+        <div class="stat-box">
+            <div id="wave-display" class="stat-label">WAVE 1</div>
+            <div id="gold" class="stat-value">1,000</div>
+        </div>
+
+        <div class="stat-box">
+            <div class="stat-label">LIVES</div>
+            <div id="lives" class="stat-value">20</div>
+        </div>
+
+        <div class="tower-grid">
+            <div class="tower-card" onclick="selectTower('fire')">
+                <span class="tower-icon">🏹</span>
+                <span class="tower-name">화염 궁수</span>
+                <span class="tower-cost">100G</span>
             </div>
-            <div class="feature-grid">
-                <div class="feature-card">
-                    <div class="icon">✨</div>
-                    <h3>Premium Design</h3>
-                    <p>심미성과 기능성을 동시에 잡은 인터페이스</p>
-                </div>
-                <div class="feature-card">
-                    <div class="icon">🚀</div>
-                    <h3>Fast Performance</h3>
-                    <p>최적화된 성능으로 즐기는 끊김없는 경험</p>
-                </div>
-                <div class="feature-card">
-                    <div class="icon">🔒</div>
-                    <h3>Secure System</h3>
-                    <p>신뢰할 수 있는 데이터 처리와 보안 정책</p>
-                </div>
+            <div class="tower-card" onclick="selectTower('ice')">
+                <span class="tower-icon">🧙‍♀️</span>
+                <span class="tower-name">빙결 마법사</span>
+                <span class="tower-cost">120G</span>
             </div>
-        </section>
-
-        <!-- About View -->
-        <section id="about-view" class="view">
-            <div class="about-section">
-                <h1 class="title">LOTTO INFO</h1>
-                <div class="about-content">
-                    <div class="prize-info">
-                        <h2>로또 당첨 기준 안내</h2>
-                        <div class="prize-table">
-                            <div class="prize-row">
-                                <span class="prize-rank">1등</span>
-                                <span class="prize-desc">번호 6개 일치</span>
-                                <span class="prize-badge gold">JACKPOT</span>
-                            </div>
-                            <div class="prize-row">
-                                <span class="prize-rank">2등</span>
-                                <span class="prize-desc">번호 5개 + 보너스 번호 일치</span>
-                                <span class="prize-badge">HIGH</span>
-                            </div>
-                            <div class="prize-row">
-                                <span class="prize-rank">3등</span>
-                                <span class="prize-desc">번호 5개 일치</span>
-                                <span class="prize-badge">MID</span>
-                            </div>
-                            <div class="prize-row">
-                                <span class="prize-rank">4등</span>
-                                <span class="prize-desc">번호 4개 일치 (고정 5만원)</span>
-                                <span class="prize-badge">WIN</span>
-                            </div>
-                            <div class="prize-row">
-                                <span class="prize-rank">5등</span>
-                                <span class="prize-desc">번호 3개 일치 (고정 5천원)</span>
-                                <span class="prize-badge">WIN</span>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="about-text">
-                        <p>PREMIUM HUB는 당신의 당첨 확률을 높이기 위해 최적의 난수 알고리즘을 사용합니다.</p>
-                        <p>매주 새로운 행운의 주인공이 되어보세요.</p>
-                    </div>
-                </div>
-                <button class="primary-btn" id="back-home-btn">홈으로 돌아가기</button>
+            <div class="tower-card" onclick="selectTower('earth')">
+                <span class="tower-icon">🛡️</span>
+                <span class="tower-name">대지 기사</span>
+                <span class="tower-cost">150G</span>
             </div>
-        </section>
-
-        <!-- Lotto View -->
-        <section id="lotto-view" class="view">
-            <header>
-                <h1 class="title">PREMIUM LOTTO</h1>
-                <p class="subtitle">당신의 행운을 위한 고품격 선택</p>
-            </header>
-
-            <div class="generator-section">
-                <button id="generate-btn" class="gold-button">
-                    <span>번호 생성하기 (3세트)</span>
-                    <div class="shimmer"></div>
-                </button>
+            <div class="tower-card" onclick="selectTower('electric')">
+                <span class="tower-icon">🗡️</span>
+                <span class="tower-name">전기 암살자</span>
+                <span class="tower-cost">130G</span>
             </div>
+        </div>
 
-            <div id="results-container" class="results-container">
-                <!-- 3 sets will appear here -->
-            </div>
+        <button id="wave-start" onclick="startWave()">BATTLE START</button>
+    </div>
 
-            <button class="primary-btn" id="back-home-lotto-btn" style="margin-top: 50px;">홈으로 돌아가기</button>
-        </section>
-    </main>
+    <script>
+        let audioCtx;
+        const lobbyBGM = new Audio('https://www.soundhelix.com/examples/mp3/SoundHelix-Song-15.mp3');
+        const battleBGM = new Audio('https://www.soundhelix.com/examples/mp3/SoundHelix-Song-8.mp3');
+        lobbyBGM.loop = true; battleBGM.loop = true;
+        lobbyBGM.volume = 0.3; battleBGM.volume = 0.4;
 
-    <script src="main.js"></script>
+        let isMuted = false;
+        let audioInitialized = false;
+
+        function initAudio() {
+            if (audioInitialized) return;
+            audioInitialized = true;
+            audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            if (!isMuted) lobbyBGM.play();
+        }
+
+        function playSFX(type) {
+            if (!audioCtx || isMuted) return;
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
+            const now = audioCtx.currentTime;
+
+            switch(type) {
+                case 'select':
+                    osc.type = 'sine'; osc.frequency.setValueAtTime(800, now);
+                    gain.gain.setValueAtTime(0.1, now); gain.gain.linearRampToValueAtTime(0, now + 0.1);
+                    osc.start(now); osc.stop(now + 0.1);
+                    break;
+                case 'upgrade':
+                    osc.type = 'triangle'; osc.frequency.setValueAtTime(400, now);
+                    osc.frequency.exponentialRampToValueAtTime(1000, now + 0.2);
+                    gain.gain.setValueAtTime(0.1, now); gain.gain.linearRampToValueAtTime(0, now + 0.2);
+                    osc.start(now); osc.stop(now + 0.2);
+                    break;
+                case 'sell':
+                    osc.type = 'sine'; osc.frequency.setValueAtTime(600, now);
+                    osc.frequency.linearRampToValueAtTime(200, now + 0.1);
+                    gain.gain.setValueAtTime(0.1, now); gain.gain.linearRampToValueAtTime(0, now + 0.1);
+                    osc.start(now); osc.stop(now + 0.1);
+                    break;
+                case 'fire':
+                    osc.type = 'sawtooth'; osc.frequency.setValueAtTime(200, now);
+                    gain.gain.setValueAtTime(0.03, now); gain.gain.linearRampToValueAtTime(0, now + 0.1);
+                    osc.start(now); osc.stop(now + 0.1);
+                    break;
+                case 'ice':
+                    osc.type = 'sine'; osc.frequency.setValueAtTime(1200, now);
+                    gain.gain.setValueAtTime(0.03, now); gain.gain.linearRampToValueAtTime(0, now + 0.05);
+                    osc.start(now); osc.stop(now + 0.05);
+                    break;
+                case 'earth':
+                    osc.type = 'square'; osc.frequency.setValueAtTime(80, now);
+                    gain.gain.setValueAtTime(0.04, now); gain.gain.linearRampToValueAtTime(0, now + 0.15);
+                    osc.start(now); osc.stop(now + 0.15);
+                    break;
+                case 'electric':
+                    osc.type = 'sawtooth'; osc.frequency.setValueAtTime(1500, now);
+                    gain.gain.setValueAtTime(0.02, now); gain.gain.linearRampToValueAtTime(0, now + 0.03);
+                    osc.start(now); osc.stop(now + 0.03);
+                    break;
+            }
+        }
+
+        window.toggleMute = function() {
+            isMuted = !isMuted;
+            const btn = document.getElementById('mute-btn');
+            if (isMuted) { lobbyBGM.pause(); battleBGM.pause(); btn.textContent = "🔇 Music Off"; }
+            else { if (waveActive) battleBGM.play(); else lobbyBGM.play(); btn.textContent = "🎵 Music On"; }
+        };
+
+        function switchMusic(isBattle) {
+            if (isMuted) return;
+            if (isBattle) { lobbyBGM.pause(); lobbyBGM.currentTime = 0; battleBGM.play(); }
+            else { battleBGM.pause(); battleBGM.currentTime = 0; lobbyBGM.play(); }
+        }
+
+        window.selectTower = function(type) {
+            initAudio(); playSFX('select');
+            if (selectedTowerType === type) {
+                selectedTowerType = null;
+                document.querySelectorAll('.tower-card').forEach(card => card.classList.remove('selected'));
+            } else {
+                selectedTowerType = type;
+                closeHeroMenu();
+                document.querySelectorAll('.tower-card').forEach(card => {
+                    card.classList.remove('selected');
+                    if (card.innerText.includes(towerData[type].name)) card.classList.add('selected');
+                });
+            }
+        };
+
+        window.startWave = function() {
+            initAudio();
+            if (waveActive || spawning) return;
+            const path = findPath();
+            if (!path) return alert("입구가 막혔습니다!");
+            enemyPath = path; waveActive = true; spawning = true;
+            document.getElementById('wave-start').disabled = true;
+            waveDisplay.textContent = `WAVE ${waveLevel}`;
+            switchMusic(true);
+            
+            let enemyType = 'orc';
+            if (waveLevel % 5 === 0) enemyType = 'boss';
+            else if (waveLevel > 25) enemyType = 'assassin';
+            else if (waveLevel > 20) enemyType = 'mage';
+            else if (waveLevel > 15) enemyType = 'twin';
+            else if (waveLevel > 10) enemyType = 'ogre';
+            else if (waveLevel > 5) enemyType = 'armored';
+
+            if (enemyType === 'boss') {
+                setTimeout(() => { enemies.push(new Enemy(waveLevel, 'boss')); spawning = false; }, 1000);
+            } else {
+                let count = 0, total = 12 + waveLevel * 2;
+                const interval = setInterval(() => {
+                    enemies.push(new Enemy(waveLevel, enemyType));
+                    if (++count >= total) { clearInterval(interval); spawning = false; }
+                }, Math.max(250, 550 - (waveLevel * 5)));
+            }
+            waveLevel++;
+        };
+
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+        const goldDisplay = document.getElementById('gold');
+        const livesDisplay = document.getElementById('lives');
+        const waveDisplay = document.getElementById('wave-display');
+        const gridSize = 40;
+        const cols = canvas.width / gridSize;
+        const rows = canvas.height / gridSize;
+
+        let gold = 1000; let lives = 20; let selectedTowerType = null;
+        let towers = []; let enemies = []; let projectiles = []; let enemyPath = [];
+        let waveActive = false; let spawning = false; let waveLevel = 1;
+        let mousePos = { x: -100, y: -100 }; let frameCount = 0;
+        let selectedTowerObj = null; // 현재 선택된 필드 위의 타워
+
+        const towerData = {
+            fire: { name: "화염 궁수", icon: "🏹", baseCost: 100, color: "#ef4444", secondary: "#f97316", type: "arrow", 
+                levels: [{ damage: 45, range: 135, attackSpeed: 600 }, { damage: 110, range: 150, attackSpeed: 550 }, { damage: 280, range: 165, attackSpeed: 500 }, { damage: 750, range: 185, attackSpeed: 450 }, { damage: 2500, range: 210, attackSpeed: 350 }
+            ]},
+            ice: { name: "빙결 마법사", icon: "🧙‍♀️", baseCost: 120, color: "#38bdf8", secondary: "#0ea5e9", type: "crystal", 
+                levels: [{ damage: 25, range: 110, attackSpeed: 900, slow: 0.4 }, { damage: 65, range: 125, attackSpeed: 850, slow: 0.5 }, { damage: 150, range: 140, attackSpeed: 800, slow: 0.6 }, { damage: 400, range: 160, attackSpeed: 750, slow: 0.7 }, { damage: 1300, range: 190, attackSpeed: 650, slow: 0.85 }
+            ]},
+            earth: { name: "대지 기사", icon: "🛡️", baseCost: 150, color: "#a8a29e", secondary: "#78716c", type: "stone", 
+                levels: [{ damage: 120, range: 200, attackSpeed: 1500 }, { damage: 350, range: 220, attackSpeed: 1400 }, { damage: 950, range: 245, attackSpeed: 1250 }, { damage: 2500, range: 275, attackSpeed: 1100 }, { damage: 7500, range: 310, attackSpeed: 950 }
+            ]},
+            electric: { name: "전기 암살자", icon: "🗡️", baseCost: 130, color: "#fbbf24", secondary: "#451a03", type: "bolt", 
+                levels: [{ damage: 40, range: 160, attackSpeed: 300 }, { damage: 95, range: 180, attackSpeed: 250 }, { damage: 220, range: 200, attackSpeed: 200 }, { damage: 650, range: 225, attackSpeed: 150 }, { damage: 2000, range: 260, attackSpeed: 90 }
+            ]}
+        };
+
+        const enemyTypes = {
+            orc: { icon: "👹", color: "#4ade80", hp: 1.0, speed: 1.3, size: 14, reward: 1.0 },
+            armored: { icon: "🛡️", color: "#94a3b8", hp: 2.5, speed: 1.1, size: 16, reward: 1.5 },
+            ogre: { icon: "🐗", color: "#fca5a5", hp: 6.0, speed: 0.9, size: 22, reward: 3.0 },
+            twin: { icon: "🐗", icon2: "🐗", color: "#f87171", hp: 12.0, speed: 0.8, size: 26, reward: 5.0 },
+            mage: { icon: "🔮", color: "#c084fc", hp: 8.0, speed: 1.0, size: 20, reward: 6.0 },
+            assassin: { icon: "👺", color: "#1e293b", hp: 5.0, speed: 2.2, size: 15, reward: 4.0 },
+            boss: { icon: "👑", color: "#fbbf24", hp: 25.0, speed: 0.6, size: 35, reward: 20.0 }
+        };
+
+        class Projectile {
+            constructor(x, y, target, spec, level) {
+                this.x = x; this.y = y; this.target = target; this.spec = spec; this.level = level;
+                this.speed = spec.type === "bolt" ? 30 : 10 + level; this.dead = false; this.radius = 6 + level;
+            }
+            update() {
+                if (this.target.dead) { this.dead = true; return; }
+                const dx = this.target.x - this.x, dy = this.target.y - this.y, dist = Math.sqrt(dx*dx + dy*dy);
+                if (dist < this.speed) {
+                    this.target.health -= this.spec.levels[this.level].damage;
+                    if (this.spec.levels[this.level].slow) this.target.speed *= (1 - this.spec.levels[this.level].slow);
+                    if (this.target.health <= 0 && !this.target.dead) { gold += this.target.goldReward; this.target.dead = true; updateStats(); }
+                    this.dead = true;
+                } else { this.x += (dx/dist) * this.speed; this.y += (dy/dist) * this.speed; }
+            }
+            draw() {
+                ctx.save(); ctx.translate(this.x, this.y); ctx.shadowBlur = 15; ctx.shadowColor = this.spec.color; ctx.fillStyle = this.spec.color;
+                if (this.spec.type === "stone") { ctx.beginPath(); ctx.arc(0, 0, this.radius, 0, Math.PI*2); ctx.fill(); }
+                else if (this.spec.type === "crystal") { ctx.rotate(Math.atan2(this.target.y - this.y, this.target.x - this.x)); ctx.beginPath(); ctx.moveTo(this.radius*2, 0); ctx.lineTo(-this.radius, -this.radius); ctx.lineTo(-this.radius, this.radius); ctx.fill(); }
+                else if (this.spec.type === "bolt") { ctx.strokeStyle = "#fff"; ctx.lineWidth = 3; ctx.beginPath(); ctx.moveTo(0, 0); ctx.lineTo((Math.random()-0.5)*50, (Math.random()-0.5)*50); ctx.stroke(); }
+                else if (this.spec.type === "arrow") { ctx.rotate(Math.atan2(this.target.y - this.y, this.target.x - this.x)); ctx.fillStyle = "#fff"; ctx.fillRect(-this.radius, -1, this.radius*2, 2); ctx.fillStyle = this.spec.color; ctx.beginPath(); ctx.moveTo(this.radius, 0); ctx.lineTo(this.radius-5, -3); ctx.lineTo(this.radius-5, 3); ctx.fill(); }
+                ctx.restore();
+            }
+        }
+
+        class Enemy {
+            constructor(level, typeKey) {
+                const type = enemyTypes[typeKey]; this.typeKey = typeKey;
+                this.maxHealth = (80 * Math.pow(1.35, level - 1)) * type.hp;
+                this.health = this.maxHealth; this.baseSpeed = type.speed + (level * 0.02);
+                this.speed = this.baseSpeed; this.pathIndex = 0; this.dead = false;
+                this.radius = type.size; this.color = type.color; this.icon = type.icon;
+                this.goldReward = Math.floor((30 + (level * 5)) * type.reward);
+                if (enemyPath && enemyPath.length > 0) { this.x = (enemyPath[0].x * gridSize) + gridSize/2; this.y = (enemyPath[0].y * gridSize) + gridSize/2; }
+                else { this.x = (Math.floor(cols/2) * gridSize) + gridSize/2; this.y = 0; }
+            }
+            update() {
+                if (!enemyPath || this.pathIndex >= enemyPath.length - 1) { lives -= (this.typeKey === 'boss' ? 10 : 1); updateStats(); this.dead = true; return; }
+                const target = enemyPath[this.pathIndex + 1];
+                const dx = target.x * gridSize + gridSize/2 - this.x, dy = target.y * gridSize + gridSize/2 - this.y, dist = Math.sqrt(dx*dx + dy*dy);
+                if (dist < this.speed) { this.pathIndex++; } else { this.x += (dx/dist) * this.speed; this.y += (dy/dist) * this.speed; }
+                this.speed = this.baseSpeed;
+            }
+            draw() {
+                ctx.save(); ctx.shadowBlur = (this.typeKey === 'boss' ? 25 : 8); ctx.shadowColor = this.color; ctx.fillStyle = this.color;
+                ctx.beginPath(); ctx.arc(this.x, this.y, this.radius, 0, Math.PI*2); ctx.fill();
+                ctx.fillStyle = "white"; ctx.font = `${this.radius * 1.2}px Arial`; ctx.textAlign = "center";
+                ctx.fillText(this.icon, this.x, this.y + (this.radius * 0.4));
+                const bw = this.radius * 2.2, bh = (this.typeKey === 'boss' ? 8 : 4);
+                ctx.fillStyle = "rgba(0,0,0,0.6)"; ctx.fillRect(this.x - bw/2, this.y - this.radius - 15, bw, bh);
+                ctx.fillStyle = (this.typeKey === 'boss' ? "#fbbf24" : "#10b981");
+                ctx.fillRect(this.x - bw/2, this.y - this.radius - 15, bw * (this.health/this.maxHealth), bh);
+                ctx.restore();
+            }
+        }
+
+        function findPath(tempTowers = towers) {
+            const start = { x: Math.floor(cols / 2), y: 0 };
+            const queue = [[start]]; const visited = new Set([`${start.x},0`]);
+            const blocked = new Set(tempTowers.map(t => `${Math.floor(t.x/gridSize)},${Math.floor(t.y/gridSize)}`));
+            if (blocked.has(`${start.x},0`)) return null;
+            while (queue.length > 0) {
+                const path = queue.shift(), curr = path[path.length - 1];
+                if (curr.y === rows - 1) return path;
+                const neighbors = [{x:0,y:1},{x:1,y:0},{x:-1,y:0},{x:0,y:-1}];
+                for (const d of neighbors) {
+                    const nx = curr.x + d.x, ny = curr.y + d.y, key = `${nx},${ny}`;
+                    if (nx >= 0 && nx < cols && ny >= 0 && ny < rows && !blocked.has(key) && !visited.has(key)) {
+                        visited.add(key); queue.push([...path, {x:nx, y:ny}]);
+                    }
+                }
+            }
+            return null;
+        }
+
+        canvas.addEventListener('mousedown', (e) => {
+            initAudio();
+            const rect = canvas.getBoundingClientRect();
+            const x = Math.floor((e.clientX - rect.left) / gridSize) * gridSize;
+            const y = Math.floor((e.clientY - rect.top) / gridSize) * gridSize;
+            
+            const existing = towers.find(t => t.x === x && t.y === y);
+
+            if (existing) {
+                openHeroMenu(existing, e.clientX, e.clientY);
+                selectedTowerObj = existing;
+                selectedTowerType = null;
+                document.querySelectorAll('.tower-card').forEach(card => card.classList.remove('selected'));
+            } else {
+                closeHeroMenu();
+                if (selectedTowerType) {
+                    const cost = towerData[selectedTowerType].baseCost;
+                    if (gold >= cost) {
+                        const temp = [...towers, {x, y}], path = findPath(temp);
+                        if (path) {
+                            gold -= cost;
+                            towers.push({x, y, type: selectedTowerType, level: 0, lastShot: 0, invested: cost});
+                            enemyPath = path; updateStats(); playSFX('select');
+                        } else alert("길을 막을 수 없습니다!");
+                    } else alert("골드가 부족합니다!");
+                }
+            }
+        });
+
+        function openHeroMenu(hero, clientX, clientY) {
+            const menu = document.getElementById('hero-menu');
+            menu.style.display = 'flex';
+            menu.style.left = `${clientX - 25}px`;
+            menu.style.top = `${clientY - 120}px`;
+            
+            const upBtn = document.getElementById('menu-up-btn');
+            if (hero.level >= 4) {
+                upBtn.style.display = 'none';
+            } else {
+                upBtn.style.display = 'flex';
+                const cost = Math.floor(towerData[hero.type].baseCost * Math.pow(1.8, hero.level + 1));
+                upBtn.title = `Upgrade: ${cost}G`;
+            }
+        }
+
+        function closeHeroMenu() {
+            document.getElementById('hero-menu').style.display = 'none';
+            selectedTowerObj = null;
+        }
+
+        window.handleMenuAction = function(action) {
+            if (!selectedTowerObj) return;
+            const hero = selectedTowerObj;
+
+            if (action === 'upgrade') {
+                const cost = Math.floor(towerData[hero.type].baseCost * Math.pow(1.8, hero.level + 1));
+                if (gold >= cost) {
+                    gold -= cost;
+                    hero.level++;
+                    hero.invested += cost;
+                    updateStats(); playSFX('upgrade');
+                    if (hero.level >= 4) closeHeroMenu();
+                    else openHeroMenu(hero, parseInt(document.getElementById('hero-menu').style.left)+25, parseInt(document.getElementById('hero-menu').style.top)+120);
+                } else alert("골드가 부족합니다!");
+            } else if (action === 'sell') {
+                const refund = Math.floor(hero.invested * 0.5);
+                gold += refund;
+                towers = towers.filter(t => t !== hero);
+                enemyPath = findPath();
+                updateStats(); playSFX('sell');
+                closeHeroMenu();
+            }
+        };
+
+        canvas.addEventListener('mousemove', (e) => {
+            const rect = canvas.getBoundingClientRect(); mousePos.x = e.clientX - rect.left; mousePos.y = e.clientY - rect.top;
+        });
+
+        function updateStats() { goldDisplay.textContent = gold.toLocaleString(); livesDisplay.textContent = lives; if (lives <= 0) { alert("HERO DEFENSE OVER!"); location.reload(); } }
+
+        function drawHero(t, now, isPreview = false) {
+            const spec = towerData[t.type], lv = t.level, tx = t.x + 20, ty = t.y + 20;
+            ctx.save(); ctx.translate(tx, ty); if (isPreview) ctx.globalAlpha = 0.5;
+            
+            // Selection Ring
+            if (selectedTowerObj === t) {
+                ctx.strokeStyle = "white"; ctx.lineWidth = 2;
+                ctx.beginPath(); ctx.arc(0, 0, 25, 0, Math.PI*2); ctx.stroke();
+            }
+
+            if (lv >= 2 || isPreview) {
+                ctx.strokeStyle = spec.secondary + (isPreview ? "44" : "88"); ctx.lineWidth = 2; ctx.setLineDash([5, 5]);
+                ctx.rotate(now * 0.001); ctx.beginPath(); ctx.arc(0, 0, 22 + lv*4, 0, Math.PI*2); ctx.stroke(); ctx.setLineDash([]);
+            }
+            ctx.shadowBlur = isPreview ? 0 : 15; ctx.shadowColor = spec.color; ctx.fillStyle = spec.color;
+            ctx.beginPath(); ctx.moveTo(0, -15 - lv); ctx.lineTo(12 + lv, 10); ctx.lineTo(-12 - lv, 10); ctx.closePath(); ctx.fill();
+            ctx.font = `${20 + lv*2}px Arial`; ctx.textAlign = "center"; ctx.fillText(spec.icon, 0, 5);
+            ctx.fillStyle = "white"; ctx.font = "bold 10px Arial"; ctx.textAlign="center"; ctx.fillText(`Lv.${lv+1}`, 0, 25);
+            ctx.restore();
+            
+            const dist = Math.sqrt(Math.pow(mousePos.x-tx, 2) + Math.pow(mousePos.y-ty, 2));
+            if (dist < 20 || isPreview || selectedTowerObj === t) {
+                const range = spec.levels[lv].range;
+                ctx.fillStyle = spec.color + "15"; ctx.beginPath(); ctx.arc(tx, ty, range, 0, Math.PI*2); ctx.fill();
+                ctx.strokeStyle = spec.color + "44"; ctx.stroke();
+            }
+        }
+
+        function gameLoop() {
+            frameCount++; const now = Date.now(); ctx.clearRect(0, 0, canvas.width, canvas.height);
+            if (enemyPath) {
+                ctx.fillStyle = "rgba(30, 41, 59, 0.8)";
+                enemyPath.forEach(p => {
+                    ctx.fillRect(p.x * gridSize + 2, p.y * gridSize + 2, gridSize - 4, gridSize - 4);
+                    ctx.strokeStyle = "rgba(56, 189, 248, 0.2)"; ctx.strokeRect(p.x * gridSize + 2, p.y * gridSize + 2, gridSize - 4, gridSize - 4);
+                });
+            }
+            if (selectedTowerType && mousePos.x >= 0 && mousePos.x < canvas.width && mousePos.y >= 0 && mousePos.y < canvas.height) {
+                const px = Math.floor(mousePos.x / gridSize) * gridSize, py = Math.floor(mousePos.y / gridSize) * gridSize;
+                drawHero({x: px, y: py, type: selectedTowerType, level: 0}, now, true);
+            }
+            enemies.forEach(e => e.update()); enemies = enemies.filter(e => !e.dead); enemies.forEach(e => e.draw());
+            projectiles.forEach(p => p.update()); projectiles = projectiles.filter(p => !p.dead); projectiles.forEach(p => p.draw());
+            if (waveActive && !spawning && enemies.length === 0) { waveActive = false; document.getElementById('wave-start').disabled = false; switchMusic(false); }
+            towers.forEach(t => {
+                drawHero(t, now); const lvSpec = towerData[t.type].levels[t.level];
+                if (now - t.lastShot > lvSpec.attackSpeed) {
+                    const target = enemies.find(e => Math.sqrt(Math.pow(e.x-(t.x+20),2)+Math.pow(e.y-(t.y+20),2)) <= lvSpec.range);
+                    if (target) { projectiles.push(new Projectile(t.x+20, t.y+20, target, towerData[t.type], t.level)); t.lastShot = now; playSFX(t.type); }
+                }
+            });
+            requestAnimationFrame(gameLoop);
+        }
+        enemyPath = findPath(); updateStats(); gameLoop();
+    </script>
 </body>
 </html>
