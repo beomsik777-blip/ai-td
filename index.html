@@ -3,504 +3,101 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Hero Defense TD - Final Stable</title>
-    <style>
-        :root {
-            --bg-color: #0f172a;
-            --sidebar-color: #1e293b;
-            --accent-color: #38bdf8;
-            --text-color: #f8fafc;
-        }
-
-        body {
-            margin: 0;
-            background-color: var(--bg-color);
-            color: var(--text-color);
-            font-family: 'Pretendard', sans-serif;
-            display: flex;
-            flex-direction: row;
-            height: 100vh;
-            width: 100vw;
-            overflow: hidden;
-            touch-action: manipulation;
-        }
-
-        #game-container {
-            flex: 1;
-            position: relative;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            background: radial-gradient(circle, #1e293b 0%, #0f172a 100%);
-            overflow: hidden;
-        }
-
-        canvas {
-            background-color: rgba(0, 0, 0, 0.9);
-            border: 2px solid var(--accent-color);
-            box-shadow: 0 0 20px rgba(56, 189, 248, 0.2);
-            cursor: crosshair;
-            max-width: 95%;
-            max-height: 95%;
-            object-fit: contain;
-        }
-
-        #ui-panel {
-            width: 320px;
-            background-color: var(--sidebar-color);
-            border-left: 2px solid #334155;
-            padding: 20px;
-            display: flex;
-            flex-direction: column;
-            gap: 12px;
-            z-index: 10;
-            overflow-y: auto;
-        }
-
-        @media (max-width: 768px) {
-            body { flex-direction: column; }
-            #ui-panel { width: 100%; height: 45%; border-left: none; border-top: 2px solid #334155; padding: 10px; gap: 8px; }
-            #game-container { height: 55%; }
-            .tower-grid { grid-template-columns: repeat(4, 1fr) !important; }
-            .tower-card { padding: 8px 2px !important; }
-            .tower-icon { font-size: 1.5rem !important; }
-            .tower-name { font-size: 0.7rem !important; }
-            h2 { font-size: 1.2rem; margin: 5px 0 !important; }
-        }
-
-        .stat-box {
-            background: rgba(0, 0, 0, 0.4);
-            padding: 10px;
-            border-radius: 10px;
-            border-left: 4px solid var(--accent-color);
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        .stat-label { font-size: 0.7rem; color: #94a3b8; text-transform: uppercase; }
-        .stat-value { font-size: 1.2rem; font-weight: bold; color: var(--accent-color); }
-
-        .tower-grid {
-            display: grid;
-            grid-template-columns: repeat(2, 1fr);
-            gap: 8px;
-        }
-
-        .tower-card {
-            background: #334155;
-            padding: 12px 5px;
-            border-radius: 10px;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            cursor: pointer;
-            transition: all 0.2s ease;
-            border: 2px solid transparent;
-        }
-
-        .tower-card.selected { border-color: #fbbf24; background: #475569; box-shadow: 0 0 10px rgba(251, 191, 36, 0.4); }
-
-        .tower-icon { font-size: 2rem; margin-bottom: 4px; }
-        .tower-name { font-size: 0.8rem; font-weight: 600; color: #e2e8f0; }
-        .tower-cost { font-size: 0.7rem; color: #fbbf24; }
-
-        .button-group {
-            margin-top: auto;
-            display: flex;
-            flex-direction: column;
-            gap: 8px;
-        }
-
-        button.action-btn {
-            padding: 15px;
-            border: none;
-            border-radius: 10px;
-            color: #0f172a;
-            font-weight: 800;
-            font-size: 1rem;
-            cursor: pointer;
-            transition: 0.3s;
-        }
-
-        #build-btn { background: #10b981; color: white; display: none; }
-        #wave-start { background: linear-gradient(135deg, #0ea5e9, #38bdf8); }
-        button:disabled { background: #475569 !important; cursor: not-allowed; opacity: 0.7; }
-
-        #audio-controls { position: absolute; top: 10px; right: 10px; z-index: 100; }
-        .audio-btn { background: rgba(0,0,0,0.5); border: 1px solid var(--accent-color); color: white; padding: 4px 8px; border-radius: 5px; cursor: pointer; font-size: 0.7rem; }
-
-        #hero-menu { position: absolute; display: none; flex-direction: column; gap: 8px; z-index: 200; }
-        .menu-btn { width: 44px; height: 44px; border-radius: 22px; border: none; color: white; font-size: 1rem; cursor: pointer; display: flex; justify-content: center; align-items: center; box-shadow: 0 4px 8px rgba(0,0,0,0.4); }
-        .btn-up { background: #10b981; }
-        .btn-sell { background: #ef4444; }
-    </style>
+    <title>Hero Defense - Legends Arise</title>
+    <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
-    <div id="game-container">
-        <div id="audio-controls">
-            <button class="audio-btn" onclick="toggleMute()" id="mute-btn">🎵 Music On</button>
-        </div>
-        
-        <div id="hero-menu">
-            <button class="menu-btn btn-up" onclick="handleMenuAction('upgrade')" id="menu-up-btn">⬆️</button>
-            <button class="menu-btn btn-sell" onclick="handleMenuAction('sell')">💰</button>
+    <!-- Home Screen -->
+    <div id="home-screen">
+        <div class="title-container">
+            <h1 class="main-title">HERO DEFENSE</h1>
+            <p class="sub-title">LEGENDS ARISE</p>
         </div>
 
-        <canvas id="gameCanvas" width="800" height="600"></canvas>
-    </div>
-
-    <div id="ui-panel">
-        <h2 style="text-align:center; color: var(--accent-color); margin: 0; letter-spacing: 1px;">HERO DEFENSE</h2>
-        
-        <div class="stat-box">
-            <span id="wave-display" class="stat-label">WAVE 1</span>
-            <span id="gold" class="stat-value">1,000</span>
+        <div class="button-container" style="display: flex; flex-direction: column; gap: 15px;">
+            <button class="start-btn" onclick="startGame(false)">NEW GAME</button>
+            <button id="continue-btn" class="start-btn" style="display: none; background: linear-gradient(135deg, #10b981 0%, #059669 100%);" onclick="startGame(true)">CONTINUE</button>
         </div>
 
-        <div class="stat-box">
-            <span class="stat-label">LIVES</span>
-            <span id="lives" class="stat-value">20</span>
-        </div>
-
-        <div class="tower-grid">
-            <div class="tower-card" onclick="selectTower('fire')">
-                <span class="tower-icon">🏹</span>
-                <span class="tower-name">화염 궁수</span>
-                <span class="tower-cost">100G</span>
+        <div class="hero-preview">
+            <div class="hero-item">
+                <div class="hero-icon">🏹</div>
+                <span class="hero-label">PHOENIX</span>
             </div>
-            <div class="tower-card" onclick="selectTower('ice')">
-                <span class="tower-icon">🧙‍♀️</span>
-                <span class="tower-name">빙결 마법사</span>
-                <span class="tower-cost">120G</span>
+            <div class="hero-item">
+                <div class="hero-icon">🧙‍♀️</div>
+                <span class="hero-label">FROST</span>
             </div>
-            <div class="tower-card" onclick="selectTower('earth')">
-                <span class="tower-icon">🛡️</span>
-                <span class="tower-name">대지 기사</span>
-                <span class="tower-cost">150G</span>
+            <div class="hero-item">
+                <div class="hero-icon">🛡️</div>
+                <span class="hero-label">TITAN</span>
             </div>
-            <div class="tower-card" onclick="selectTower('electric')">
-                <span class="tower-icon">🗡️</span>
-                <span class="tower-name">전기 암살자</span>
-                <span class="tower-cost">130G</span>
+            <div class="hero-item">
+                <div class="hero-icon">🗡️</div>
+                <span class="hero-label">SHADOW</span>
             </div>
-        </div>
-
-        <div class="button-group">
-            <button id="build-btn" class="action-btn" onclick="confirmBuild()">설치하기 (BUILD)</button>
-            <button id="wave-start" class="action-btn" onclick="startWave()">BATTLE START</button>
         </div>
     </div>
 
-    <script>
-        // --- 1. 기본 설정 및 데이터 (최상단 배치) ---
-        const canvas = document.getElementById('gameCanvas');
-        const ctx = canvas.getContext('2d');
-        const goldDisplay = document.getElementById('gold');
-        const livesDisplay = document.getElementById('lives');
-        const waveDisplay = document.getElementById('wave-display');
-        const gridSize = 40;
-        const cols = 800 / gridSize;
-        const rows = 600 / gridSize;
+    <!-- Game View -->
+    <div id="game-view">
+        <div id="game-container">
+            <div id="audio-controls">
+                <button class="audio-btn" onclick="toggleMute()" id="mute-btn">🎵 Music On</button>
+            </div>
+            
+            <div id="hero-menu">
+                <button class="menu-btn btn-up" onclick="handleMenuAction('upgrade')" id="menu-up-btn">⬆️</button>
+                <button class="menu-btn btn-sell" onclick="handleMenuAction('sell')">💰</button>
+            </div>
 
-        let gold = 1000;
-        let lives = 20;
-        let selectedTowerType = null;
-        let towers = [];
-        let enemies = [];
-        let projectiles = [];
-        let enemyPath = [];
-        let waveActive = false;
-        let spawning = false;
-        let waveLevel = 1;
-        let mousePos = { x: -100, y: -100 };
-        let frameCount = 0;
-        let selectedTowerObj = null;
-        let pendingPos = null;
+            <canvas id="gameCanvas" width="800" height="600"></canvas>
+        </div>
 
-        const towerData = {
-            fire: { name: "화염 궁수", icon: "🏹", baseCost: 100, color: "#ef4444", secondary: "#f97316", type: "arrow", 
-                imgSrc: "./Beom/fire.png", levels: [{ damage: 45, range: 135, attackSpeed: 600 }, { damage: 110, range: 150, attackSpeed: 550 }, { damage: 280, range: 165, attackSpeed: 500 }, { damage: 750, range: 185, attackSpeed: 450 }, { damage: 2500, range: 210, attackSpeed: 350 }
-            ]},
-            ice: { name: "빙결 마법사", icon: "🧙‍♀️", baseCost: 120, color: "#38bdf8", secondary: "#0ea5e9", type: "crystal", 
-                imgSrc: "https://api.dicebear.com/7.x/bottts/svg?seed=ice", levels: [{ damage: 25, range: 110, attackSpeed: 900, slow: 0.4 }, { damage: 65, range: 125, attackSpeed: 850, slow: 0.5 }, { damage: 150, range: 140, attackSpeed: 800, slow: 0.6 }, { damage: 400, range: 160, attackSpeed: 750, slow: 0.7 }, { damage: 1300, range: 190, attackSpeed: 650, slow: 0.85 }
-            ]},
-            earth: { name: "대지 기사", icon: "🛡️", baseCost: 150, color: "#a8a29e", secondary: "#78716c", type: "stone", 
-                imgSrc: "https://api.dicebear.com/7.x/bottts/svg?seed=earth", levels: [{ damage: 120, range: 200, attackSpeed: 1500 }, { damage: 350, range: 220, attackSpeed: 1400 }, { damage: 950, range: 245, attackSpeed: 1250 }, { damage: 2500, range: 275, attackSpeed: 1100 }, { damage: 7500, range: 310, attackSpeed: 950 }
-            ]},
-            electric: { name: "전기 암살자", icon: "🗡️", baseCost: 130, color: "#fbbf24", secondary: "#451a03", type: "bolt", 
-                imgSrc: "https://api.dicebear.com/7.x/bottts/svg?seed=elec", levels: [{ damage: 40, range: 160, attackSpeed: 300 }, { damage: 95, range: 180, attackSpeed: 250 }, { damage: 220, range: 200, attackSpeed: 200 }, { damage: 650, range: 225, attackSpeed: 150 }, { damage: 2000, range: 260, attackSpeed: 90 }
-            ]}
-        };
+        <div id="ui-panel">
+            <h2 style="text-align:center; color: var(--accent-color); margin: 0; letter-spacing: 1px;">HERO DEFENSE</h2>
+            
+            <div class="stat-box">
+                <span id="wave-display" class="stat-label">WAVE 1</span>
+                <span id="gold" class="stat-value">1,000</span>
+            </div>
 
-        const enemyTypes = {
-            orc: { icon: "👹", color: "#4ade80", hp: 1.0, speed: 1.3, size: 14 },
-            ogre: { icon: "🐗", color: "#fca5a5", hp: 6.0, speed: 0.9, size: 22 },
-            boss: { icon: "👑", color: "#fbbf24", hp: 25.0, speed: 0.6, size: 35 }
-        };
+            <div class="stat-box">
+                <span class="stat-label">LIVES</span>
+                <span id="lives" class="stat-value">20</span>
+            </div>
 
-        // 이미지 미리 로드
-        Object.keys(towerData).forEach(key => {
-            const img = new Image(); img.src = towerData[key].imgSrc; towerData[key].img = img;
-        });
+            <div class="tower-grid">
+                <div class="tower-card" onclick="selectTower('fire')">
+                    <span class="tower-icon">🏹</span>
+                    <span class="tower-name">화염 궁수</span>
+                    <span class="tower-cost">100G</span>
+                </div>
+                <div class="tower-card" onclick="selectTower('ice')">
+                    <span class="tower-icon">🧙‍♀️</span>
+                    <span class="tower-name">빙결 마법사</span>
+                    <span class="tower-cost">120G</span>
+                </div>
+                <div class="tower-card" onclick="selectTower('earth')">
+                    <span class="tower-icon">🛡️</span>
+                    <span class="tower-name">대지 기사</span>
+                    <span class="tower-cost">150G</span>
+                </div>
+                <div class="tower-card" onclick="selectTower('electric')">
+                    <span class="tower-icon">🗡️</span>
+                    <span class="tower-name">전기 암살자</span>
+                    <span class="tower-cost">130G</span>
+                </div>
+            </div>
 
-        // --- 2. 클래스 정의 (호이스팅 안됨 - 상단 배치) ---
-        class Projectile {
-            constructor(x, y, target, spec, level) {
-                this.x = x; this.y = y; this.target = target; this.spec = spec; this.level = level;
-                this.speed = spec.type === "bolt" ? 30 : 10 + level; this.dead = false; this.radius = 6 + level;
-            }
-            update() {
-                if (this.target.dead) { this.dead = true; return; }
-                const dx = this.target.x - this.x, dy = this.target.y - this.y, dist = Math.sqrt(dx*dx + dy*dy);
-                if (dist < this.speed) {
-                    this.target.health -= this.spec.levels[this.level].damage;
-                    if (this.spec.levels[this.level].slow) this.target.speed *= (1 - this.spec.levels[this.level].slow);
-                    if (this.target.health <= 0 && !this.target.dead) { gold += this.target.goldReward; this.target.dead = true; updateStats(); }
-                    this.dead = true;
-                } else { this.x += (dx/dist) * this.speed; this.y += (dy/dist) * this.speed; }
-            }
-            draw() {
-                ctx.save(); ctx.translate(this.x, this.y); ctx.shadowBlur = 15; ctx.shadowColor = this.spec.color; ctx.fillStyle = this.spec.color;
-                if (this.spec.type === "stone") { ctx.beginPath(); ctx.arc(0, 0, this.radius, 0, Math.PI*2); ctx.fill(); }
-                else if (this.spec.type === "crystal") { ctx.rotate(Math.atan2(this.target.y - this.y, this.target.x - this.x)); ctx.beginPath(); ctx.moveTo(this.radius*2, 0); ctx.lineTo(-this.radius, -this.radius); ctx.lineTo(-this.radius, this.radius); ctx.fill(); }
-                else if (this.spec.type === "bolt") { ctx.strokeStyle = "#fff"; ctx.lineWidth = 3; ctx.beginPath(); ctx.moveTo(0, 0); ctx.lineTo((Math.random()-0.5)*50, (Math.random()-0.5)*50); ctx.stroke(); }
-                else if (this.spec.type === "arrow") { ctx.rotate(Math.atan2(this.target.y - this.y, this.target.x - this.x)); ctx.fillStyle = "#fff"; ctx.fillRect(-this.radius, -1, this.radius*2, 2); ctx.fillStyle = this.spec.color; ctx.beginPath(); ctx.moveTo(this.radius, 0); ctx.lineTo(this.radius-5, -3); ctx.lineTo(this.radius-5, 3); ctx.fill(); }
-                ctx.restore();
-            }
-        }
+            <div class="button-group">
+                <button id="build-btn" class="action-btn" onclick="confirmBuild()">설치하기 (BUILD)</button>
+                <button id="wave-start" class="action-btn" onclick="startWave()">BATTLE START</button>
+            </div>
+        </div>
+    </div>
 
-        class Enemy {
-            constructor(level, typeKey) {
-                const type = enemyTypes[typeKey]; this.typeKey = typeKey;
-                this.maxHealth = (80 * Math.pow(1.35, level - 1)) * type.hp;
-                this.health = this.maxHealth; this.baseSpeed = type.speed + (level * 0.02);
-                this.speed = this.baseSpeed; this.pathIndex = 0; this.dead = false; this.radius = type.size;
-                this.goldReward = Math.floor((30 + (level * 5)) * (typeKey === 'boss' ? 10 : 1));
-                if (enemyPath && enemyPath.length > 0) { this.x = (enemyPath[0].x * gridSize) + gridSize/2; this.y = (enemyPath[0].y * gridSize) + gridSize/2; }
-                else { this.x = 400; this.y = 0; }
-            }
-            update() {
-                if (!enemyPath || this.pathIndex >= enemyPath.length - 1) { lives -= (this.typeKey === 'boss' ? 10 : 1); updateStats(); this.dead = true; return; }
-                const target = enemyPath[this.pathIndex + 1];
-                const dx = target.x * gridSize + gridSize/2 - this.x, dy = target.y * gridSize + gridSize/2 - this.y, dist = Math.sqrt(dx*dx + dy*dy);
-                if (dist < this.speed) { this.pathIndex++; } else { this.x += (dx/dist) * this.speed; this.y += (dy/dist) * this.speed; }
-                this.speed = this.baseSpeed;
-            }
-            draw() {
-                ctx.save(); ctx.shadowBlur = (this.typeKey === 'boss' ? 25 : 8); ctx.shadowColor = enemyTypes[this.typeKey].color; ctx.fillStyle = enemyTypes[this.typeKey].color;
-                ctx.beginPath(); ctx.arc(this.x, this.y, this.radius, 0, Math.PI*2); ctx.fill();
-                ctx.fillStyle = "white"; ctx.font = `${this.radius * 1.2}px Arial`; ctx.textAlign = "center";
-                ctx.fillText(enemyTypes[this.typeKey].icon, this.x, this.y + (this.radius * 0.4));
-                const bw = this.radius * 2.2, bh = (this.typeKey === 'boss' ? 8 : 4);
-                ctx.fillStyle = "rgba(0,0,0,0.6)"; ctx.fillRect(this.x - bw/2, this.y - this.radius - 15, bw, bh);
-                ctx.fillStyle = (this.typeKey === 'boss' ? "#fbbf24" : "#10b981");
-                ctx.fillRect(this.x - bw/2, this.y - this.radius - 15, bw * (this.health/this.maxHealth), bh);
-                ctx.restore();
-            }
-        }
-
-        // --- 3. 유틸리티 함수 ---
-        function findPath(tempTowers = towers) {
-            const start = { x: Math.floor(cols / 2), y: 0 };
-            const queue = [[start]]; const visited = new Set([`${start.x},0`]);
-            const blocked = new Set(tempTowers.map(t => `${Math.floor(t.x/gridSize)},${Math.floor(t.y/gridSize)}`));
-            if (blocked.has(`${start.x},0`)) return null;
-            while (queue.length > 0) {
-                const path = queue.shift(), curr = path[path.length - 1];
-                if (curr.y === rows - 1) return path;
-                const neighbors = [{x:0,y:1},{x:1,y:0},{x:-1,y:0},{x:0,y:-1}];
-                for (const d of neighbors) {
-                    const nx = curr.x + d.x, ny = curr.y + d.y, key = `${nx},${ny}`;
-                    if (nx >= 0 && nx < cols && ny >= 0 && ny < rows && !blocked.has(key) && !visited.has(key)) {
-                        visited.add(key); queue.push([...path, {x:nx, y:ny}]);
-                    }
-                }
-            }
-            return null;
-        }
-
-        function updateBuildButton() {
-            const btn = document.getElementById('build-btn');
-            if (pendingPos && selectedTowerType) {
-                btn.style.display = 'block'; btn.textContent = `설치하기 (${towerData[selectedTowerType].baseCost}G)`;
-            } else btn.style.display = 'none';
-        }
-
-        function updateStats() { goldDisplay.textContent = gold.toLocaleString(); livesDisplay.textContent = lives; if (lives <= 0) { alert("GAME OVER!"); location.reload(); } }
-
-        // --- 4. 오디오 시스템 ---
-        let audioCtx;
-        const lobbyBGM = new Audio('https://www.soundhelix.com/examples/mp3/SoundHelix-Song-15.mp3');
-        const battleBGM = new Audio('https://www.soundhelix.com/examples/mp3/SoundHelix-Song-8.mp3');
-        lobbyBGM.loop = true; battleBGM.loop = true;
-        lobbyBGM.volume = 0.3; battleBGM.volume = 0.4;
-        let isMuted = false; let audioInitialized = false;
-
-        function initAudio() {
-            if (audioInitialized) return; audioInitialized = true;
-            audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-            if (!isMuted) lobbyBGM.play().catch(() => { audioInitialized = false; });
-        }
-
-        function playSFX(type) {
-            if (!audioCtx || isMuted) return;
-            const osc = audioCtx.createOscillator(); const gain = audioCtx.createGain();
-            osc.connect(gain); gain.connect(audioCtx.destination);
-            const now = audioCtx.currentTime;
-            switch(type) {
-                case 'select': osc.frequency.setValueAtTime(800, now); gain.gain.setValueAtTime(0.1, now); osc.start(now); osc.stop(now + 0.1); break;
-                case 'upgrade': osc.frequency.setValueAtTime(400, now); osc.frequency.exponentialRampToValueAtTime(1000, now + 0.2); gain.gain.setValueAtTime(0.1, now); osc.start(now); osc.stop(now + 0.2); break;
-                case 'sell': osc.frequency.setValueAtTime(600, now); gain.gain.setValueAtTime(0.1, now); osc.start(now); osc.stop(now + 0.1); break;
-                default: osc.frequency.setValueAtTime(200, now); gain.gain.setValueAtTime(0.02, now); osc.start(now); osc.stop(now + 0.05);
-            }
-        }
-
-        window.toggleMute = function() {
-            isMuted = !isMuted;
-            const btn = document.getElementById('mute-btn');
-            if (isMuted) { lobbyBGM.pause(); battleBGM.pause(); btn.textContent = "打 Music Off"; }
-            else { if (waveActive) battleBGM.play(); else lobbyBGM.play(); btn.textContent = "🎵 Music On"; }
-        };
-
-        function switchMusic(isBattle) {
-            if (isMuted) return;
-            if (isBattle) { lobbyBGM.pause(); battleBGM.play(); }
-            else { battleBGM.pause(); lobbyBGM.play(); }
-        }
-
-        // --- 5. UI 및 조작 핸들러 ---
-        window.selectTower = function(type) {
-            initAudio(); playSFX('select');
-            if (selectedTowerType === type) {
-                selectedTowerType = null;
-                document.querySelectorAll('.tower-card').forEach(card => card.classList.remove('selected'));
-                pendingPos = null; updateBuildButton();
-            } else {
-                selectedTowerType = type; closeHeroMenu();
-                document.querySelectorAll('.tower-card').forEach(card => {
-                    card.classList.remove('selected');
-                    if (card.innerText.includes(towerData[type].name)) card.classList.add('selected');
-                });
-            }
-        };
-
-        window.confirmBuild = function() {
-            if (!pendingPos || !selectedTowerType) return;
-            const cost = towerData[selectedTowerType].baseCost;
-            if (gold >= cost) {
-                const temp = [...towers, {x: pendingPos.x, y: pendingPos.y}], path = findPath(temp);
-                if (path) {
-                    gold -= cost; towers.push({x: pendingPos.x, y: pendingPos.y, type: selectedTowerType, level: 0, lastShot: 0, invested: cost});
-                    enemyPath = path; updateStats(); playSFX('select'); pendingPos = null; selectedTowerType = null;
-                    document.querySelectorAll('.tower-card').forEach(card => card.classList.remove('selected'));
-                    updateBuildButton();
-                } else alert("길을 막을 수 없습니다!");
-            } else alert("골드가 부족합니다!");
-        };
-
-        canvas.addEventListener('mousedown', (e) => {
-            initAudio();
-            const rect = canvas.getBoundingClientRect();
-            const scaleX = 800 / rect.width, scaleY = 600 / rect.height;
-            const cx = (e.clientX - rect.left) * scaleX, cy = (e.clientY - rect.top) * scaleY;
-            const gx = Math.floor(cx / gridSize) * gridSize, gy = Math.floor(cy / gridSize) * gridSize;
-            const existing = towers.find(t => t.x === gx && t.y === gy);
-            if (existing) {
-                openHeroMenu(existing, e.clientX, e.clientY);
-                selectedTowerObj = existing; selectedTowerType = null; pendingPos = null;
-                document.querySelectorAll('.tower-card').forEach(card => card.classList.remove('selected'));
-                updateBuildButton();
-            } else {
-                closeHeroMenu(); if (selectedTowerType) { pendingPos = {x: gx, y: gy}; updateBuildButton(); }
-            }
-        });
-
-        function openHeroMenu(hero, clientX, clientY) {
-            const menu = document.getElementById('hero-menu'); menu.style.display = 'flex';
-            menu.style.left = `${clientX - 22}px`; menu.style.top = `${clientY - 100}px`;
-            document.getElementById('menu-up-btn').style.display = hero.level >= 4 ? 'none' : 'flex';
-        }
-
-        function closeHeroMenu() { document.getElementById('hero-menu').style.display = 'none'; selectedTowerObj = null; }
-
-        window.handleMenuAction = function(action) {
-            if (!selectedTowerObj) return;
-            if (action === 'upgrade') {
-                const cost = Math.floor(towerData[selectedTowerObj.type].baseCost * Math.pow(1.8, selectedTowerObj.level + 1));
-                if (gold >= cost) { gold -= cost; selectedTowerObj.level++; selectedTowerObj.invested += cost; updateStats(); playSFX('upgrade'); closeHeroMenu(); }
-                else alert("골드가 부족합니다!");
-            } else if (action === 'sell') {
-                gold += Math.floor(selectedTowerObj.invested * 0.5);
-                towers = towers.filter(t => t !== selectedTowerObj);
-                enemyPath = findPath(); updateStats(); playSFX('sell'); closeHeroMenu();
-            }
-        };
-
-        window.startWave = function() {
-            initAudio(); if (waveActive || spawning) return;
-            const path = findPath(); if (!path) return alert("입구가 막혔습니다!");
-            enemyPath = path; waveActive = true; spawning = true;
-            document.getElementById('wave-start').disabled = true;
-            waveDisplay.textContent = `WAVE ${waveLevel}`; switchMusic(true);
-            let et = waveLevel % 5 === 0 ? 'boss' : (waveLevel > 10 ? 'ogre' : 'orc');
-            let count = 0, total = 12 + waveLevel * 2;
-            const iv = setInterval(() => {
-                enemies.push(new Enemy(waveLevel, et));
-                if (++count >= total) { clearInterval(iv); spawning = false; }
-            }, 500); waveLevel++;
-        };
-
-        canvas.addEventListener('mousemove', (e) => {
-            const rect = canvas.getBoundingClientRect();
-            const scaleX = 800 / rect.width, scaleY = 600 / rect.height;
-            mousePos.x = (e.clientX - rect.left) * scaleX; mousePos.y = (e.clientY - rect.top) * scaleY;
-        });
-
-        // --- 6. 렌더링 및 루프 ---
-        function drawHero(t, now, isPreview = false) {
-            const spec = towerData[t.type], lv = t.level, tx = t.x + 20, ty = t.y + 20;
-            ctx.save(); ctx.translate(tx, ty); if (isPreview) ctx.globalAlpha = 0.5;
-            if (selectedTowerObj === t) { ctx.strokeStyle = "white"; ctx.lineWidth = 2; ctx.beginPath(); ctx.arc(0, 0, 25, 0, Math.PI*2); ctx.stroke(); }
-            if (lv >= 2 || isPreview) {
-                ctx.strokeStyle = spec.secondary + (isPreview ? "44" : "88"); ctx.lineWidth = 2; ctx.setLineDash([5, 5]);
-                ctx.rotate(now * 0.001); ctx.beginPath(); ctx.arc(0, 0, 22 + lv*4, 0, Math.PI*2); ctx.stroke(); ctx.setLineDash([]);
-            }
-            ctx.shadowBlur = isPreview ? 0 : 15; ctx.shadowColor = spec.color; ctx.fillStyle = spec.color;
-            ctx.beginPath(); ctx.moveTo(0, -15 - lv); ctx.lineTo(12 + lv, 10); ctx.lineTo(-12 - lv, 10); ctx.closePath(); ctx.fill();
-            if (spec.img && spec.img.complete && spec.img.naturalWidth > 0) ctx.drawImage(spec.img, -16, -20, 32, 32);
-            else { ctx.font = `${20 + lv*2}px Arial`; ctx.textAlign = "center"; ctx.fillText(spec.icon, 0, 5); }
-            ctx.fillStyle = "white"; ctx.font = "bold 10px Arial"; ctx.textAlign="center"; ctx.fillText(`Lv.${lv+1}`, 0, 25);
-            ctx.restore();
-            if (isPreview || selectedTowerObj === t) {
-                const range = spec.levels[lv].range;
-                ctx.fillStyle = spec.color + "15"; ctx.beginPath(); ctx.arc(tx, ty, range, 0, Math.PI*2); ctx.fill();
-                ctx.strokeStyle = spec.color + "44"; ctx.stroke();
-            }
-        }
-
-        function gameLoop() {
-            frameCount++; const now = Date.now(); ctx.clearRect(0, 0, canvas.width, canvas.height);
-            if (enemyPath) {
-                ctx.fillStyle = "rgba(30, 41, 59, 0.8)";
-                enemyPath.forEach(p => ctx.fillRect(p.x * gridSize + 2, p.y * gridSize + 2, gridSize - 4, gridSize - 4));
-            }
-            if (pendingPos && selectedTowerType) drawHero({x: pendingPos.x, y: pendingPos.y, type: selectedTowerType, level: 0}, now, true);
-            enemies.forEach(e => e.update()); enemies = enemies.filter(e => !e.dead); enemies.forEach(e => e.draw());
-            projectiles.forEach(p => p.update()); projectiles = projectiles.filter(p => !p.dead); projectiles.forEach(p => p.draw());
-            if (waveActive && !spawning && enemies.length === 0) { waveActive = false; document.getElementById('wave-start').disabled = false; switchMusic(false); }
-            towers.forEach(t => {
-                drawHero(t, now); const lvSpec = towerData[t.type].levels[t.level];
-                if (now - t.lastShot > lvSpec.attackSpeed) {
-                    const target = enemies.find(e => Math.sqrt(Math.pow(e.x-(t.x+20),2)+Math.pow(e.y-(t.y+20),2)) <= lvSpec.range);
-                    if (target) { projectiles.push(new Projectile(t.x+20, t.y+20, target, towerData[t.type], t.level)); t.lastShot = now; playSFX(t.type); }
-                }
-            });
-            requestAnimationFrame(gameLoop);
-        }
-        enemyPath = findPath(); updateStats(); gameLoop();
-    </script>
+    <script src="main.js"></script>
 </body>
 </html>
