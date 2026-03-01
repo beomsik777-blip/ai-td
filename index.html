@@ -10,25 +10,14 @@
         body { background-color: #0f172a; color: white; font-family: 'Orbitron', sans-serif; }
         .pixel-border { border: 4px solid #334155; }
         .neon-glow { box-shadow: 0 0 15px #38bdf8, inset 0 0 5px #38bdf8; }
-        .status-bar { transition: width 0.8s cubic-bezier(0.34, 1.56, 0.64, 1); }
+        /* 스탯바 애니메이션 */
+        .status-bar { transition: width 1s cubic-bezier(0.34, 1.56, 0.64, 1); }
 
-        /* 캐릭터 이미지 스타일 */
         #character-sprite {
-            background-image: url('image/man/man.jpg'); /* 마스터가 말한 경로 */
-            background-size: contain; /* 이미지 전체가 다 보이게 설정 */
+            background-image: url('image/man/man.jpg');
+            background-size: contain;
             background-repeat: no-repeat;
             background-position: center;
-        }
-
-        /* 나중에 8프레임 스프라이트 시트로 바꿀 때 사용할 애니메이션 (미리 정의) */
-        .sprite-animation {
-            background-size: auto 100% !important; /* 세로 높이에 맞춤 */
-            animation: walk 0.8s steps(8) infinite;
-        }
-
-        @keyframes walk {
-            from { background-position: 0; }
-            to { background-position: -800%; } /* 프레임 수에 따라 조절 */
         }
     </style>
 </head>
@@ -50,7 +39,7 @@
                 <span class="text-[10px] text-slate-400 uppercase">Mana</span>
                 <p id="user-mana" class="font-bold text-blue-400 text-sm">85/100</p>
             </div>
-            <button onclick="logout()" class="ml-2 p-2 bg-slate-800/50 rounded-lg border border-slate-700 text-slate-400 hover:text-red-400 transition-all active:scale-95 shadow-lg">
+            <button onclick="logout()" class="ml-2 p-2 bg-slate-800/50 rounded-lg border border-slate-700 text-slate-400 hover:text-red-400 transition-all active:scale-95">
                 <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
                 </svg>
@@ -62,35 +51,34 @@
         <div class="absolute inset-0 bg-[linear-gradient(to_right,#1e293b_1px,transparent_1px),linear-gradient(to_bottom,#1e293b_1px,transparent_1px)] bg-[size:40px_40px] [mask-image:radial-gradient(ellipse_60%_50%_at_50%_50%,#000_70%,transparent_100%)]"></div>
 
         <div class="relative z-10 w-72 h-80 flex flex-col items-center">
-            <div id="character-sprite" class="w-64 h-64 bg-slate-800/50 rounded-xl pixel-border neon-glow flex items-center justify-center overflow-hidden">
-                </div>
-            
+            <div id="character-sprite" class="w-64 h-64 bg-slate-800/50 rounded-xl pixel-border neon-glow flex items-center justify-center overflow-hidden"></div>
             <div class="mt-4 text-center">
                 <span class="bg-blue-600 text-[10px] px-2 py-0.5 rounded-full font-bold">LV. 15</span>
-                <h2 class="text-xl font-bold mt-1 tracking-wider text-white">FUTURE CHASER</h2>
+                <h2 class="text-xl font-bold mt-1 tracking-wider text-white uppercase">Future Chaser</h2>
             </div>
         </div>
 
         <div class="w-full max-w-xs mt-8 space-y-4 z-10">
             <div class="bg-slate-900/60 p-3 rounded border border-slate-700 backdrop-blur-sm">
                 <div class="flex justify-between text-[10px] mb-1">
-                    <span class="text-orange-400 font-bold">STR (근력)</span>
+                    <span class="text-orange-400 font-bold uppercase">Str (근력)</span>
                     <span id="str-val">70%</span>
                 </div>
                 <div class="w-full bg-slate-800 h-2 rounded-full overflow-hidden">
-                    <div class="status-bar bg-gradient-to-right from-orange-600 to-orange-400 h-full w-[70%]"></div>
+                    <div id="str-bar" class="status-bar bg-gradient-to-r from-orange-600 to-orange-400 h-full w-[70%]"></div>
                 </div>
             </div>
+            
             <div class="bg-slate-900/60 p-3 rounded border border-slate-700 backdrop-blur-sm">
                 <div class="flex justify-between text-[10px] mb-1">
-                    <span class="text-purple-400 font-bold">INT (지능)</span>
+                    <span class="text-purple-400 font-bold uppercase">Int (지능)</span>
                     <div class="flex items-center gap-2">
-                        <span id="int-val">45%</span>
+                        <span id="int-val">0%</span>
                         <button onclick="location.href='brain.html'" class="bg-purple-600 hover:bg-purple-500 text-[8px] px-2 py-0.5 rounded font-bold transition-all active:scale-95">LEVEL UP</button>
                     </div>
                 </div>
                 <div class="w-full bg-slate-800 h-2 rounded-full overflow-hidden">
-                    <div class="status-bar bg-gradient-to-right from-purple-600 to-purple-400 h-full w-[45%]"></div>
+                    <div id="int-bar" class="status-bar bg-gradient-to-r from-purple-600 to-purple-400 h-full w-[0%]"></div>
                 </div>
             </div>
         </div>
@@ -101,37 +89,55 @@
             <div class="w-10 h-10 bg-blue-500/20 rounded-full flex-shrink-0 border border-blue-400 flex items-center justify-center text-xl">👤</div>
             <div>
                 <p class="text-[9px] text-blue-400 font-bold tracking-tighter uppercase">QuestBody Guide</p>
-                <p class="text-[11px] leading-tight text-slate-200 mt-1">
-                    "과거의 나, 지능(INT)을 50까지 올리면 네온 블루로 머리를 염색할 수 있어. 스도쿠 한 판 어때?"
+                <p id="guide-text" class="text-[11px] leading-tight text-slate-200 mt-1">
+                    "지능(INT)을 50까지 올려봐. 브레인 트레이닝이 필요해!"
                 </p>
             </div>
         </div>
     </section>
 
     <nav class="bg-slate-950 border-t border-slate-800 grid grid-cols-4 h-20 z-20">
-        <button onclick="changeMenu('gym')" class="flex flex-col items-center justify-center hover:bg-slate-900 transition text-slate-400 hover:text-white">
+        <button onclick="changeMenu('gym')" class="flex flex-col items-center justify-center hover:bg-slate-900 transition text-slate-400">
             <span class="text-2xl">🏋️</span>
-            <span class="text-[9px] font-bold mt-1">GYM</span>
+            <span class="text-[9px] font-bold mt-1 uppercase">Gym</span>
         </button>
-        <button onclick="location.href='brain.html'" class="flex flex-col items-center justify-center hover:bg-slate-900 transition text-slate-400 hover:text-white border-x border-slate-900">
+        <button onclick="location.href='brain.html'" class="flex flex-col items-center justify-center hover:bg-slate-900 transition text-slate-400 border-x border-slate-900">
             <span class="text-2xl">🧩</span>
-            <span class="text-[9px] font-bold mt-1">BRAIN</span>
+            <span class="text-[9px] font-bold mt-1 uppercase">Brain</span>
         </button>
         <button onclick="changeMenu('defense')" class="flex flex-col items-center justify-center bg-blue-900/20 text-blue-400 border-y-2 border-blue-500">
             <span class="text-2xl">🛡️</span>
-            <span class="text-[9px] font-bold mt-1 tracking-tighter">DEFENSE</span>
+            <span class="text-[9px] font-bold mt-1 uppercase tracking-tighter">Defense</span>
         </button>
-        <button onclick="changeMenu('shop')" class="flex flex-col items-center justify-center hover:bg-slate-900 transition text-slate-400 hover:text-white border-l border-slate-900">
+        <button onclick="changeMenu('shop')" class="flex flex-col items-center justify-center hover:bg-slate-900 transition text-slate-400 border-l border-slate-900">
             <span class="text-2xl">🏪</span>
             <span class="text-[9px] font-bold mt-1 uppercase">Shop</span>
         </button>
     </nav>
 
     <script>
-        // 로그인 체크 (테스트 시 잠시 주석처리해도 됨)
+        // 로그인 체크
         if (sessionStorage.getItem('isLoggedIn') !== 'true') {
             location.href = 'login.html';
         }
+
+        // 페이지 로드 시 스탯 불러오기
+        window.onload = function() {
+            // 저장된 INT 값 불러오기 (없으면 0)
+            const savedInt = parseInt(localStorage.getItem('user_int')) || 0;
+            
+            // 화면 업데이트
+            const intValDisplay = document.getElementById('int-val');
+            const intBar = document.getElementById('int-bar');
+            
+            intValDisplay.innerText = savedInt + '%';
+            intBar.style.width = Math.min(savedInt, 100) + '%'; // 100% 넘지 않게 조절
+
+            // 지능 수치에 따른 가이드 멘트 변경
+            if (savedInt >= 50) {
+                document.getElementById('guide-text').innerText = "와! 지능이 50이 넘었어. 이제 네온 블루 염색이 가능해!";
+            }
+        };
 
         function changeMenu(type) {
             console.log(type + " 메뉴로 이동!");
