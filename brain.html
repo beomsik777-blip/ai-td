@@ -8,19 +8,47 @@
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&display=swap');
         * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+        
+        /* 100vh 대신 실제 모바일 가시 화면(dvh) 사용 */
         body { 
             background-color: #0f172a; color: white; font-family: 'Orbitron', sans-serif;
-            margin: 0; height: 100vh; display: flex; flex-direction: column; overflow: hidden;
+            margin: 0; padding: 0;
+            height: 100vh; height: 100dvh; 
+            display: flex; flex-direction: column; overflow: hidden;
         }
-        /* 테이블 격자 */
+
+        /* 헤더/정보바 고정 높이 */
+        header, .stat-bar { shrink: 0; }
+
+        /* 게임 영역: 남는 공간을 차지하되 넘치지 않게 */
+        .game-area {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 0; /* 중요: 내부 요소 때문에 늘어나는 것 방지 */
+            padding: 10px;
+        }
+
+        .sudoku-wrapper {
+            width: 100%;
+            max-width: min(90vw, 360px);
+            margin-bottom: 10px;
+        }
+
         .sudoku-table {
-            width: 90vw; height: 90vw; max-width: 360px; max-height: 360px;
-            margin: 10px auto; border-collapse: collapse; table-layout: fixed;
-            border: 2px solid #38bdf8; background-color: #1e293b;
+            width: 100%;
+            aspect-ratio: 1 / 1;
+            border-collapse: collapse;
+            table-layout: fixed;
+            border: 2px solid #38bdf8;
+            background-color: #1e293b;
         }
+        
         .sudoku-table td {
             border: 1px solid #38bdf8; padding: 0; text-align: center; vertical-align: middle;
-            font-size: 1.2rem; height: 11.11%; width: 11.11%;
+            font-size: clamp(0.8rem, 4vw, 1.2rem);
         }
         .sudoku-table td:nth-child(3n) { border-right: 3px solid #38bdf8; }
         .sudoku-table tr:nth-child(3n) td { border-bottom: 3px solid #38bdf8; }
@@ -28,24 +56,25 @@
         .user-cell { color: #38bdf8; cursor: pointer; }
         .user-cell.selected { background-color: #334155; box-shadow: inset 0 0 10px #38bdf8; }
 
-        /* 숫자 패드 */
+        /* 숫자 패드: 너무 커지지 않게 조절 */
         .number-pad {
             display: grid; grid-template-columns: repeat(9, 1fr);
-            gap: 4px; width: 92vw; max-width: 360px; margin: 15px auto;
+            gap: 4px; width: 100%; max-width: 360px;
         }
         .num-btn {
             background-color: #1e293b; border: 1px solid #38bdf8; border-radius: 6px;
-            padding: 10px 0; display: flex; flex-direction: column; align-items: center;
-            cursor: pointer; transition: 0.2s;
+            padding: 6px 0; display: flex; flex-direction: column; align-items: center;
+            cursor: pointer;
         }
-        .num-btn:active { background-color: #38bdf8; color: #0f172a; }
-        .num-btn.completed { opacity: 0.3; border-color: #64748b; }
-        .num-btn .count { font-size: 8px; color: #94a3b8; margin-top: 2px; }
+        .num-btn.completed { opacity: 0.3; }
+        .num-btn .count { font-size: 8px; color: #94a3b8; }
+
+        /* 하단 버튼: 무조건 바닥에 고정 */
+        footer { padding: 10px 20px; shrink: 0; background: #0f172a; }
 
         .overlay {
             position: fixed; inset: 0; background: rgba(15, 23, 42, 0.98);
             display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 100;
-            backdrop-filter: blur(10px);
         }
     </style>
 </head>
@@ -64,13 +93,13 @@
         </div>
     </div>
 
-    <header class="p-4 flex justify-between items-center shrink-0">
+    <header class="p-4 flex justify-between items-center">
         <button onclick="location.href='index.html'" class="text-slate-400 text-xs font-bold">◀ BACK</button>
         <h1 class="text-sm font-bold text-purple-400 tracking-tighter uppercase">Sudoku Core</h1>
         <div class="w-8"></div>
     </header>
 
-    <div class="mx-4 mb-2 p-3 bg-slate-900 border border-slate-700 rounded-lg flex justify-around shrink-0 shadow-lg">
+    <div class="stat-bar mx-4 mb-2 p-3 bg-slate-900 border border-slate-700 rounded-lg flex justify-around shadow-lg">
         <div class="text-center">
             <p class="text-[8px] text-slate-500 uppercase font-bold">Reward</p>
             <p class="text-purple-400 font-bold text-xs">INT +1</p>
@@ -78,14 +107,17 @@
         <div class="text-center border-l border-slate-700 pl-6 text-emerald-400 font-bold text-xs" id="timer-display">00:00</div>
     </div>
 
-    <div class="flex-1 flex flex-col items-center justify-center min-h-0">
-        <table id="sudoku-grid" class="sudoku-table shadow-2xl"></table>
-        
+    <div class="game-area">
+        <div class="sudoku-wrapper">
+            <table id="sudoku-grid" class="sudoku-table shadow-2xl"></table>
+        </div>
         <div id="number-pad" class="number-pad"></div>
     </div>
 
-    <footer class="p-4 shrink-0">
-        <button onclick="checkAnswer()" class="w-full bg-purple-600 text-white font-bold py-4 rounded-xl shadow-xl active:bg-purple-500 transition-all">CHECK ANSWER</button>
+    <footer>
+        <button onclick="checkAnswer()" class="w-full bg-purple-600 text-white font-bold py-4 rounded-xl shadow-xl active:translate-y-1">
+            CHECK ANSWER
+        </button>
     </footer>
 
     <script>
@@ -98,10 +130,6 @@
         function startGame() {
             document.getElementById('start-overlay').style.display = 'none';
             renderBoard();
-            startTimer();
-        }
-
-        function startTimer() {
             startTime = Date.now();
             timerInterval = setInterval(() => {
                 const delta = Date.now() - startTime;
@@ -151,7 +179,6 @@
             const counts = {};
             for (let i = 1; i <= 9; i++) counts[i] = 0;
 
-            // 고정 숫자 + 입력 숫자 카운트
             for (let r = 0; r < 9; r++) {
                 for (let c = 0; c < 9; c++) {
                     let val = board[r][c];
@@ -167,7 +194,7 @@
                 const btn = document.createElement('div');
                 const remaining = Math.max(0, 9 - counts[i]);
                 btn.className = `num-btn ${remaining === 0 ? 'completed' : ''}`;
-                btn.innerHTML = `<span class="font-bold text-sm">${i}</span><span class="count">${remaining}</span>`;
+                btn.innerHTML = `<span class="font-bold text-xs">${i}</span><span class="count">${remaining}</span>`;
                 btn.onclick = () => inputNumber(i);
                 pad.appendChild(btn);
             }
@@ -177,7 +204,8 @@
             let correct = true;
             for (let r = 0; r < 9; r++) {
                 for (let c = 0; c < 9; c++) {
-                    const val = board[r][c] || parseInt(document.getElementById(`cell-${r}-${c}`).innerText);
+                    const cell = document.getElementById(`cell-${r}-${c}`);
+                    const val = board[r][c] || (cell ? parseInt(cell.innerText) : 0);
                     if (val !== solution[r][c]) { correct = false; break; }
                 }
             }
