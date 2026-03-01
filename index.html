@@ -1,6 +1,30 @@
-<header class="p-4 bg-slate-900 border-b-2 border-slate-700 flex justify-between items-center z-20">
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>QuestBody - Main Hub</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&display=swap');
+        body { background-color: #0f172a; color: white; font-family: 'Orbitron', sans-serif; }
+        .pixel-border { border: 4px solid #334155; }
+        .neon-glow { box-shadow: 0 0 15px #38bdf8, inset 0 0 5px #38bdf8; }
+        .status-bar { transition: width 1s cubic-bezier(0.34, 1.56, 0.64, 1); }
+
+        #character-sprite {
+            background-image: url('image/man/man.jpg');
+            background-size: contain;
+            background-repeat: no-repeat;
+            background-position: center;
+        }
+    </style>
+</head>
+<body class="flex flex-col h-screen overflow-hidden">
+
+    <header class="p-4 bg-slate-900 border-b-2 border-slate-700 flex justify-between items-center z-20">
         <div class="flex flex-col">
-            <span class="text-[10px] text-slate-400 tracking-widest">VILLAGE HP</span>
+            <span class="text-[10px] text-slate-400 tracking-widest uppercase">Village HP</span>
             <div class="w-24 bg-slate-800 h-1.5 mt-1 rounded-full overflow-hidden border border-slate-700">
                 <div id="village-hp" class="bg-emerald-500 h-full w-full"></div>
             </div>
@@ -11,11 +35,11 @@
                 <p id="user-coin" class="font-bold text-yellow-400 text-sm">1,250</p>
             </div>
             <div class="border-l border-slate-700 pl-2">
-                <span class="text-[10px] text-slate-400 uppercase">Mana</span>
+                <span class="text-[10px] text-slate-400 uppercase">Mana Pool</span>
                 <p id="user-mana" class="font-bold text-blue-400 text-sm">10 / 10</p>
             </div>
             
-            <button onclick="resetCharacter()" class="p-2 bg-red-900/30 rounded-lg border border-red-900/50 text-red-500 active:scale-95 transition-all" title="초기화">
+            <button onclick="resetCharacter()" class="p-2 bg-red-900/30 rounded-lg border border-red-900/50 text-red-500 active:scale-95 transition-all">
                 <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
                 </svg>
@@ -29,7 +53,76 @@
         </div>
     </header>
 
-<script>
+    <main class="flex-1 relative flex flex-col items-center justify-center p-6">
+        <div class="absolute inset-0 bg-[linear-gradient(to_right,#1e293b_1px,transparent_1px),linear-gradient(to_bottom,#1e293b_1px,transparent_1px)] bg-[size:40px_40px] [mask-image:radial-gradient(ellipse_60%_50%_at_50%_50%,#000_70%,transparent_100%)]"></div>
+
+        <div class="relative z-10 w-72 h-80 flex flex-col items-center">
+            <div id="character-sprite" class="w-64 h-64 bg-slate-800/50 rounded-xl pixel-border neon-glow flex items-center justify-center overflow-hidden"></div>
+            <div class="mt-4 text-center">
+                <span class="bg-blue-600 text-[10px] px-2 py-0.5 rounded-full font-bold">LV. 15</span>
+                <h2 class="text-xl font-bold mt-1 tracking-wider text-white uppercase">Future Chaser</h2>
+            </div>
+        </div>
+
+        <div class="w-full max-w-xs mt-8 space-y-4 z-10">
+            <div class="bg-slate-900/60 p-3 rounded border border-slate-700 backdrop-blur-sm shadow-inner">
+                <div class="flex justify-between text-[10px] mb-1">
+                    <span class="text-orange-400 font-bold uppercase">Str (근력)</span>
+                    <span id="str-val">70</span>
+                </div>
+                <div class="w-full bg-slate-800 h-2 rounded-full overflow-hidden">
+                    <div id="str-bar" class="status-bar bg-gradient-to-r from-orange-600 to-orange-400 h-full w-[70%]"></div>
+                </div>
+            </div>
+            
+            <div class="bg-slate-900/60 p-3 rounded border border-slate-700 backdrop-blur-sm shadow-inner">
+                <div class="flex justify-between text-[10px] mb-1">
+                    <span class="text-purple-400 font-bold uppercase">Int (지능)</span>
+                    <div class="flex items-center gap-2">
+                        <span id="int-val" class="text-white font-bold">0</span>
+                        <button onclick="location.href='brain.html'" class="bg-purple-600 hover:bg-purple-500 text-[8px] px-2 py-0.5 rounded font-bold transition-all active:scale-95">TRAINING</button>
+                    </div>
+                </div>
+                <div class="w-full bg-slate-800 h-2 rounded-full overflow-hidden">
+                    <div id="int-bar" class="status-bar bg-gradient-to-r from-purple-600 to-purple-400 h-full w-[0%]"></div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <section id="guide-section" class="mx-4 mb-4 z-20">
+        <div class="bg-slate-900 border-2 border-blue-500 p-3 rounded-lg flex items-start gap-3 shadow-[0_0_20px_rgba(59,130,246,0.3)]">
+            <div class="w-10 h-10 bg-blue-500/20 rounded-full flex-shrink-0 border border-blue-400 flex items-center justify-center text-xl">👤</div>
+            <div>
+                <p class="text-[9px] text-blue-400 font-bold tracking-tighter uppercase">QuestBody Guide</p>
+                <p id="guide-text" class="text-[11px] leading-tight text-slate-200 mt-1">
+                    "지능을 높여서 마나 최대치를 확장해봐!"
+                </p>
+            </div>
+        </div>
+    </section>
+
+    <nav class="bg-slate-950 border-t border-slate-800 grid grid-cols-4 h-20 z-20">
+        <button onclick="location.href='gym.html'" class="flex flex-col items-center justify-center hover:bg-slate-900 transition text-slate-400">
+            <span class="text-2xl">🏋️</span>
+            <span class="text-[9px] font-bold mt-1 uppercase">Gym</span>
+        </button>
+        <button onclick="location.href='brain.html'" class="flex flex-col items-center justify-center hover:bg-slate-900 transition text-slate-400 border-x border-slate-900">
+            <span class="text-2xl">🧩</span>
+            <span class="text-[9px] font-bold mt-1 uppercase">Brain</span>
+        </button>
+        <button class="flex flex-col items-center justify-center bg-blue-900/20 text-blue-400 border-y-2 border-blue-500">
+            <span class="text-2xl">🛡️</span>
+            <span class="text-[9px] font-bold mt-1 uppercase tracking-tighter">Defense</span>
+        </button>
+        <button class="flex flex-col items-center justify-center hover:bg-slate-900 transition text-slate-400 border-l border-slate-900">
+            <span class="text-2xl">🏪</span>
+            <span class="text-[9px] font-bold mt-1 uppercase">Shop</span>
+        </button>
+    </nav>
+
+    <script>
+        // 로그인 체크
         if (sessionStorage.getItem('isLoggedIn') !== 'true') {
             location.href = 'login.html';
         }
@@ -39,38 +132,51 @@
         };
 
         function updateUI() {
+            // 1. 저장된 데이터 불러오기
             const savedInt = parseInt(localStorage.getItem('user_int')) || 0;
+            const savedStr = parseInt(localStorage.getItem('user_str')) || 70;
             const baseMana = 10;
-            const maxMana = baseMana + savedInt;
+            const maxMana = baseMana + savedInt; // 지능 1당 마나 1 추가
             
+            // 2. 지능 UI 업데이트
             document.getElementById('int-val').innerText = savedInt;
             document.getElementById('int-bar').style.width = Math.min(savedInt, 100) + '%';
+
+            // 3. 근력 UI 업데이트
+            document.getElementById('str-val').innerText = savedStr;
+            document.getElementById('str-bar').style.width = Math.min(savedStr, 100) + '%';
+
+            // 4. 마나 UI 업데이트
             document.getElementById('user-mana').innerText = `${maxMana} / ${maxMana}`;
 
+            // 5. 가이드 멘트 분기
             if (savedInt >= 50) {
                 document.getElementById('guide-text').innerText = "훌륭해! 지능이 상당히 높아졌어. 마나통이 넉넉해졌군.";
+            } else if (savedInt > 0) {
+                document.getElementById('guide-text').innerText = `현재 INT ${savedInt} 달성! 마나가 확장되고 있어.`;
             } else {
                 document.getElementById('guide-text').innerText = "지능을 높여서 마나 최대치를 확장해봐!";
             }
         }
 
-        // 🔥 캐릭터 초기화 함수
+        // 캐릭터 초기화 (모든 데이터 삭제)
         function resetCharacter() {
-            if(confirm('캐릭터의 모든 스탯과 스테이지 기록이 사라집니다. 정말 초기화할까?')) {
+            if(confirm('모든 스탯과 스테이지 기록을 초기화할까? 진짜로?')) {
                 localStorage.removeItem('user_int');
                 localStorage.removeItem('cleared_stages');
-                localStorage.removeItem('user_str'); // 나중에 쓸 STR도 미리 삭제
+                localStorage.removeItem('user_str');
                 localStorage.removeItem('user_coin');
-                
-                alert('데이터 삭제 완료. 다시 시작해봐!');
-                location.reload(); // 새로고침해서 UI 반영
+                alert('QuestBody 데이터가 초기화되었습니다.');
+                location.reload();
             }
         }
 
         function logout() {
-            if(confirm('로그아웃 하시겠습니까?')) {
+            if(confirm('프로토콜을 종료하고 로그아웃 하시겠습니까?')) {
                 sessionStorage.removeItem('isLoggedIn');
                 location.href = 'login.html';
             }
         }
     </script>
+</body>
+</html>
