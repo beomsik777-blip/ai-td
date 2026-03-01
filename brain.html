@@ -8,6 +8,8 @@
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&display=swap');
         
+        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+
         body { 
             background-color: #0f172a; 
             color: white; 
@@ -18,36 +20,40 @@
             overflow: hidden;
         }
 
-        /* 그리드 영역: 화면 크기에 맞춰 반응형으로 조절 */
-        .sudoku-container-box {
-            width: 95vw;
-            max-width: 380px;
+        /* 그리드 컨테이너: 고정된 비율 유지 */
+        .sudoku-wrapper {
+            width: 92vw;
+            max-width: 360px;
             margin: 0 auto;
+            position: relative;
         }
 
         .sudoku-grid { 
             display: grid; 
             grid-template-columns: repeat(9, 1fr); 
-            background-color: #38bdf8; /* 격자 선 색상 */
+            grid-template-rows: repeat(9, 1fr);
+            background-color: #38bdf8; /* 선 색상 */
             border: 2px solid #38bdf8;
-            gap: 1px;
+            gap: 1px; /* 선 굵기 */
+            width: 100%;
+            aspect-ratio: 1 / 1;
         }
 
         .cell { 
-            aspect-ratio: 1 / 1;
             background-color: #1e293b; 
             display: flex; 
             align-items: center; 
             justify-content: center;
+            overflow: hidden; /* 숫자가 밖으로 나가는 것 방지 */
             position: relative;
         }
 
-        /* 고정 숫자 (시스템 숫자) */
+        /* 고정 숫자 */
         .cell.fixed { 
             background-color: #0f172a; 
             color: #ffffff; 
             font-weight: 700;
-            font-size: 1.2rem;
+            font-size: min(4.5vw, 18px);
         }
 
         /* 입력 숫자 */
@@ -60,16 +66,18 @@
             border: none; 
             outline: none;
             font-family: 'Orbitron', sans-serif;
-            font-size: 1.2rem;
+            font-size: min(4.5vw, 18px);
             padding: 0;
+            display: block;
             appearance: none;
         }
 
-        /* 3x3 박스 구분선 강화 */
+        /* 3x3 박스 구분선 (더 굵게) */
         .cell:nth-child(3n):not(:nth-child(9n)) { border-right: 2px solid #38bdf8; }
         .cell:nth-child(n+19):nth-child(-n+27), 
         .cell:nth-child(n+46):nth-child(-n+54) { border-bottom: 2px solid #38bdf8; }
 
+        /* 오버레이 */
         .overlay {
             position: fixed; inset: 0;
             background: rgba(15, 23, 42, 0.98);
@@ -86,52 +94,52 @@
 <body>
 
     <div id="start-overlay" class="overlay">
-        <h2 class="text-2xl font-bold text-blue-400 mb-6 tracking-widest text-center">BRAIN PROTOCOL</h2>
-        <button onclick="startGame()" class="px-10 py-4 bg-blue-600 text-white font-bold rounded-xl border-b-4 border-blue-800 transition-all active:translate-y-1 active:border-b-0 shadow-[0_0_20px_rgba(37,99,235,0.4)]">
-            SYNC START
+        <h2 class="text-2xl font-bold text-blue-400 mb-6 tracking-widest uppercase text-center px-6">BRAIN PROTOCOL</h2>
+        <button onclick="startGame()" class="px-12 py-4 bg-blue-600 text-white font-bold rounded-xl shadow-lg active:scale-95 transition-transform">
+            START PROTOCOL
         </button>
     </div>
 
     <div id="ad-overlay" class="overlay" style="display: none;">
         <div class="w-72 p-6 bg-slate-800 border-2 border-blue-400 rounded-2xl text-center shadow-2xl">
             <div class="text-4xl mb-4">💊</div>
-            <h3 class="text-lg font-bold text-white mb-4 uppercase">AD: Mana Potion</h3>
+            <h3 class="text-lg font-bold text-white mb-2 uppercase">MANA POTION</h3>
             <div id="ad-timer" class="text-blue-400 text-sm mb-4">Wait 5s...</div>
             <button id="ad-close-btn" onclick="finishGame()" disabled class="w-full py-3 bg-slate-700 text-slate-500 rounded-lg font-bold transition-all">CLOSE</button>
         </div>
     </div>
 
     <header class="p-4 flex justify-between items-center shrink-0">
-        <button onclick="location.href='index.html'" class="text-slate-400 text-xs flex items-center gap-1">
+        <button onclick="location.href='index.html'" class="text-slate-400 text-xs font-bold flex items-center gap-1">
             <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
             </svg>
             BACK
         </button>
-        <h1 class="text-lg font-bold text-purple-400 tracking-wider">SUDOKU INT+1</h1>
+        <h1 class="text-sm font-bold text-purple-400 tracking-tighter">SUDOKU CORE</h1>
         <div class="w-8"></div>
     </header>
 
-    <div class="mx-4 mb-4 p-3 bg-slate-900/80 border border-slate-700 rounded-lg flex justify-around shrink-0">
+    <div class="mx-4 mb-4 p-3 bg-slate-900 border border-slate-700 rounded-lg flex justify-around shrink-0">
         <div class="text-center">
-            <span class="text-[10px] text-slate-400 block uppercase font-bold">Reward</span>
-            <span class="text-purple-400 font-bold text-sm">INT +1</span>
+            <p class="text-[8px] text-slate-500 uppercase">Int Point</p>
+            <p class="text-purple-400 font-bold text-xs">+1</p>
         </div>
-        <div class="text-center border-l border-slate-700 pl-4">
-            <span class="text-[10px] text-slate-400 block uppercase font-bold">Time</span>
-            <span id="timer-display" class="text-emerald-400 font-bold text-sm">00:00</span>
+        <div class="text-center border-l border-slate-700 pl-6">
+            <p class="text-[8px] text-slate-500 uppercase">Timer</p>
+            <p id="timer-display" class="text-emerald-400 font-bold text-xs">00:00</p>
         </div>
     </div>
 
-    <div class="flex-1 flex items-center justify-center">
-        <div class="sudoku-container-box">
+    <div class="flex-1 flex items-center justify-center min-h-0">
+        <div class="sudoku-wrapper">
             <div id="sudoku-grid" class="sudoku-grid shadow-2xl">
             </div>
         </div>
     </div>
 
     <footer class="p-6 shrink-0">
-        <button onclick="checkAnswer()" class="w-full bg-purple-600 hover:bg-purple-500 text-white font-bold py-4 rounded-xl border-b-4 border-purple-800 active:translate-y-1 active:border-b-0 shadow-lg transition-all">
+        <button onclick="checkAnswer()" class="w-full bg-purple-600 hover:bg-purple-500 text-white font-bold py-4 rounded-xl shadow-xl active:translate-y-1 active:shadow-none transition-all">
             CHECK ANSWER
         </button>
     </footer>
@@ -142,7 +150,6 @@
             location.href = 'login.html';
         }
 
-        // 초기 보드 (0은 빈칸)
         const board = [
             [5, 3, 0, 0, 7, 0, 0, 0, 0], [6, 0, 0, 1, 9, 5, 0, 0, 0], [0, 9, 8, 0, 0, 0, 0, 6, 0],
             [8, 0, 0, 0, 6, 0, 0, 0, 3], [4, 0, 0, 8, 0, 3, 0, 0, 1], [7, 0, 0, 0, 2, 0, 0, 0, 6],
@@ -155,16 +162,11 @@
             [9, 6, 1, 5, 3, 7, 2, 8, 4], [2, 8, 7, 4, 1, 9, 6, 3, 5], [3, 4, 5, 2, 8, 6, 1, 7, 9]
         ];
 
-        let startTime;
-        let timerInterval;
+        let startTime, timerInterval;
 
         function startGame() {
             document.getElementById('start-overlay').style.display = 'none';
             renderBoard();
-            startTimer();
-        }
-
-        function startTimer() {
             startTime = Date.now();
             timerInterval = setInterval(() => {
                 const delta = Date.now() - startTime;
@@ -177,12 +179,10 @@
         function renderBoard() {
             const grid = document.getElementById('sudoku-grid');
             grid.innerHTML = ''; 
-            
             for (let r = 0; r < 9; r++) {
                 for (let c = 0; c < 9; c++) {
                     const cell = document.createElement('div');
                     cell.className = 'cell';
-                    
                     if (board[r][c] !== 0) {
                         cell.classList.add('fixed');
                         cell.innerText = board[r][c];
@@ -215,38 +215,33 @@
             }
 
             if (!complete) {
-                alert('빈칸을 모두 채워주세요!');
+                alert('모든 빈칸을 분석하여 채워주세요!');
                 return;
             }
 
             if (correct) {
                 clearInterval(timerInterval);
-                showAd();
+                document.getElementById('ad-overlay').style.display = 'flex';
+                let timeLeft = 5;
+                const timer = setInterval(() => {
+                    timeLeft--;
+                    if (timeLeft > 0) document.getElementById('ad-timer').innerText = `Wait ${timeLeft}s...`;
+                    else {
+                        clearInterval(timer);
+                        document.getElementById('ad-timer').innerText = "AD COMPLETE!";
+                        const btn = document.getElementById('ad-close-btn');
+                        btn.disabled = false;
+                        btn.classList.replace('bg-slate-700', 'bg-blue-600');
+                        btn.classList.replace('text-slate-500', 'text-white');
+                    }
+                }, 1000);
             } else {
-                alert('틀린 숫자가 있는 것 같아! 다시 한번 확인해볼래?');
+                alert('데이터 불일치! 다시 분석해봐.');
             }
         }
 
-        function showAd() {
-            const adOverlay = document.getElementById('ad-overlay');
-            const adCloseBtn = document.getElementById('ad-close-btn');
-            adOverlay.style.display = 'flex';
-            let timeLeft = 5;
-            const timer = setInterval(() => {
-                timeLeft--;
-                if (timeLeft > 0) document.getElementById('ad-timer').innerText = `Wait ${timeLeft}s...`;
-                else {
-                    clearInterval(timer);
-                    document.getElementById('ad-timer').innerText = "AD COMPLETE!";
-                    adCloseBtn.disabled = false;
-                    adCloseBtn.classList.remove('bg-slate-700', 'text-slate-500');
-                    adCloseBtn.classList.add('bg-blue-600', 'text-white', 'hover:bg-blue-500', 'shadow-lg');
-                }
-            }, 1000);
-        }
-
         function finishGame() {
-            alert('지능(INT) +1 상승!');
+            alert('INT +1 상승! 브레인 동기화가 완료되었습니다.');
             location.href = 'index.html';
         }
     </script>
