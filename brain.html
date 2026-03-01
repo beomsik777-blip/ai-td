@@ -2,76 +2,113 @@
 <html lang="ko">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>QuestBody - Brain Training</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&display=swap');
-        body { background-color: #0f172a; color: white; font-family: 'Orbitron', sans-serif; }
-        .sudoku-grid { display: grid; grid-template-columns: repeat(9, 1fr); gap: 1px; background-color: #334155; border: 2px solid #334155; }
-        .cell { width: 100%; aspect-ratio: 1; background-color: #1e293b; display: flex; align-items: center; justify-content: center; font-size: 1.2rem; font-weight: bold; cursor: pointer; }
-        .cell input { width: 100%; height: 100%; background: transparent; text-align: center; color: #38bdf8; outline: none; border: none; font-family: 'Orbitron', sans-serif; }
+        body { 
+            background-color: #0f172a; 
+            color: white; 
+            font-family: 'Orbitron', sans-serif;
+            margin: 0;
+            padding: 0;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+        .sudoku-grid { 
+            display: grid; 
+            grid-template-columns: repeat(9, 1fr); 
+            gap: 1px; 
+            background-color: #334155; 
+            border: 2px solid #38bdf8;
+            width: 100%;
+            max-width: min(90vw, 400px);
+        }
+        .cell { 
+            width: 100%; 
+            aspect-ratio: 1; 
+            background-color: #1e293b; 
+            display: flex; 
+            align-items: center; 
+            justify-content: center; 
+            font-size: clamp(0.8rem, 4vw, 1.2rem); 
+            font-weight: bold; 
+        }
+        .cell input { 
+            width: 100%; 
+            height: 100%; 
+            background: transparent; 
+            text-align: center; 
+            color: #38bdf8; 
+            outline: none; 
+            border: none; 
+            font-family: 'Orbitron', sans-serif;
+            padding: 0;
+        }
         .cell.fixed { background-color: #0f172a; color: #94a3b8; }
         
         /* 3x3 Grid Borders */
-        .cell:nth-child(3n) { border-right: 2px solid #38bdf8; }
-        .cell:nth-child(9n) { border-right: none; }
+        .cell:nth-child(3n):not(:nth-child(9n)) { border-right: 2px solid #38bdf8; }
         .cell:nth-child(n+19):nth-child(-n+27), 
         .cell:nth-child(n+46):nth-child(-n+54) { border-bottom: 2px solid #38bdf8; }
 
-        /* Remove input arrows */
         input::-webkit-outer-spin-button,
         input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+        
+        .neon-btn {
+            box-shadow: 0 0 10px rgba(147, 51, 234, 0.3);
+            text-shadow: 0 0 5px rgba(255, 255, 255, 0.5);
+        }
     </style>
 </head>
-<body class="flex flex-col h-screen p-4">
+<body class="p-4 box-border">
 
-    <header class="flex justify-between items-center mb-6">
-        <button onclick="location.href='index.html'" class="text-slate-400 text-sm flex items-center gap-1">
+    <header class="flex justify-between items-center mb-4 shrink-0">
+        <button onclick="location.href='index.html'" class="text-slate-400 text-xs flex items-center gap-1">
             <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
             </svg>
             BACK
         </button>
         <div class="text-center">
-            <h1 class="text-xl font-bold text-purple-400 tracking-wider">BRAIN TRAINING</h1>
-            <p class="text-[10px] text-slate-500 uppercase">Sudoku Beginner Mode</p>
+            <h1 class="text-lg font-bold text-purple-400 tracking-wider">BRAIN TRAINING</h1>
         </div>
         <div class="w-10"></div>
     </header>
 
-    <div class="bg-slate-900 border border-slate-700 p-4 rounded-lg mb-6 flex justify-around shadow-lg">
+    <div class="bg-slate-900/80 border border-slate-700 p-3 rounded-lg mb-4 flex justify-around shadow-lg shrink-0">
         <div class="text-center">
-            <span class="text-[10px] text-slate-400 block uppercase">INT REWARD</span>
-            <span class="text-purple-400 font-bold">+1 POINT</span>
+            <span class="text-[8px] text-slate-400 block uppercase">INT REWARD</span>
+            <span class="text-purple-400 font-bold text-sm">+1 POINT</span>
         </div>
-        <div class="text-center border-l border-slate-700 pl-6">
-            <span class="text-[10px] text-slate-400 block uppercase">STATUS</span>
-            <span id="game-status" class="text-emerald-400 font-bold">SOLVING...</span>
+        <div class="text-center border-l border-slate-700 pl-4">
+            <span class="text-[8px] text-slate-400 block uppercase">STATUS</span>
+            <span id="game-status" class="text-emerald-400 font-bold text-sm">SOLVING...</span>
         </div>
     </div>
 
-    <div class="flex-1 flex items-center justify-center">
-        <div id="sudoku-container" class="sudoku-grid w-full max-w-[360px] shadow-2xl rounded overflow-hidden">
-            </div>
+    <div class="flex-1 flex items-center justify-center min-h-0">
+        <div id="sudoku-container" class="sudoku-grid shadow-2xl rounded overflow-hidden">
+        </div>
     </div>
 
-    <footer class="mt-8 flex flex-col gap-3">
-        <button onclick="checkAnswer()" class="w-full bg-purple-600 hover:bg-purple-500 text-white font-bold py-4 rounded-lg border-b-4 border-purple-800 active:border-b-0 active:translate-y-1 transition-all shadow-[0_0_15px_rgba(147,51,234,0.4)]">
+    <footer class="mt-4 shrink-0">
+        <button onclick="checkAnswer()" class="neon-btn w-full bg-purple-600 hover:bg-purple-500 text-white font-bold py-3 rounded-lg border-b-4 border-purple-800 active:border-b-0 active:translate-y-1 transition-all">
             COMPLETE & GAIN INT
         </button>
-        <p class="text-[9px] text-slate-500 text-center uppercase tracking-widest">
+        <p class="text-[8px] text-slate-500 text-center uppercase tracking-widest mt-2">
             Finish the puzzle to trigger the mana core
         </p>
     </footer>
 
     <script>
-        // 로그인 체크
         if (sessionStorage.getItem('isLoggedIn') !== 'true') {
             location.href = 'login.html';
         }
 
-        // 초급용 간단한 데이터 (0은 빈칸)
         const board = [
             [5, 3, 0, 0, 7, 0, 0, 0, 0],
             [6, 0, 0, 1, 9, 5, 0, 0, 0],
@@ -84,7 +121,6 @@
             [0, 0, 0, 0, 8, 0, 0, 7, 9]
         ];
 
-        // 정답지 (테스트용)
         const solution = [
             [5, 3, 4, 6, 7, 8, 9, 1, 2],
             [6, 7, 2, 1, 9, 5, 3, 4, 8],
@@ -100,6 +136,7 @@
         const container = document.getElementById('sudoku-container');
 
         function initBoard() {
+            container.innerHTML = '';
             for (let r = 0; r < 9; r++) {
                 for (let c = 0; c < 9; c++) {
                     const cell = document.createElement('div');
@@ -111,10 +148,7 @@
                     } else {
                         const input = document.createElement('input');
                         input.type = 'number';
-                        input.min = 1;
-                        input.max = 9;
                         input.id = `cell-${r}-${c}`;
-                        // Mobile optimization: prevent zooming and show numeric keypad
                         input.setAttribute('pattern', '[1-9]*');
                         input.setAttribute('inputmode', 'numeric');
                         cell.appendChild(input);
@@ -141,7 +175,7 @@
 
             if (correct) {
                 document.getElementById('game-status').innerText = 'COMPLETED!';
-                alert('지능(INT) +1 상승! 프로토콜이 성공적으로 완료되었습니다.');
+                alert('지능(INT) +1 상승! 성공적으로 완료되었습니다.');
                 location.href = 'index.html';
             } else {
                 alert('어딘가 숫자가 틀린 것 같아. 다시 확인해봐!');
