@@ -12,7 +12,6 @@
             color: white; 
             font-family: 'Orbitron', sans-serif;
             margin: 0;
-            padding: 0;
             height: 100vh;
             display: flex;
             flex-direction: column;
@@ -22,21 +21,19 @@
             display: grid; 
             grid-template-columns: repeat(9, 1fr); 
             gap: 1px; 
-            background-color: #334155; 
+            background-color: #38bdf8; 
             border: 2px solid #38bdf8;
             width: 100%;
-            max-width: min(90vw, 400px);
+            max-width: 350px;
+            margin: auto;
         }
         .cell { 
-            width: 100%; 
             aspect-ratio: 1; 
             background-color: #1e293b; 
             display: flex; 
             align-items: center; 
             justify-content: center; 
-            font-size: clamp(0.8rem, 4vw, 1.2rem); 
-            font-weight: bold; 
-            position: relative;
+            font-size: 1.1rem;
         }
         .cell input { 
             width: 100%; 
@@ -44,152 +41,110 @@
             background: transparent; 
             text-align: center; 
             color: #38bdf8; 
-            outline: none; 
             border: none; 
             font-family: 'Orbitron', sans-serif;
-            padding: 0;
-            font-size: inherit;
+            font-size: 1.1rem;
+            outline: none;
         }
         .cell.fixed { background-color: #0f172a; color: #94a3b8; }
         
-        /* 3x3 Grid Borders */
+        /* 3x3 구분을 위한 굵은 선 */
         .cell:nth-child(3n):not(:nth-child(9n)) { border-right: 2px solid #38bdf8; }
         .cell:nth-child(n+19):nth-child(-n+27), 
         .cell:nth-child(n+46):nth-child(-n+54) { border-bottom: 2px solid #38bdf8; }
 
-        input::-webkit-outer-spin-button,
-        input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
-        
-        .neon-btn {
-            box-shadow: 0 0 15px rgba(147, 51, 234, 0.4);
-            text-shadow: 0 0 5px rgba(255, 255, 255, 0.5);
-        }
-
-        /* Overlay Styles */
-        #start-overlay, #ad-overlay {
+        /* 오버레이 설정 */
+        .overlay {
             position: fixed;
             inset: 0;
-            background: rgba(15, 23, 42, 0.95);
+            background: rgba(15, 23, 42, 0.98);
             display: flex;
             flex-direction: column;
             align-items: center;
             justify-content: center;
-            z-index: 50;
-            backdrop-filter: blur(8px);
+            z-index: 100;
+            backdrop-filter: blur(10px);
         }
         #ad-overlay { display: none; }
-        .ad-box {
-            width: 85%;
-            max-width: 320px;
-            aspect-ratio: 4/5;
-            background: #1e293b;
-            border: 2px solid #38bdf8;
-            border-radius: 1rem;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            position: relative;
-            overflow: hidden;
-            box-shadow: 0 0 30px rgba(56, 189, 248, 0.2);
-        }
+
+        /* Remove input arrows */
+        input::-webkit-outer-spin-button,
+        input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
     </style>
 </head>
-<body class="p-4 box-border">
+<body class="p-4">
 
-    <!-- Start Overlay -->
-    <div id="start-overlay">
-        <div class="text-center mb-8">
-            <h2 class="text-2xl font-bold text-blue-400 mb-2 tracking-widest">BRAIN PROTOCOL</h2>
-            <p class="text-[10px] text-slate-500 uppercase">Ready to synchronize mana core?</p>
-        </div>
-        <button onclick="startGame()" class="px-8 py-4 bg-blue-600 hover:bg-blue-500 text-white font-bold rounded-xl border-b-4 border-blue-800 transition-all active:translate-y-1 active:border-b-0 neon-btn">
+    <div id="start-overlay" class="overlay">
+        <h2 class="text-2xl font-bold text-blue-400 mb-2 tracking-widest text-center">BRAIN PROTOCOL</h2>
+        <p class="text-[10px] text-slate-500 mb-8 uppercase">Ready to synchronize mana core?</p>
+        <button onclick="startGame()" class="px-10 py-4 bg-blue-600 hover:bg-blue-500 text-white font-bold rounded-xl border-b-4 border-blue-800 transition-all active:translate-y-1 active:border-b-0">
             TRAINING START
         </button>
     </div>
 
-    <!-- Ad Overlay -->
-    <div id="ad-overlay">
-        <div class="ad-box mb-6">
-            <span class="text-[10px] text-slate-500 absolute top-2 right-3 uppercase">Sponsored</span>
-            <div class="w-20 h-20 bg-blue-500/20 rounded-full flex items-center justify-center text-4xl mb-4">💊</div>
-            <h3 class="text-lg font-bold text-white mb-1 uppercase tracking-tighter">Mana Potion V2</h3>
-            <p class="text-[11px] text-slate-400 text-center px-6 leading-tight">
-                Instantly restores 50 mana. <br>Crafted with premium elderwood sap.
-            </p>
-            <div class="mt-6 px-4 py-2 bg-slate-800 rounded text-[10px] font-bold text-blue-400">QUESTBODY MARKET</div>
+    <div id="ad-overlay" class="overlay">
+        <div class="w-72 p-6 bg-slate-800 border-2 border-blue-400 rounded-2xl text-center shadow-2xl">
+            <span class="text-[10px] text-slate-500 uppercase">Sponsored</span>
+            <div class="text-4xl my-4">💊</div>
+            <h3 class="text-lg font-bold text-white mb-2">Mana Potion V2</h3>
+            <p class="text-xs text-slate-400 mb-6 leading-tight">지능을 높여 마나를 회복하세요!</p>
+            <div id="ad-timer" class="text-blue-400 text-sm mb-4">Closing in 5s...</div>
+            <button id="ad-close-btn" onclick="finishGame()" disabled class="w-full py-3 bg-slate-700 text-slate-500 font-bold rounded-lg opacity-50 cursor-not-allowed transition-all">
+                CLOSE AD
+            </button>
         </div>
-        <div id="ad-timer" class="text-slate-400 text-sm mb-4">Closing in 5s...</div>
-        <button id="ad-close-btn" onclick="finishGame()" disabled class="px-8 py-3 bg-slate-700 text-slate-500 font-bold rounded-lg cursor-not-allowed transition-all opacity-50">
-            CLOSE AD
-        </button>
     </div>
 
-    <header class="flex justify-between items-center mb-4 shrink-0">
-        <button onclick="location.href='index.html'" class="text-slate-400 text-xs flex items-center gap-1">
-            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+    <header class="flex justify-between items-center mb-4">
+        <button onclick="location.href='index.html'" class="text-slate-400 text-xs tracking-tighter flex items-center gap-1">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
             </svg>
             BACK
         </button>
-        <div class="text-center">
-            <h1 class="text-lg font-bold text-purple-400 tracking-wider">BRAIN TRAINING</h1>
-        </div>
-        <div class="w-10"></div>
+        <h1 class="text-lg font-bold text-purple-400">SUDOKU INT+1</h1>
+        <div class="w-8"></div>
     </header>
 
-    <div class="bg-slate-900/80 border border-slate-700 p-3 rounded-lg mb-4 flex justify-around shadow-lg shrink-0">
+    <div class="bg-slate-900 border border-slate-700 p-3 rounded-lg mb-6 flex justify-around shrink-0">
         <div class="text-center">
-            <span class="text-[8px] text-slate-400 block uppercase">INT REWARD</span>
-            <span class="text-purple-400 font-bold text-sm">+1 POINT</span>
+            <span class="text-[8px] text-slate-400 block uppercase">Reward</span>
+            <span class="text-purple-400 font-bold text-sm">INT +1</span>
         </div>
         <div class="text-center border-l border-slate-700 pl-4">
-            <span class="text-[8px] text-slate-400 block uppercase">STATUS</span>
+            <span class="text-[8px] text-slate-400 block uppercase">Status</span>
             <span id="game-status" class="text-emerald-400 font-bold text-sm">READY</span>
         </div>
     </div>
 
     <div class="flex-1 flex items-center justify-center min-h-0">
-        <div id="sudoku-container" class="sudoku-grid shadow-2xl rounded overflow-hidden">
-        </div>
+        <div id="sudoku-container" class="sudoku-grid"></div>
     </div>
 
-    <footer class="mt-4 shrink-0">
-        <button id="complete-btn" onclick="checkAnswer()" class="neon-btn w-full bg-purple-600 hover:bg-purple-500 text-white font-bold py-3 rounded-lg border-b-4 border-purple-800 active:border-b-0 active:translate-y-1 transition-all">
+    <footer class="mt-6">
+        <button id="complete-btn" onclick="checkAnswer()" class="w-full bg-purple-600 hover:bg-purple-500 text-white font-bold py-4 rounded-xl border-b-4 border-purple-800 active:translate-y-1 active:border-b-0">
             COMPLETE & GAIN INT
         </button>
-        <p class="text-[8px] text-slate-500 text-center uppercase tracking-widest mt-2">
-            Finish the puzzle to trigger the mana core
-        </p>
     </footer>
 
     <script>
+        // 로그인 체크
         if (sessionStorage.getItem('isLoggedIn') !== 'true') {
             location.href = 'login.html';
         }
 
+        // 보드 데이터 (0은 빈칸)
         const board = [
-            [5, 3, 0, 0, 7, 0, 0, 0, 0],
-            [6, 0, 0, 1, 9, 5, 0, 0, 0],
-            [0, 9, 8, 0, 0, 0, 0, 6, 0],
-            [8, 0, 0, 0, 6, 0, 0, 0, 3],
-            [4, 0, 0, 8, 0, 3, 0, 0, 1],
-            [7, 0, 0, 0, 2, 0, 0, 0, 6],
-            [0, 6, 0, 0, 0, 0, 2, 8, 0],
-            [0, 0, 0, 4, 1, 9, 0, 0, 5],
-            [0, 0, 0, 0, 8, 0, 0, 7, 9]
+            [5, 3, 0, 0, 7, 0, 0, 0, 0], [6, 0, 0, 1, 9, 5, 0, 0, 0], [0, 9, 8, 0, 0, 0, 0, 6, 0],
+            [8, 0, 0, 0, 6, 0, 0, 0, 3], [4, 0, 0, 8, 0, 3, 0, 0, 1], [7, 0, 0, 0, 2, 0, 0, 0, 6],
+            [0, 6, 0, 0, 0, 0, 2, 8, 0], [0, 0, 0, 4, 1, 9, 0, 0, 5], [0, 0, 0, 0, 8, 0, 0, 7, 9]
         ];
 
+        // 정답 데이터
         const solution = [
-            [5, 3, 4, 6, 7, 8, 9, 1, 2],
-            [6, 7, 2, 1, 9, 5, 3, 4, 8],
-            [1, 9, 8, 3, 4, 2, 5, 6, 7],
-            [8, 5, 9, 7, 6, 1, 4, 2, 3],
-            [4, 2, 6, 8, 5, 3, 7, 9, 1],
-            [7, 1, 3, 9, 2, 4, 8, 5, 6],
-            [9, 6, 1, 5, 3, 7, 2, 8, 4],
-            [2, 8, 7, 4, 1, 9, 6, 3, 5],
-            [3, 4, 5, 2, 8, 6, 1, 7, 9]
+            [5, 3, 4, 6, 7, 8, 9, 1, 2], [6, 7, 2, 1, 9, 5, 3, 4, 8], [1, 9, 8, 3, 4, 2, 5, 6, 7],
+            [8, 5, 9, 7, 6, 1, 4, 2, 3], [4, 2, 6, 8, 5, 3, 7, 9, 1], [7, 1, 3, 9, 2, 4, 8, 5, 6],
+            [9, 6, 1, 5, 3, 7, 2, 8, 4], [2, 8, 7, 4, 1, 9, 6, 3, 5], [3, 4, 5, 2, 8, 6, 1, 7, 9]
         ];
 
         const container = document.getElementById('sudoku-container');
@@ -206,7 +161,6 @@
                 for (let c = 0; c < 9; c++) {
                     const cell = document.createElement('div');
                     cell.className = 'cell';
-                    
                     if (board[r][c] !== 0) {
                         cell.innerText = board[r][c];
                         cell.classList.add('fixed');
@@ -214,12 +168,8 @@
                         const input = document.createElement('input');
                         input.type = 'number';
                         input.id = `cell-${r}-${c}`;
-                        input.setAttribute('pattern', '[1-9]*');
                         input.setAttribute('inputmode', 'numeric');
-                        // Prevent multi-digit input
-                        input.oninput = function() {
-                            if(this.value.length > 1) this.value = this.value.slice(0,1);
-                        };
+                        input.oninput = function() { if(this.value.length > 1) this.value = this.value.slice(0,1); };
                         cell.appendChild(input);
                     }
                     container.appendChild(cell);
@@ -230,60 +180,50 @@
         function checkAnswer() {
             let correct = true;
             let complete = true;
-
             for (let r = 0; r < 9; r++) {
                 for (let c = 0; c < 9; c++) {
                     if (board[r][c] === 0) {
                         const input = document.getElementById(`cell-${r}-${c}`);
                         const val = parseInt(input.value);
-                        if (!val) {
-                            complete = false;
-                            break;
-                        }
+                        if (!val) { complete = false; break; }
                         if (val !== solution[r][c]) {
-                            correct = false;
-                            break;
+                            correct = false; break;
                         }
                     }
                 }
+                if (!complete) break;
             }
-
+            
             if (!complete) {
                 alert('빈칸을 모두 채워주세요!');
                 return;
             }
 
-            if (correct) {
-                showAd();
-            } else {
-                alert('어딘가 숫자가 틀린 것 같아. 다시 확인해봐!');
-            }
+            if (correct) showAd();
+            else alert('숫자를 다시 확인해봐!');
         }
 
         function showAd() {
             const adOverlay = document.getElementById('ad-overlay');
-            const adTimer = document.getElementById('ad-timer');
             const adCloseBtn = document.getElementById('ad-close-btn');
-            
             adOverlay.style.display = 'flex';
             let timeLeft = 5;
-
             const timer = setInterval(() => {
                 timeLeft--;
-                if (timeLeft > 0) {
-                    adTimer.innerText = `Closing in ${timeLeft}s...`;
-                } else {
+                if (timeLeft > 0) document.getElementById('ad-timer').innerText = `Closing in ${timeLeft}s...`;
+                else {
                     clearInterval(timer);
-                    adTimer.innerText = "Ad complete!";
+                    document.getElementById('ad-timer').innerText = "AD COMPLETE!";
                     adCloseBtn.disabled = false;
-                    adCloseBtn.classList.remove('bg-slate-700', 'text-slate-500', 'opacity-50', 'cursor-not-allowed');
-                    adCloseBtn.classList.add('bg-blue-600', 'text-white', 'hover:bg-blue-500', 'neon-btn');
+                    adCloseBtn.classList.replace('bg-slate-700', 'bg-blue-600');
+                    adCloseBtn.classList.replace('text-slate-500', 'text-white');
+                    adCloseBtn.classList.remove('opacity-50', 'cursor-not-allowed');
                 }
             }, 1000);
         }
 
         function finishGame() {
-            alert('지능(INT) +1 상승! 성공적으로 완료되었습니다.');
+            alert('지능(INT) +1 상승!');
             location.href = 'index.html';
         }
     </script>
