@@ -84,7 +84,10 @@
             <div class="bg-slate-900/60 p-3 rounded border border-slate-700 backdrop-blur-sm">
                 <div class="flex justify-between text-[10px] mb-1">
                     <span class="text-purple-400 font-bold">INT (지능)</span>
-                    <span id="int-val">45%</span>
+                    <div class="flex items-center gap-2">
+                        <span id="int-val">45%</span>
+                        <button onclick="location.href='brain.html'" class="bg-purple-600 hover:bg-purple-500 text-[8px] px-2 py-0.5 rounded font-bold transition-all active:scale-95">LEVEL UP</button>
+                    </div>
                 </div>
                 <div class="w-full bg-slate-800 h-2 rounded-full overflow-hidden">
                     <div class="status-bar bg-gradient-to-right from-purple-600 to-purple-400 h-full w-[45%]"></div>
@@ -110,7 +113,7 @@
             <span class="text-2xl">🏋️</span>
             <span class="text-[9px] font-bold mt-1">GYM</span>
         </button>
-        <button onclick="changeMenu('brain')" class="flex flex-col items-center justify-center hover:bg-slate-900 transition text-slate-400 hover:text-white border-x border-slate-900">
+        <button onclick="location.href='brain.html'" class="flex flex-col items-center justify-center hover:bg-slate-900 transition text-slate-400 hover:text-white border-x border-slate-900">
             <span class="text-2xl">🧩</span>
             <span class="text-[9px] font-bold mt-1">BRAIN</span>
         </button>
