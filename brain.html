@@ -15,119 +15,133 @@
             display: flex; flex-direction: column; overflow: hidden;
         }
 
-        header { height: 50px; display: flex; align-items: center; padding: 0 16px; flex-shrink: 0; }
-        .stat-bar { height: 50px; margin: 5px 16px; flex-shrink: 0; }
-        
-        /* 뼈대: 화면 중앙에 게임판과 패드를 고정 */
-        .game-main {
-            flex: 1; display: flex; flex-direction: column;
-            justify-content: center; align-items: center;
-            padding: 10px; min-height: 0;
+        /* 스테이지 선택 그리드 */
+        .stage-grid {
+            display: grid; grid-template-columns: repeat(5, 1fr); gap: 10px;
+            width: 90%; max-width: 320px; margin-top: 20px;
         }
-
-        .sudoku-container {
-            width: 100%; max-width: min(85vw, 340px);
-            aspect-ratio: 1/1; margin-bottom: 10px;
+        .stage-btn {
+            aspect-ratio: 1/1; background: #1e293b; border: 1px solid #38bdf8;
+            border-radius: 8px; display: flex; align-items: center; justify-content: center;
+            font-size: 0.8rem; font-weight: bold; transition: 0.2s;
         }
+        .stage-btn.cleared { opacity: 0.2; border-color: #475569; color: #475569; pointer-events: none; }
+        .stage-btn:active:not(.cleared) { background: #38bdf8; color: #0f172a; }
 
+        /* 게임 보드 */
         .sudoku-table {
-            width: 100%; height: 100%; border-collapse: collapse;
-            table-layout: fixed; border: 2px solid #38bdf8; background-color: #1e293b;
+            width: 90vw; height: 90vw; max-width: 340px; max-height: 340px;
+            margin: auto; border-collapse: collapse; table-layout: fixed;
+            border: 2px solid #38bdf8; background-color: #1e293b;
         }
-        
-        .sudoku-table td {
-            border: 1px solid #38bdf8; text-align: center; vertical-align: middle;
-            font-size: clamp(1rem, 5vw, 1.4rem);
-        }
+        .sudoku-table td { border: 1px solid #38bdf8; text-align: center; vertical-align: middle; font-size: 1.2rem; }
         .sudoku-table td:nth-child(3n) { border-right: 3px solid #38bdf8; }
         .sudoku-table tr:nth-child(3n) td { border-bottom: 3px solid #38bdf8; }
-        
         .fixed-cell { background-color: #0f172a; color: #ffffff; font-weight: bold; }
         .user-cell { color: #38bdf8; cursor: pointer; }
         .user-cell.selected { background-color: #334155; box-shadow: inset 0 0 10px #38bdf8; }
 
-        /* 숫자 패드 최적화 */
-        .number-pad {
-            display: grid; grid-template-columns: repeat(9, 1fr);
-            gap: 4px; width: 100%; max-width: 360px; flex-shrink: 0;
-        }
-        .num-btn {
-            background-color: #1e293b; border: 1px solid #38bdf8; border-radius: 6px;
-            padding: 8px 0; display: flex; flex-direction: column; align-items: center; cursor: pointer;
-        }
-        .num-btn.completed { opacity: 0.2; }
-        .num-btn span:first-child { font-size: 14px; font-weight: bold; }
-        .num-btn .count { font-size: 8px; color: #94a3b8; }
+        .number-pad { display: grid; grid-template-columns: repeat(9, 1fr); gap: 4px; width: 90vw; max-width: 360px; margin: 10px auto; }
+        .num-btn { background-color: #1e293b; border: 1px solid #38bdf8; border-radius: 6px; padding: 8px 0; display: flex; flex-direction: column; align-items: center; }
+        .num-btn.completed { opacity: 0.1; pointer-events: none; }
 
-        footer { height: 70px; display: flex; align-items: center; padding: 0 20px; flex-shrink: 0; }
-
-        .overlay {
-            position: fixed; inset: 0; background: rgba(15, 23, 42, 0.98);
-            display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 100;
-        }
+        .overlay { position: fixed; inset: 0; background: rgba(15, 23, 42, 0.98); display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 100; backdrop-filter: blur(10px); }
     </style>
 </head>
 <body>
     <div id="start-overlay" class="overlay">
-        <h2 class="text-2xl font-bold text-blue-400 mb-8 tracking-widest uppercase">Brain Protocol</h2>
-        <button onclick="startGame()" class="px-12 py-4 bg-blue-600 text-white font-bold rounded-xl shadow-lg active:scale-95">START</button>
+        <h2 class="text-xl font-bold text-blue-400 mb-2 tracking-widest uppercase">Select Stage</h2>
+        <div id="stage-list" class="stage-grid"></div>
     </div>
 
     <div id="ad-overlay" class="overlay" style="display: none;">
         <div class="w-72 p-6 bg-slate-800 border-2 border-blue-400 rounded-2xl text-center">
-            <h3 class="text-lg font-bold text-white mb-4 uppercase">Mana Potion Get!</h3>
-            <div id="ad-timer" class="text-blue-400 text-sm mb-4">Wait 5s...</div>
-            <button id="ad-close-btn" onclick="finishGame()" disabled class="w-full py-3 bg-slate-700 text-slate-500 rounded-lg font-bold">CLOSE</button>
+            <h3 class="text-lg font-bold text-white mb-2 uppercase text-emerald-400">Sync Complete!</h3>
+            <p class="text-white text-xs mb-6 uppercase">INT +1 Reward</p>
+            <button onclick="finishGame()" class="w-full py-3 bg-blue-600 text-white rounded-lg font-bold">GET REWARD</button>
         </div>
     </div>
 
-    <header>
+    <header class="p-4 flex justify-between items-center shrink-0">
         <button onclick="location.href='index.html'" class="text-slate-400 text-xs font-bold">◀ BACK</button>
-        <div class="flex-1 text-center"><h1 class="text-sm font-bold text-purple-400 uppercase">Sudoku Core</h1></div>
+        <h1 id="stage-title" class="text-sm font-bold text-purple-400 uppercase">Ready</h1>
         <div class="w-8"></div>
     </header>
 
-    <div class="stat-bar bg-slate-900 border border-slate-700 rounded-lg flex justify-around shadow-lg">
-        <div class="text-center py-2"><p class="text-[8px] text-slate-500 font-bold uppercase">Reward</p><p class="text-purple-400 font-bold text-xs">INT +1</p></div>
-        <div class="text-center py-2"><p class="text-[8px] text-slate-500 font-bold uppercase">Time</p><p id="timer-display" class="text-emerald-400 font-bold text-xs">00:00</p></div>
-    </div>
-
-    <div class="game-main">
+    <div class="flex-1 flex flex-col items-center justify-center min-h-0">
         <div class="sudoku-container"><table id="sudoku-grid" class="sudoku-table"></table></div>
         <div id="number-pad" class="number-pad"></div>
     </div>
 
-    <footer>
-        <button onclick="checkAnswer()" class="w-full bg-purple-600 text-white font-bold py-3 rounded-xl shadow-xl active:scale-95">CHECK ANSWER</button>
+    <footer class="p-6 shrink-0">
+        <button onclick="checkAnswer()" class="w-full bg-purple-600 text-white font-bold py-4 rounded-xl shadow-xl active:scale-95 transition-all uppercase">Check Result</button>
     </footer>
 
     <script>
-        const board = [[5,3,0,0,7,0,0,0,0],[6,0,0,1,9,5,0,0,0],[0,9,8,0,0,0,0,6,0],[8,0,0,0,6,0,0,0,3],[4,0,0,8,0,3,0,0,1],[7,0,0,0,2,0,0,0,6],[0,6,0,0,0,0,2,8,0],[0,0,0,4,1,9,0,0,5],[0,0,0,0,8,0,0,7,9]];
-        const solution = [[5,3,4,6,7,8,9,1,2],[6,7,2,1,9,5,3,4,8],[1,9,8,3,4,2,5,6,7],[8,5,9,7,6,1,4,2,3],[4,2,6,8,5,3,7,9,1],[7,1,3,9,2,4,8,5,6],[9,6,1,5,3,7,2,8,4],[2,8,7,4,1,9,6,3,5],[3,4,5,2,8,6,1,7,9]];
+        // 10개의 스테이지 데이터 세트
+        const stages = [
+            { b: [[5,3,0,0,7,0,0,0,0],[6,0,0,1,9,5,0,0,0],[0,9,8,0,0,0,0,6,0],[8,0,0,0,6,0,0,0,3],[4,0,0,8,0,3,0,0,1],[7,0,0,0,2,0,0,0,6],[0,6,0,0,0,0,2,8,0],[0,0,0,4,1,9,0,0,5],[0,0,0,0,8,0,0,7,9]], s: [[5,3,4,6,7,8,9,1,2],[6,7,2,1,9,5,3,4,8],[1,9,8,3,4,2,5,6,7],[8,5,9,7,6,1,4,2,3],[4,2,6,8,5,3,7,9,1],[7,1,3,9,2,4,8,5,6],[9,6,1,5,3,7,2,8,4],[2,8,7,4,1,9,6,3,5],[3,4,5,2,8,6,1,7,9]] },
+            { b: [[0,0,0,2,6,0,7,0,1],[6,8,0,0,7,0,0,9,0],[1,9,0,0,0,4,5,0,0],[8,2,0,1,0,0,0,4,0],[0,0,4,6,0,2,9,0,0],[0,5,0,0,0,3,0,2,8],[0,0,9,3,0,0,0,7,4],[0,4,0,0,5,0,0,3,6],[7,0,3,0,1,8,0,0,0]], s: [[4,3,5,2,6,9,7,8,1],[6,8,2,5,7,1,4,9,3],[1,9,7,8,3,4,5,6,2],[8,2,6,1,9,5,3,4,7],[3,7,4,6,8,2,9,1,5],[9,5,1,7,4,3,6,2,8],[5,1,9,3,2,6,8,7,4],[2,4,8,9,5,7,1,3,6],[7,6,3,4,1,8,2,5,9]] },
+            { b: [[1,0,0,4,8,9,0,0,6],[7,3,0,0,0,0,0,4,0],[0,0,0,0,0,1,2,9,5],[0,0,7,1,2,0,6,0,0],[5,0,0,7,0,3,0,0,8],[0,0,6,0,9,5,7,0,0],[9,1,4,6,0,0,0,0,0],[0,2,0,0,0,0,0,3,7],[8,0,0,5,1,2,0,0,4]], s: [[1,5,2,4,8,9,3,7,6],[7,3,9,2,5,6,8,4,1],[4,6,8,3,7,1,2,9,5],[3,8,7,1,2,4,6,5,9],[5,9,1,7,6,3,4,2,8],[2,4,6,8,9,5,7,1,3],[9,1,4,6,3,7,5,8,2],[6,2,5,9,4,8,1,3,7],[8,7,3,5,1,2,9,6,4]] },
+            { b: [[0,2,0,6,0,8,0,0,0],[5,8,0,0,0,9,7,0,0],[0,0,0,0,4,0,0,0,0],[3,7,0,0,0,0,5,0,0],[6,0,0,0,0,0,0,0,4],[0,0,8,0,0,0,0,1,3],[0,0,0,0,2,0,0,0,0],[0,0,9,8,0,0,0,3,6],[0,0,0,3,0,6,0,9,0]], s: [[1,2,3,6,7,8,9,4,5],[5,8,4,2,3,9,7,6,1],[9,6,7,1,4,5,3,8,2],[3,7,1,4,6,2,5,8,9],[6,9,2,5,8,3,1,7,4],[4,5,8,7,9,1,6,2,3],[8,3,6,9,2,4,4,5,7],[7,4,9,8,5,2,1,3,6],[2,1,5,3,7,6,8,9,4]] },
+            { b: [[0,0,0,6,0,0,4,0,0],[7,0,0,0,0,3,6,0,0],[0,0,0,0,9,1,0,8,0],[0,0,0,0,0,0,0,0,0],[0,5,0,1,8,0,0,0,3],[0,0,0,3,0,6,0,4,5],[0,4,0,2,0,0,0,6,0],[9,0,3,0,0,0,0,0,0],[0,2,0,0,0,0,1,0,0]], s: [[1,3,8,6,5,2,4,7,9],[7,9,2,8,4,3,6,5,1],[4,6,5,7,9,1,3,8,2],[3,1,4,5,2,9,7,6,8],[6,5,9,1,8,7,2,1,3],[2,8,7,3,1,6,9,4,5],[8,4,1,2,3,5,9,6,7],[9,7,3,4,6,8,5,2,1],[5,2,6,9,7,4,1,3,8]] },
+            { b: [[2,0,0,3,0,0,0,0,0],[8,0,4,0,6,2,0,0,3],[0,1,3,8,0,0,2,0,0],[0,0,0,0,2,0,3,9,0],[5,0,7,0,0,0,6,2,1],[0,3,2,0,0,6,0,0,0],[0,2,0,0,0,9,1,4,0],[6,0,1,2,5,0,8,0,9],[0,0,0,0,0,1,0,0,2]], s: [[2,6,5,3,1,7,9,8,4],[8,7,4,9,6,2,5,1,3],[9,1,3,8,4,5,2,6,7],[1,4,6,5,2,8,3,9,7],[5,8,7,4,9,3,6,2,1],[7,3,2,1,8,6,4,5,9],[3,2,8,7,6,9,1,4,5],[6,9,1,2,5,4,8,7,9],[4,5,9,6,7,1,8,3,2]] },
+            { b: [[0,0,0,0,0,0,0,0,0],[0,0,0,0,0,3,0,8,5],[0,0,1,0,2,0,0,0,0],[0,0,0,5,0,7,0,0,0],[0,0,4,0,0,0,1,0,0],[0,9,0,0,0,0,0,0,0],[5,0,0,0,0,0,0,7,3],[0,0,2,0,1,0,0,0,0],[0,0,0,0,4,0,0,0,9]], s: [[9,8,5,1,7,6,3,2,4],[6,2,7,4,9,3,1,8,5],[4,3,1,8,2,5,9,6,7],[1,6,3,5,4,7,8,9,2],[2,5,4,9,8,1,7,3,6],[7,9,8,2,3,6,4,5,1],[5,1,9,6,2,8,4,7,3],[3,4,2,7,1,9,5,1,8],[8,7,6,3,4,2,5,1,9]] },
+            { b: [[0,0,0,0,0,0,0,0,0],[0,0,0,0,0,3,0,8,5],[0,0,1,0,2,0,0,0,0],[0,0,0,5,0,7,0,0,0],[0,0,4,0,0,0,1,0,0],[0,9,0,0,0,0,0,0,0],[5,0,0,0,0,0,0,7,3],[0,0,2,0,1,0,0,0,0],[0,0,0,0,4,0,0,0,9]], s: [[9,8,5,1,7,6,3,2,4],[6,2,7,4,9,3,1,8,5],[4,3,1,8,2,5,9,6,7],[1,6,3,5,4,7,8,9,2],[2,5,4,9,8,1,7,3,6],[7,9,8,2,3,6,4,5,1],[5,1,9,6,2,8,4,7,3],[3,4,2,7,1,9,5,1,8],[8,7,6,3,4,2,5,1,9]] },
+            { b: [[0,2,0,0,3,0,0,9,0],[6,0,0,9,0,0,0,0,1],[0,0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0,0]], s: [[4,2,1,5,3,8,6,9,7],[6,5,3,9,7,2,4,8,1],[7,9,8,4,1,6,2,3,5],[1,3,2,6,5,4,7,9,8],[5,8,4,7,2,9,1,6,3],[9,6,7,3,8,1,5,2,4],[2,1,5,8,6,3,9,7,4],[8,4,6,2,9,7,3,5,1],[3,7,9,1,4,5,8,6,2]] },
+            { b: [[5,3,0,0,7,0,0,0,0],[6,0,0,1,9,5,0,0,0],[0,9,8,0,0,0,0,6,0],[8,0,0,0,6,0,0,0,3],[4,0,0,8,0,3,0,0,1],[7,0,0,0,2,0,0,0,6],[0,6,0,0,0,0,2,8,0],[0,0,0,4,1,9,0,0,5],[0,0,0,0,8,0,0,7,9]], s: [[5,3,4,6,7,8,9,1,2],[6,7,2,1,9,5,3,4,8],[1,9,8,3,4,2,5,6,7],[8,5,9,7,6,1,4,2,3],[4,2,6,8,5,3,7,9,1],[7,1,3,9,2,4,8,5,6],[9,6,1,5,3,7,2,8,4],[2,8,7,4,1,9,6,3,5],[3,4,5,2,8,6,1,7,9]] }
+        ];
+
+        let currentStageIdx = 0;
         let selectedCell = null;
         let startTime, timerInterval;
 
-        function startGame() {
+        window.onload = function() {
+            renderStages();
+        };
+
+        function renderStages() {
+            const list = document.getElementById('stage-list');
+            list.innerHTML = "";
+            const cleared = JSON.parse(localStorage.getItem('cleared_stages') || "[]");
+
+            for (let i = 1; i <= 10; i++) {
+                const btn = document.createElement('button');
+                btn.className = `stage-btn ${cleared.includes(i) ? 'cleared' : ''}`;
+                btn.innerText = i;
+                btn.onclick = () => { if(!cleared.includes(i)) initGame(i-1); };
+                list.appendChild(btn);
+            }
+        }
+
+        function initGame(idx) {
+            currentStageIdx = idx;
             document.getElementById('start-overlay').style.display = 'none';
+            document.getElementById('stage-title').innerText = `STAGE ${idx + 1}`;
             renderBoard();
+            startTimer();
+        }
+
+        function startTimer() {
             startTime = Date.now();
             timerInterval = setInterval(() => {
-                const delta = Date.now() - startTime;
-                const min = Math.floor(delta / 60000).toString().padStart(2, '0');
-                const sec = Math.floor((delta % 60000) / 1000).toString().padStart(2, '0');
-                document.getElementById('timer-display').innerText = `${min}:${sec}`;
+                const d = Date.now() - startTime;
+                const m = Math.floor(d / 60000).toString().padStart(2, '0');
+                const s = Math.floor((d % 60000) / 1000).toString().padStart(2, '0');
+                document.getElementById('timer-display').innerText = `${m}:${s}`;
             }, 1000);
         }
 
         function renderBoard() {
             const table = document.getElementById('sudoku-grid');
             table.innerHTML = "";
+            const data = stages[currentStageIdx];
             for (let r = 0; r < 9; r++) {
                 const tr = document.createElement('tr');
                 for (let c = 0; c < 9; c++) {
                     const td = document.createElement('td');
-                    if (board[r][c] !== 0) {
-                        td.innerText = board[r][c];
+                    if (data.b[r][c] !== 0) {
+                        td.innerText = data.b[r][c];
                         td.className = "fixed-cell";
                     } else {
                         td.id = `cell-${r}-${c}`;
@@ -149,10 +163,11 @@
             const pad = document.getElementById('number-pad');
             pad.innerHTML = "";
             const counts = Array(10).fill(0);
+            const data = stages[currentStageIdx];
             for (let r = 0; r < 9; r++) {
                 for (let c = 0; c < 9; c++) {
                     const cell = document.getElementById(`cell-${r}-${c}`);
-                    const val = board[r][c] || (cell ? parseInt(cell.innerText) || 0 : 0);
+                    const val = data.b[r][c] || (cell ? parseInt(cell.innerText) || 0 : 0);
                     if (val > 0) counts[val]++;
                 }
             }
@@ -171,32 +186,28 @@
         }
 
         function checkAnswer() {
-            let correct = true;
+            const data = stages[currentStageIdx];
+            let win = true;
             for (let r = 0; r < 9; r++) {
                 for (let c = 0; c < 9; c++) {
                     const cell = document.getElementById(`cell-${r}-${c}`);
-                    const val = board[r][c] || (cell ? parseInt(cell.innerText) || 0 : 0);
-                    if (val !== solution[r][c]) { correct = false; break; }
+                    const val = data.b[r][c] || (cell ? parseInt(cell.innerText) || 0 : 0);
+                    if (val !== data.s[r][c]) { win = false; break; }
                 }
             }
-            if (correct) {
+            if (win) {
                 clearInterval(timerInterval);
                 document.getElementById('ad-overlay').style.display = 'flex';
-                let left = 5;
-                const t = setInterval(() => {
-                    left--;
-                    if (left > 0) document.getElementById('ad-timer').innerText = `Wait ${left}s...`;
-                    else {
-                        clearInterval(t); document.getElementById('ad-timer').innerText = "DONE!";
-                        const b = document.getElementById('ad-close-btn');
-                        b.disabled = false; b.classList.replace('bg-slate-700', 'bg-blue-600'); b.classList.replace('text-slate-500', 'text-white');
-                    }
-                }, 1000);
-            } else alert('분석 실패! 다시 확인해!');
+            } else alert('SYNC FAILED! CHECK AGAIN.');
         }
 
         function finishGame() {
+            // INT 증가
             localStorage.setItem('user_int', (parseInt(localStorage.getItem('user_int')) || 0) + 1);
+            // 스테이지 클리어 기록
+            let cleared = JSON.parse(localStorage.getItem('cleared_stages') || "[]");
+            if (!cleared.includes(currentStageIdx + 1)) cleared.push(currentStageIdx + 1);
+            localStorage.setItem('cleared_stages', JSON.stringify(cleared));
             location.href = 'index.html';
         }
     </script>
