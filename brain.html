@@ -12,19 +12,36 @@
             background-color: #0f172a; color: white; font-family: 'Orbitron', sans-serif;
             margin: 0; height: 100vh; display: flex; flex-direction: column; overflow: hidden;
         }
+        /* 테이블 격자 */
         .sudoku-table {
             width: 90vw; height: 90vw; max-width: 360px; max-height: 360px;
-            margin: auto; border-collapse: collapse; table-layout: fixed;
+            margin: 10px auto; border-collapse: collapse; table-layout: fixed;
             border: 2px solid #38bdf8; background-color: #1e293b;
         }
-        .sudoku-table td { border: 1px solid #38bdf8; padding: 0; text-align: center; vertical-align: middle; }
+        .sudoku-table td {
+            border: 1px solid #38bdf8; padding: 0; text-align: center; vertical-align: middle;
+            font-size: 1.2rem; height: 11.11%; width: 11.11%;
+        }
         .sudoku-table td:nth-child(3n) { border-right: 3px solid #38bdf8; }
         .sudoku-table tr:nth-child(3n) td { border-bottom: 3px solid #38bdf8; }
-        .fixed-cell { background-color: #0f172a; color: #ffffff; font-weight: bold; font-size: 1.1rem; }
-        input {
-            width: 100%; height: 100%; background: transparent; border: none; outline: none;
-            color: #38bdf8; text-align: center; font-family: 'Orbitron', sans-serif; font-size: 1.1rem;
+        .fixed-cell { background-color: #0f172a; color: #ffffff; font-weight: bold; }
+        .user-cell { color: #38bdf8; cursor: pointer; }
+        .user-cell.selected { background-color: #334155; box-shadow: inset 0 0 10px #38bdf8; }
+
+        /* 숫자 패드 */
+        .number-pad {
+            display: grid; grid-template-columns: repeat(9, 1fr);
+            gap: 4px; width: 92vw; max-width: 360px; margin: 15px auto;
         }
+        .num-btn {
+            background-color: #1e293b; border: 1px solid #38bdf8; border-radius: 6px;
+            padding: 10px 0; display: flex; flex-direction: column; align-items: center;
+            cursor: pointer; transition: 0.2s;
+        }
+        .num-btn:active { background-color: #38bdf8; color: #0f172a; }
+        .num-btn.completed { opacity: 0.3; border-color: #64748b; }
+        .num-btn .count { font-size: 8px; color: #94a3b8; margin-top: 2px; }
+
         .overlay {
             position: fixed; inset: 0; background: rgba(15, 23, 42, 0.98);
             display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 100;
@@ -35,8 +52,7 @@
 <body>
     <div id="start-overlay" class="overlay">
         <h2 class="text-2xl font-bold text-blue-400 mb-8 tracking-widest uppercase">Brain Protocol</h2>
-        <p class="text-slate-500 text-[10px] mb-4 uppercase">Current Int: <span id="current-int-display">0</span></p>
-        <button onclick="startGame()" class="px-12 py-4 bg-blue-600 text-white font-bold rounded-xl shadow-lg active:scale-95 transition-all">START</button>
+        <button onclick="startGame()" class="px-12 py-4 bg-blue-600 text-white font-bold rounded-xl shadow-lg">START</button>
     </div>
 
     <div id="ad-overlay" class="overlay" style="display: none;">
@@ -49,12 +65,12 @@
     </div>
 
     <header class="p-4 flex justify-between items-center shrink-0">
-        <button onclick="location.href='index.html'" class="text-slate-400 text-xs font-bold flex items-center gap-1">◀ BACK</button>
+        <button onclick="location.href='index.html'" class="text-slate-400 text-xs font-bold">◀ BACK</button>
         <h1 class="text-sm font-bold text-purple-400 tracking-tighter uppercase">Sudoku Core</h1>
         <div class="w-8"></div>
     </header>
 
-    <div class="mx-4 mb-4 p-3 bg-slate-900 border border-slate-700 rounded-lg flex justify-around shrink-0 shadow-lg">
+    <div class="mx-4 mb-2 p-3 bg-slate-900 border border-slate-700 rounded-lg flex justify-around shrink-0 shadow-lg">
         <div class="text-center">
             <p class="text-[8px] text-slate-500 uppercase font-bold">Reward</p>
             <p class="text-purple-400 font-bold text-xs">INT +1</p>
@@ -62,28 +78,40 @@
         <div class="text-center border-l border-slate-700 pl-6 text-emerald-400 font-bold text-xs" id="timer-display">00:00</div>
     </div>
 
-    <div class="flex-1 flex items-center justify-center min-h-0">
+    <div class="flex-1 flex flex-col items-center justify-center min-h-0">
         <table id="sudoku-grid" class="sudoku-table shadow-2xl"></table>
+        
+        <div id="number-pad" class="number-pad"></div>
     </div>
 
-    <footer class="p-6 shrink-0">
-        <button id="check-btn" onclick="checkAnswer()" class="w-full bg-purple-600 text-white font-bold py-4 rounded-xl shadow-xl active:bg-purple-500">CHECK ANSWER</button>
+    <footer class="p-4 shrink-0">
+        <button onclick="checkAnswer()" class="w-full bg-purple-600 text-white font-bold py-4 rounded-xl shadow-xl active:bg-purple-500 transition-all">CHECK ANSWER</button>
     </footer>
 
     <script>
-        // 페이지 로드 시 현재 지능 보여주기
-        window.onload = function() {
-            const savedInt = localStorage.getItem('user_int') || 0;
-            document.getElementById('current-int-display').innerText = savedInt;
-        };
-
         const board = [[5,3,0,0,7,0,0,0,0],[6,0,0,1,9,5,0,0,0],[0,9,8,0,0,0,0,6,0],[8,0,0,0,6,0,0,0,3],[4,0,0,8,0,3,0,0,1],[7,0,0,0,2,0,0,0,6],[0,6,0,0,0,0,2,8,0],[0,0,0,4,1,9,0,0,5],[0,0,0,0,8,0,0,7,9]];
         const solution = [[5,3,4,6,7,8,9,1,2],[6,7,2,1,9,5,3,4,8],[1,9,8,3,4,2,5,6,7],[8,5,9,7,6,1,4,2,3],[4,2,6,8,5,3,7,9,1],[7,1,3,9,2,4,8,5,6],[9,6,1,5,3,7,2,8,4],[2,8,7,4,1,9,6,3,5],[3,4,5,2,8,6,1,7,9]];
 
+        let selectedCell = null;
         let startTime, timerInterval;
 
         function startGame() {
             document.getElementById('start-overlay').style.display = 'none';
+            renderBoard();
+            startTimer();
+        }
+
+        function startTimer() {
+            startTime = Date.now();
+            timerInterval = setInterval(() => {
+                const delta = Date.now() - startTime;
+                const min = Math.floor(delta / 60000).toString().padStart(2, '0');
+                const sec = Math.floor((delta % 60000) / 1000).toString().padStart(2, '0');
+                document.getElementById('timer-display').innerText = `${min}:${sec}`;
+            }, 1000);
+        }
+
+        function renderBoard() {
             const table = document.getElementById('sudoku-grid');
             table.innerHTML = "";
             for (let r = 0; r < 9; r++) {
@@ -94,34 +122,63 @@
                         td.innerText = board[r][c];
                         td.className = "fixed-cell";
                     } else {
-                        const input = document.createElement('input');
-                        input.type = 'number';
-                        input.id = `cell-${r}-${c}`;
-                        input.setAttribute('inputmode', 'numeric');
-                        input.oninput = function() { if(this.value.length > 1) this.value = this.value.slice(0,1); };
-                        td.appendChild(input);
+                        td.id = `cell-${r}-${c}`;
+                        td.className = "user-cell";
+                        td.onclick = () => selectCell(r, c);
                     }
                     tr.appendChild(td);
                 }
                 table.appendChild(tr);
             }
-            startTime = Date.now();
-            timerInterval = setInterval(() => {
-                const delta = Date.now() - startTime;
-                const min = Math.floor(delta / 60000).toString().padStart(2, '0');
-                const sec = Math.floor((delta % 60000) / 1000).toString().padStart(2, '0');
-                document.getElementById('timer-display').innerText = `${min}:${sec}`;
-            }, 1000);
+            updateNumberPad();
+        }
+
+        function selectCell(r, c) {
+            if (selectedCell) document.getElementById(`cell-${selectedCell.r}-${selectedCell.c}`).classList.remove('selected');
+            selectedCell = { r, c };
+            document.getElementById(`cell-${r}-${c}`).classList.add('selected');
+        }
+
+        function inputNumber(num) {
+            if (!selectedCell) return;
+            document.getElementById(`cell-${selectedCell.r}-${selectedCell.c}`).innerText = num;
+            updateNumberPad();
+        }
+
+        function updateNumberPad() {
+            const pad = document.getElementById('number-pad');
+            pad.innerHTML = "";
+            const counts = {};
+            for (let i = 1; i <= 9; i++) counts[i] = 0;
+
+            // 고정 숫자 + 입력 숫자 카운트
+            for (let r = 0; r < 9; r++) {
+                for (let c = 0; c < 9; c++) {
+                    let val = board[r][c];
+                    if (val === 0) {
+                        const txt = document.getElementById(`cell-${r}-${c}`).innerText;
+                        val = txt ? parseInt(txt) : 0;
+                    }
+                    if (val !== 0) counts[val]++;
+                }
+            }
+
+            for (let i = 1; i <= 9; i++) {
+                const btn = document.createElement('div');
+                const remaining = Math.max(0, 9 - counts[i]);
+                btn.className = `num-btn ${remaining === 0 ? 'completed' : ''}`;
+                btn.innerHTML = `<span class="font-bold text-sm">${i}</span><span class="count">${remaining}</span>`;
+                btn.onclick = () => inputNumber(i);
+                pad.appendChild(btn);
+            }
         }
 
         function checkAnswer() {
             let correct = true;
             for (let r = 0; r < 9; r++) {
                 for (let c = 0; c < 9; c++) {
-                    if (board[r][c] === 0) {
-                        const input = document.getElementById(`cell-${r}-${c}`);
-                        if (!input || parseInt(input.value) !== solution[r][c]) { correct = false; break; }
-                    }
+                    const val = board[r][c] || parseInt(document.getElementById(`cell-${r}-${c}`).innerText);
+                    if (val !== solution[r][c]) { correct = false; break; }
                 }
             }
             if (correct) {
@@ -140,15 +197,13 @@
                         btn.classList.replace('text-slate-500', 'text-white');
                     }
                 }, 1000);
-            } else { alert('분석 실패! 숫자를 다시 확인해봐.'); }
+            } else { alert('데이터 불일치! 다시 확인해!'); }
         }
 
         function finishGame() {
-            // 💾 데이터 저장 로직
             let currentInt = parseInt(localStorage.getItem('user_int')) || 0;
             localStorage.setItem('user_int', currentInt + 1);
-            
-            alert('INT +1 상승! 브레인 동기화 완료.');
+            alert('INT +1 상승!');
             location.href = 'index.html';
         }
     </script>
