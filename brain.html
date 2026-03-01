@@ -3,38 +3,45 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>QuestBody - Brain Training</title>
+    <title>QuestBody - Sudoku</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&display=swap');
+        
         body { 
             background-color: #0f172a; 
             color: white; 
             font-family: 'Orbitron', sans-serif;
             margin: 0;
+            padding: 0;
             height: 100vh;
+            width: 100vw;
             display: flex;
             flex-direction: column;
             overflow: hidden;
         }
+
+        /* 스도쿠 그리드 최적화 */
         .sudoku-grid { 
             display: grid; 
             grid-template-columns: repeat(9, 1fr); 
             gap: 1px; 
             background-color: #38bdf8; 
             border: 2px solid #38bdf8;
-            width: 100%;
-            max-width: 350px;
-            margin: auto;
+            width: 90vw;
+            max-width: 380px;
+            aspect-ratio: 1 / 1;
+            margin: 0 auto;
         }
+
         .cell { 
-            aspect-ratio: 1; 
             background-color: #1e293b; 
             display: flex; 
             align-items: center; 
             justify-content: center; 
-            font-size: 1.1rem;
+            position: relative;
         }
+
         .cell input { 
             width: 100%; 
             height: 100%; 
@@ -43,12 +50,14 @@
             color: #38bdf8; 
             border: none; 
             font-family: 'Orbitron', sans-serif;
-            font-size: 1.1rem;
+            font-size: 1.2rem;
             outline: none;
+            padding: 0;
         }
-        .cell.fixed { background-color: #0f172a; color: #94a3b8; }
+
+        .cell.fixed { background-color: #0f172a; color: #94a3b8; font-weight: bold; }
         
-        /* 3x3 구분을 위한 굵은 선 */
+        /* 3x3 구분선 */
         .cell:nth-child(3n):not(:nth-child(9n)) { border-right: 2px solid #38bdf8; }
         .cell:nth-child(n+19):nth-child(-n+27), 
         .cell:nth-child(n+46):nth-child(-n+54) { border-bottom: 2px solid #38bdf8; }
@@ -63,99 +72,102 @@
             align-items: center;
             justify-content: center;
             z-index: 100;
-            backdrop-filter: blur(10px);
         }
-        #ad-overlay { display: none; }
 
-        /* Remove input arrows */
         input::-webkit-outer-spin-button,
         input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
     </style>
 </head>
-<body class="p-4">
+<body class="safe-area-inset">
 
     <div id="start-overlay" class="overlay">
-        <h2 class="text-2xl font-bold text-blue-400 mb-2 tracking-widest text-center">BRAIN PROTOCOL</h2>
-        <p class="text-[10px] text-slate-500 mb-8 uppercase">Ready to synchronize mana core?</p>
-        <button onclick="startGame()" class="px-10 py-4 bg-blue-600 hover:bg-blue-500 text-white font-bold rounded-xl border-b-4 border-blue-800 transition-all active:translate-y-1 active:border-b-0">
-            TRAINING START
+        <h2 class="text-2xl font-bold text-blue-400 mb-2 tracking-widest">BRAIN PROTOCOL</h2>
+        <button onclick="startGame()" class="mt-4 px-10 py-4 bg-blue-600 text-white font-bold rounded-xl border-b-4 border-blue-800 active:translate-y-1 active:border-b-0 shadow-[0_0_20px_rgba(37,99,235,0.4)]">
+            SYNC START
         </button>
     </div>
 
-    <div id="ad-overlay" class="overlay">
+    <div id="ad-overlay" class="overlay" style="display: none;">
         <div class="w-72 p-6 bg-slate-800 border-2 border-blue-400 rounded-2xl text-center shadow-2xl">
-            <span class="text-[10px] text-slate-500 uppercase">Sponsored</span>
-            <div class="text-4xl my-4">💊</div>
-            <h3 class="text-lg font-bold text-white mb-2">Mana Potion V2</h3>
-            <p class="text-xs text-slate-400 mb-6 leading-tight">지능을 높여 마나를 회복하세요!</p>
-            <div id="ad-timer" class="text-blue-400 text-sm mb-4">Closing in 5s...</div>
-            <button id="ad-close-btn" onclick="finishGame()" disabled class="w-full py-3 bg-slate-700 text-slate-500 font-bold rounded-lg opacity-50 cursor-not-allowed transition-all">
-                CLOSE AD
-            </button>
+            <div class="text-4xl mb-4">💊</div>
+            <h3 class="text-lg font-bold mb-4">AD: Mana Potion</h3>
+            <div id="ad-timer" class="text-blue-400 text-sm mb-4">Wait 5s...</div>
+            <button id="ad-close-btn" onclick="finishGame()" disabled class="w-full py-3 bg-slate-700 text-slate-500 rounded-lg transition-all font-bold">CLOSE</button>
         </div>
     </div>
 
-    <header class="flex justify-between items-center mb-4">
-        <button onclick="location.href='index.html'" class="text-slate-400 text-xs tracking-tighter flex items-center gap-1">
-            <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+    <header class="p-4 flex justify-between items-center shrink-0">
+        <button onclick="location.href='index.html'" class="text-slate-400 text-sm flex items-center gap-1">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
             </svg>
             BACK
         </button>
-        <h1 class="text-lg font-bold text-purple-400">SUDOKU INT+1</h1>
+        <h1 class="text-lg font-bold text-purple-400 tracking-wider">SUDOKU</h1>
         <div class="w-8"></div>
     </header>
 
-    <div class="bg-slate-900 border border-slate-700 p-3 rounded-lg mb-6 flex justify-around shrink-0">
+    <div class="mx-4 mb-4 p-3 bg-slate-900/80 border border-slate-700 rounded-lg flex justify-around shrink-0">
         <div class="text-center">
-            <span class="text-[8px] text-slate-400 block uppercase">Reward</span>
+            <span class="text-[10px] text-slate-400 block uppercase">REWARD</span>
             <span class="text-purple-400 font-bold text-sm">INT +1</span>
         </div>
         <div class="text-center border-l border-slate-700 pl-4">
-            <span class="text-[8px] text-slate-400 block uppercase">Status</span>
-            <span id="game-status" class="text-emerald-400 font-bold text-sm">READY</span>
+            <span class="text-[10px] text-slate-400 block uppercase">TIME</span>
+            <span id="timer-display" class="text-emerald-400 font-bold text-sm">00:00</span>
         </div>
     </div>
 
-    <div class="flex-1 flex items-center justify-center min-h-0">
-        <div id="sudoku-container" class="sudoku-grid"></div>
+    <div class="flex-1 flex items-center justify-center overflow-hidden">
+        <div id="sudoku-container" class="sudoku-grid shadow-2xl">
+        </div>
     </div>
 
-    <footer class="mt-6">
-        <button id="complete-btn" onclick="checkAnswer()" class="w-full bg-purple-600 hover:bg-purple-500 text-white font-bold py-4 rounded-xl border-b-4 border-purple-800 active:translate-y-1 active:border-b-0">
-            COMPLETE & GAIN INT
+    <footer class="p-4 shrink-0">
+        <button onclick="checkAnswer()" class="w-full bg-purple-600 hover:bg-purple-500 text-white font-bold py-4 rounded-xl border-b-4 border-purple-800 active:translate-y-1 active:border-b-0 shadow-[0_0_15px_rgba(147,51,234,0.3)] transition-all">
+            CHECK ANSWER
         </button>
     </footer>
 
     <script>
-        // 로그인 체크
         if (sessionStorage.getItem('isLoggedIn') !== 'true') {
             location.href = 'login.html';
         }
 
-        // 보드 데이터 (0은 빈칸)
         const board = [
             [5, 3, 0, 0, 7, 0, 0, 0, 0], [6, 0, 0, 1, 9, 5, 0, 0, 0], [0, 9, 8, 0, 0, 0, 0, 6, 0],
             [8, 0, 0, 0, 6, 0, 0, 0, 3], [4, 0, 0, 8, 0, 3, 0, 0, 1], [7, 0, 0, 0, 2, 0, 0, 0, 6],
             [0, 6, 0, 0, 0, 0, 2, 8, 0], [0, 0, 0, 4, 1, 9, 0, 0, 5], [0, 0, 0, 0, 8, 0, 0, 7, 9]
         ];
 
-        // 정답 데이터
         const solution = [
             [5, 3, 4, 6, 7, 8, 9, 1, 2], [6, 7, 2, 1, 9, 5, 3, 4, 8], [1, 9, 8, 3, 4, 2, 5, 6, 7],
             [8, 5, 9, 7, 6, 1, 4, 2, 3], [4, 2, 6, 8, 5, 3, 7, 9, 1], [7, 1, 3, 9, 2, 4, 8, 5, 6],
             [9, 6, 1, 5, 3, 7, 2, 8, 4], [2, 8, 7, 4, 1, 9, 6, 3, 5], [3, 4, 5, 2, 8, 6, 1, 7, 9]
         ];
 
-        const container = document.getElementById('sudoku-container');
+        let startTime;
+        let timerInterval;
 
         function startGame() {
             document.getElementById('start-overlay').style.display = 'none';
-            document.getElementById('game-status').innerText = 'SOLVING...';
             initBoard();
+            startTimer();
+        }
+
+        function startTimer() {
+            startTime = Date.now();
+            timerInterval = setInterval(() => {
+                const delta = Date.now() - startTime;
+                const minutes = Math.floor(delta / 60000);
+                const seconds = Math.floor((delta % 60000) / 1000);
+                document.getElementById('timer-display').innerText = 
+                    `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+            }, 1000);
         }
 
         function initBoard() {
+            const container = document.getElementById('sudoku-container');
             container.innerHTML = '';
             for (let r = 0; r < 9; r++) {
                 for (let c = 0; c < 9; c++) {
@@ -199,8 +211,12 @@
                 return;
             }
 
-            if (correct) showAd();
-            else alert('숫자를 다시 확인해봐!');
+            if (correct) {
+                clearInterval(timerInterval);
+                showAd();
+            } else {
+                alert('숫자를 다시 확인해봐!');
+            }
         }
 
         function showAd() {
@@ -210,14 +226,13 @@
             let timeLeft = 5;
             const timer = setInterval(() => {
                 timeLeft--;
-                if (timeLeft > 0) document.getElementById('ad-timer').innerText = `Closing in ${timeLeft}s...`;
+                if (timeLeft > 0) document.getElementById('ad-timer').innerText = `Wait ${timeLeft}s...`;
                 else {
                     clearInterval(timer);
                     document.getElementById('ad-timer').innerText = "AD COMPLETE!";
                     adCloseBtn.disabled = false;
-                    adCloseBtn.classList.replace('bg-slate-700', 'bg-blue-600');
-                    adCloseBtn.classList.replace('text-slate-500', 'text-white');
-                    adCloseBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+                    adCloseBtn.classList.remove('bg-slate-700', 'text-slate-500');
+                    adCloseBtn.classList.add('bg-blue-600', 'text-white', 'hover:bg-blue-500');
                 }
             }, 1000);
         }
