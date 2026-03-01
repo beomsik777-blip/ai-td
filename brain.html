@@ -12,19 +12,14 @@
             background-color: #0f172a; color: white; font-family: 'Orbitron', sans-serif;
             margin: 0; height: 100vh; display: flex; flex-direction: column; overflow: hidden;
         }
-        /* 테이블 기반: 절대 뒤틀리지 않는 격자 */
         .sudoku-table {
             width: 90vw; height: 90vw; max-width: 360px; max-height: 360px;
             margin: auto; border-collapse: collapse; table-layout: fixed;
             border: 2px solid #38bdf8; background-color: #1e293b;
         }
-        .sudoku-table td {
-            border: 1px solid #38bdf8; padding: 0; text-align: center; vertical-align: middle;
-        }
-        /* 3x3 박스 강조선 */
+        .sudoku-table td { border: 1px solid #38bdf8; padding: 0; text-align: center; vertical-align: middle; }
         .sudoku-table td:nth-child(3n) { border-right: 3px solid #38bdf8; }
         .sudoku-table tr:nth-child(3n) td { border-bottom: 3px solid #38bdf8; }
-        
         .fixed-cell { background-color: #0f172a; color: #ffffff; font-weight: bold; font-size: 1.1rem; }
         input {
             width: 100%; height: 100%; background: transparent; border: none; outline: none;
@@ -40,7 +35,8 @@
 <body>
     <div id="start-overlay" class="overlay">
         <h2 class="text-2xl font-bold text-blue-400 mb-8 tracking-widest uppercase">Brain Protocol</h2>
-        <button onclick="startGame()" class="px-12 py-4 bg-blue-600 text-white font-bold rounded-xl shadow-lg">START</button>
+        <p class="text-slate-500 text-[10px] mb-4 uppercase">Current Int: <span id="current-int-display">0</span></p>
+        <button onclick="startGame()" class="px-12 py-4 bg-blue-600 text-white font-bold rounded-xl shadow-lg active:scale-95 transition-all">START</button>
     </div>
 
     <div id="ad-overlay" class="overlay" style="display: none;">
@@ -71,10 +67,16 @@
     </div>
 
     <footer class="p-6 shrink-0">
-        <button onclick="checkAnswer()" class="w-full bg-purple-600 text-white font-bold py-4 rounded-xl shadow-xl active:bg-purple-500">CHECK ANSWER</button>
+        <button id="check-btn" onclick="checkAnswer()" class="w-full bg-purple-600 text-white font-bold py-4 rounded-xl shadow-xl active:bg-purple-500">CHECK ANSWER</button>
     </footer>
 
     <script>
+        // 페이지 로드 시 현재 지능 보여주기
+        window.onload = function() {
+            const savedInt = localStorage.getItem('user_int') || 0;
+            document.getElementById('current-int-display').innerText = savedInt;
+        };
+
         const board = [[5,3,0,0,7,0,0,0,0],[6,0,0,1,9,5,0,0,0],[0,9,8,0,0,0,0,6,0],[8,0,0,0,6,0,0,0,3],[4,0,0,8,0,3,0,0,1],[7,0,0,0,2,0,0,0,6],[0,6,0,0,0,0,2,8,0],[0,0,0,4,1,9,0,0,5],[0,0,0,0,8,0,0,7,9]];
         const solution = [[5,3,4,6,7,8,9,1,2],[6,7,2,1,9,5,3,4,8],[1,9,8,3,4,2,5,6,7],[8,5,9,7,6,1,4,2,3],[4,2,6,8,5,3,7,9,1],[7,1,3,9,2,4,8,5,6],[9,6,1,5,3,7,2,8,4],[2,8,7,4,1,9,6,3,5],[3,4,5,2,8,6,1,7,9]];
 
@@ -117,8 +119,8 @@
             for (let r = 0; r < 9; r++) {
                 for (let c = 0; c < 9; c++) {
                     if (board[r][c] === 0) {
-                        const val = parseInt(document.getElementById(`cell-${r}-${c}`).value);
-                        if (val !== solution[r][c]) { correct = false; break; }
+                        const input = document.getElementById(`cell-${r}-${c}`);
+                        if (!input || parseInt(input.value) !== solution[r][c]) { correct = false; break; }
                     }
                 }
             }
@@ -134,14 +136,19 @@
                         document.getElementById('ad-timer').innerText = "COMPLETE!";
                         const btn = document.getElementById('ad-close-btn');
                         btn.disabled = false;
-                        btn.classList.add('bg-blue-600', 'text-white');
+                        btn.classList.replace('bg-slate-700', 'bg-blue-600');
+                        btn.classList.replace('text-slate-500', 'text-white');
                     }
                 }, 1000);
             } else { alert('분석 실패! 숫자를 다시 확인해봐.'); }
         }
 
         function finishGame() {
-            alert('INT +1 상승!');
+            // 💾 데이터 저장 로직
+            let currentInt = parseInt(localStorage.getItem('user_int')) || 0;
+            localStorage.setItem('user_int', currentInt + 1);
+            
+            alert('INT +1 상승! 브레인 동기화 완료.');
             location.href = 'index.html';
         }
     </script>
