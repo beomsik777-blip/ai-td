@@ -20,58 +20,49 @@
             overflow: hidden;
         }
 
-        /* 중앙 그리드 영역 */
-        .sudoku-wrapper {
-            width: 94vw;
+        /* 중앙 그리드 영역: 고정 크기 사용 */
+        .sudoku-container {
+            width: 90vw;
+            height: 90vw; /* 가로세로 비율 강제 고정 */
             max-width: 360px;
-            margin: 0 auto;
-            border: 2px solid #38bdf8; /* 전체 외곽선 */
-        }
-
-        .sudoku-grid { 
-            display: grid; 
-            grid-template-columns: repeat(9, 1fr); 
-            width: 100%;
-            aspect-ratio: 1 / 1;
-            background-color: #38bdf8; /* 선 색상 역할을 할 배경 */
-            gap: 1px; /* 얇은 실선 */
+            max-height: 360px;
+            margin: auto;
+            display: flex;
+            flex-wrap: wrap;
+            border: 2px solid #38bdf8;
+            background-color: #38bdf8;
         }
 
         .cell { 
+            width: calc(100% / 9); /* 정확히 9등분 */
+            height: calc(100% / 9);
             background-color: #1e293b; 
             display: flex; 
             align-items: center; 
             justify-content: center;
-            overflow: hidden;
+            border: 0.5px solid rgba(56, 189, 248, 0.3);
             position: relative;
         }
 
-        /* 3x3 구역 강조 (진한 파란색 선) */
-        .cell:nth-child(3n):not(:nth-child(9n)) { border-right: 2px solid #38bdf8; }
+        /* 3x3 구역 강조 */
+        .cell:nth-child(3n) { border-right: 2px solid #38bdf8; }
+        .cell:nth-child(9n) { border-right: none; }
         .cell:nth-child(n+19):nth-child(-n+27), 
         .cell:nth-child(n+46):nth-child(-n+54) { border-bottom: 2px solid #38bdf8; }
 
-        /* 숫자 스타일 */
-        .cell.fixed { 
-            background-color: #0f172a; 
-            color: #ffffff; 
-            font-weight: 700;
-            font-size: 1.25rem;
-        }
-
+        .cell.fixed { background-color: #0f172a; color: #ffffff; font-weight: bold; font-size: 1rem; }
+        
         .cell input { 
             width: 100%; height: 100%; 
             background: transparent; 
-            text-align: center; 
-            color: #38bdf8; 
             border: none; outline: none;
+            color: #38bdf8; text-align: center;
             font-family: 'Orbitron', sans-serif;
-            font-size: 1.25rem;
-            padding: 0;
-            display: block;
+            font-size: 1rem;
+            display: flex; align-items: center; justify-content: center;
+            padding: 0; margin: 0;
         }
 
-        /* 오버레이 */
         .overlay {
             position: fixed; inset: 0;
             background: rgba(15, 23, 42, 0.98);
@@ -88,16 +79,17 @@
 <body>
 
     <div id="start-overlay" class="overlay">
-        <h2 class="text-2xl font-bold text-blue-400 mb-6 tracking-widest text-center uppercase">Brain Protocol</h2>
+        <h2 class="text-2xl font-bold text-blue-400 mb-8 tracking-widest text-center uppercase px-6">Brain Protocol</h2>
         <button onclick="startGame()" class="px-12 py-4 bg-blue-600 text-white font-bold rounded-xl shadow-lg active:scale-95 transition-transform">
-            START PROTOCOL
+            START
         </button>
     </div>
 
     <div id="ad-overlay" class="overlay" style="display: none;">
         <div class="w-72 p-6 bg-slate-800 border-2 border-blue-400 rounded-2xl text-center shadow-2xl">
             <div class="text-4xl mb-4">💊</div>
-            <h3 class="text-lg font-bold text-white mb-2 uppercase">MANA POTION</h3>
+            <h3 class="text-lg font-bold text-white mb-2">MANA POTION</h3>
+            <p class="text-xs text-slate-400 mb-6">Brain Sync Successful!</p>
             <div id="ad-timer" class="text-blue-400 text-sm mb-4">Wait 5s...</div>
             <button id="ad-close-btn" onclick="finishGame()" disabled class="w-full py-3 bg-slate-700 text-slate-500 rounded-lg font-bold transition-all">CLOSE</button>
         </div>
@@ -110,7 +102,7 @@
             </svg>
             BACK
         </button>
-        <h1 class="text-sm font-bold text-purple-400 tracking-tighter">SUDOKU CORE</h1>
+        <h1 class="text-sm font-bold text-purple-400">SUDOKU CORE</h1>
         <div class="w-8"></div>
     </header>
 
@@ -126,14 +118,12 @@
     </div>
 
     <div class="flex-1 flex items-center justify-center min-h-0">
-        <div class="sudoku-wrapper">
-            <div id="sudoku-grid" class="sudoku-grid shadow-2xl">
-                </div>
+        <div id="sudoku-grid" class="sudoku-container shadow-2xl">
         </div>
     </div>
 
     <footer class="p-6 shrink-0">
-        <button onclick="checkAnswer()" class="w-full bg-purple-600 text-white font-bold py-4 rounded-xl border-b-4 border-purple-800 active:translate-y-1 active:border-b-0 transition-all shadow-xl">
+        <button onclick="checkAnswer()" class="w-full bg-purple-600 hover:bg-purple-500 text-white font-bold py-4 rounded-xl border-b-4 border-purple-800 active:translate-y-1 active:border-b-0 transition-all shadow-xl">
             CHECK ANSWER
         </button>
     </footer>
@@ -207,25 +197,33 @@
                 }
                 if (!complete) break;
             }
-            if (!complete) { alert('빈칸을 채워주세요!'); return; }
+            
+            if (!complete) {
+                alert('모든 빈칸을 채워주세요!');
+                return;
+            }
+
             if (correct) {
                 clearInterval(timerInterval);
-                document.getElementById('ad-overlay').style.display = 'flex';
+                const adOverlay = document.getElementById('ad-overlay');
+                const adCloseBtn = document.getElementById('ad-close-btn');
+                const adTimerDisplay = document.getElementById('ad-timer');
+                adOverlay.style.display = 'flex';
                 let timeLeft = 5;
                 const timer = setInterval(() => {
                     timeLeft--;
-                    if (timeLeft > 0) document.getElementById('ad-timer').innerText = `Wait ${timeLeft}s...`;
-                    else {
+                    if (timeLeft > 0) {
+                        adTimerDisplay.innerText = `Wait ${timeLeft}s...`;
+                    } else {
                         clearInterval(timer);
-                        document.getElementById('ad-timer').innerText = "AD COMPLETE!";
-                        const btn = document.getElementById('ad-close-btn');
-                        btn.disabled = false;
-                        btn.classList.remove('bg-slate-700', 'text-slate-500');
-                        btn.classList.add('bg-blue-600', 'text-white');
+                        adTimerDisplay.innerText = "AD COMPLETE!";
+                        adCloseBtn.disabled = false;
+                        adCloseBtn.classList.replace('bg-slate-700', 'bg-blue-600');
+                        adCloseBtn.classList.replace('text-slate-500', 'text-white');
                     }
                 }, 1000);
             } else {
-                alert('데이터 분석 실패! 다시 입력해봐.');
+                alert('분석 실패! 숫자를 다시 확인해봐.');
             }
         }
 
