@@ -41,15 +41,20 @@
                 <div id="village-hp" class="bg-emerald-500 h-full w-full"></div>
             </div>
         </div>
-        <div class="flex gap-4 text-right">
+        <div class="flex gap-3 text-right items-center">
             <div>
                 <span class="text-[10px] text-slate-400 uppercase">Coin</span>
-                <p id="user-coin" class="font-bold text-yellow-400 text-sm">1,250 🪙</p>
+                <p id="user-coin" class="font-bold text-yellow-400 text-sm">1,250</p>
             </div>
-            <div class="border-l border-slate-700 pl-4">
+            <div class="border-l border-slate-700 pl-3">
                 <span class="text-[10px] text-slate-400 uppercase">Mana</span>
-                <p id="user-mana" class="font-bold text-blue-400 text-sm">85/100 ✨</p>
+                <p id="user-mana" class="font-bold text-blue-400 text-sm">85/100</p>
             </div>
+            <button onclick="logout()" class="ml-2 p-2 bg-slate-800/50 rounded-lg border border-slate-700 text-slate-400 hover:text-red-400 transition-all active:scale-95 shadow-lg">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+                </svg>
+            </button>
         </div>
     </header>
 
@@ -127,6 +132,13 @@
 
         function changeMenu(type) {
             console.log(type + " 메뉴로 이동!");
+        }
+
+        function logout() {
+            if(confirm('로그아웃 하시겠습니까?')) {
+                sessionStorage.removeItem('isLoggedIn');
+                location.href = 'login.html';
+            }
         }
     </script>
 </body>
