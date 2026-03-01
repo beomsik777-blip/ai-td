@@ -36,6 +36,7 @@
             justify-content: center; 
             font-size: clamp(0.8rem, 4vw, 1.2rem); 
             font-weight: bold; 
+            position: relative;
         }
         .cell input { 
             width: 100%; 
@@ -47,6 +48,7 @@
             border: none; 
             font-family: 'Orbitron', sans-serif;
             padding: 0;
+            font-size: inherit;
         }
         .cell.fixed { background-color: #0f172a; color: #94a3b8; }
         
@@ -59,12 +61,69 @@
         input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
         
         .neon-btn {
-            box-shadow: 0 0 10px rgba(147, 51, 234, 0.3);
+            box-shadow: 0 0 15px rgba(147, 51, 234, 0.4);
             text-shadow: 0 0 5px rgba(255, 255, 255, 0.5);
+        }
+
+        /* Overlay Styles */
+        #start-overlay, #ad-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(15, 23, 42, 0.95);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 50;
+            backdrop-filter: blur(8px);
+        }
+        #ad-overlay { display: none; }
+        .ad-box {
+            width: 85%;
+            max-width: 320px;
+            aspect-ratio: 4/5;
+            background: #1e293b;
+            border: 2px solid #38bdf8;
+            border-radius: 1rem;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 0 30px rgba(56, 189, 248, 0.2);
         }
     </style>
 </head>
 <body class="p-4 box-border">
+
+    <!-- Start Overlay -->
+    <div id="start-overlay">
+        <div class="text-center mb-8">
+            <h2 class="text-2xl font-bold text-blue-400 mb-2 tracking-widest">BRAIN PROTOCOL</h2>
+            <p class="text-[10px] text-slate-500 uppercase">Ready to synchronize mana core?</p>
+        </div>
+        <button onclick="startGame()" class="px-8 py-4 bg-blue-600 hover:bg-blue-500 text-white font-bold rounded-xl border-b-4 border-blue-800 transition-all active:translate-y-1 active:border-b-0 neon-btn">
+            TRAINING START
+        </button>
+    </div>
+
+    <!-- Ad Overlay -->
+    <div id="ad-overlay">
+        <div class="ad-box mb-6">
+            <span class="text-[10px] text-slate-500 absolute top-2 right-3 uppercase">Sponsored</span>
+            <div class="w-20 h-20 bg-blue-500/20 rounded-full flex items-center justify-center text-4xl mb-4">💊</div>
+            <h3 class="text-lg font-bold text-white mb-1 uppercase tracking-tighter">Mana Potion V2</h3>
+            <p class="text-[11px] text-slate-400 text-center px-6 leading-tight">
+                Instantly restores 50 mana. <br>Crafted with premium elderwood sap.
+            </p>
+            <div class="mt-6 px-4 py-2 bg-slate-800 rounded text-[10px] font-bold text-blue-400">QUESTBODY MARKET</div>
+        </div>
+        <div id="ad-timer" class="text-slate-400 text-sm mb-4">Closing in 5s...</div>
+        <button id="ad-close-btn" onclick="finishGame()" disabled class="px-8 py-3 bg-slate-700 text-slate-500 font-bold rounded-lg cursor-not-allowed transition-all opacity-50">
+            CLOSE AD
+        </button>
+    </div>
 
     <header class="flex justify-between items-center mb-4 shrink-0">
         <button onclick="location.href='index.html'" class="text-slate-400 text-xs flex items-center gap-1">
@@ -86,7 +145,7 @@
         </div>
         <div class="text-center border-l border-slate-700 pl-4">
             <span class="text-[8px] text-slate-400 block uppercase">STATUS</span>
-            <span id="game-status" class="text-emerald-400 font-bold text-sm">SOLVING...</span>
+            <span id="game-status" class="text-emerald-400 font-bold text-sm">READY</span>
         </div>
     </div>
 
@@ -96,7 +155,7 @@
     </div>
 
     <footer class="mt-4 shrink-0">
-        <button onclick="checkAnswer()" class="neon-btn w-full bg-purple-600 hover:bg-purple-500 text-white font-bold py-3 rounded-lg border-b-4 border-purple-800 active:border-b-0 active:translate-y-1 transition-all">
+        <button id="complete-btn" onclick="checkAnswer()" class="neon-btn w-full bg-purple-600 hover:bg-purple-500 text-white font-bold py-3 rounded-lg border-b-4 border-purple-800 active:border-b-0 active:translate-y-1 transition-all">
             COMPLETE & GAIN INT
         </button>
         <p class="text-[8px] text-slate-500 text-center uppercase tracking-widest mt-2">
@@ -135,6 +194,12 @@
 
         const container = document.getElementById('sudoku-container');
 
+        function startGame() {
+            document.getElementById('start-overlay').style.display = 'none';
+            document.getElementById('game-status').innerText = 'SOLVING...';
+            initBoard();
+        }
+
         function initBoard() {
             container.innerHTML = '';
             for (let r = 0; r < 9; r++) {
@@ -151,6 +216,10 @@
                         input.id = `cell-${r}-${c}`;
                         input.setAttribute('pattern', '[1-9]*');
                         input.setAttribute('inputmode', 'numeric');
+                        // Prevent multi-digit input
+                        input.oninput = function() {
+                            if(this.value.length > 1) this.value = this.value.slice(0,1);
+                        };
                         cell.appendChild(input);
                     }
                     container.appendChild(cell);
@@ -160,11 +229,17 @@
 
         function checkAnswer() {
             let correct = true;
+            let complete = true;
+
             for (let r = 0; r < 9; r++) {
                 for (let c = 0; c < 9; c++) {
                     if (board[r][c] === 0) {
                         const input = document.getElementById(`cell-${r}-${c}`);
                         const val = parseInt(input.value);
+                        if (!val) {
+                            complete = false;
+                            break;
+                        }
                         if (val !== solution[r][c]) {
                             correct = false;
                             break;
@@ -173,16 +248,44 @@
                 }
             }
 
+            if (!complete) {
+                alert('빈칸을 모두 채워주세요!');
+                return;
+            }
+
             if (correct) {
-                document.getElementById('game-status').innerText = 'COMPLETED!';
-                alert('지능(INT) +1 상승! 성공적으로 완료되었습니다.');
-                location.href = 'index.html';
+                showAd();
             } else {
                 alert('어딘가 숫자가 틀린 것 같아. 다시 확인해봐!');
             }
         }
 
-        initBoard();
+        function showAd() {
+            const adOverlay = document.getElementById('ad-overlay');
+            const adTimer = document.getElementById('ad-timer');
+            const adCloseBtn = document.getElementById('ad-close-btn');
+            
+            adOverlay.style.display = 'flex';
+            let timeLeft = 5;
+
+            const timer = setInterval(() => {
+                timeLeft--;
+                if (timeLeft > 0) {
+                    adTimer.innerText = `Closing in ${timeLeft}s...`;
+                } else {
+                    clearInterval(timer);
+                    adTimer.innerText = "Ad complete!";
+                    adCloseBtn.disabled = false;
+                    adCloseBtn.classList.remove('bg-slate-700', 'text-slate-500', 'opacity-50', 'cursor-not-allowed');
+                    adCloseBtn.classList.add('bg-blue-600', 'text-white', 'hover:bg-blue-500', 'neon-btn');
+                }
+            }, 1000);
+        }
+
+        function finishGame() {
+            alert('지능(INT) +1 상승! 성공적으로 완료되었습니다.');
+            location.href = 'index.html';
+        }
     </script>
 </body>
 </html>
