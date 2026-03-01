@@ -12,36 +12,45 @@
             background-color: #0f172a; 
             color: white; 
             font-family: 'Orbitron', sans-serif;
-            margin: 0;
-            padding: 0;
-            height: 100vh;
-            width: 100vw;
-            display: flex;
-            flex-direction: column;
+            margin: 0; padding: 0;
+            height: 100vh; width: 100vw;
+            display: flex; flex-direction: column;
             overflow: hidden;
         }
 
-        /* 스도쿠 그리드 최적화 */
-        .sudoku-grid { 
-            display: grid; 
-            grid-template-columns: repeat(9, 1fr); 
-            gap: 1px; 
-            background-color: #38bdf8; 
-            border: 2px solid #38bdf8;
-            width: 90vw;
+        /* 그리드 영역: 화면 크기에 맞춰 반응형으로 조절 */
+        .sudoku-container-box {
+            width: 95vw;
             max-width: 380px;
-            aspect-ratio: 1 / 1;
             margin: 0 auto;
         }
 
+        .sudoku-grid { 
+            display: grid; 
+            grid-template-columns: repeat(9, 1fr); 
+            background-color: #38bdf8; /* 격자 선 색상 */
+            border: 2px solid #38bdf8;
+            gap: 1px;
+        }
+
         .cell { 
+            aspect-ratio: 1 / 1;
             background-color: #1e293b; 
             display: flex; 
             align-items: center; 
-            justify-content: center; 
+            justify-content: center;
             position: relative;
         }
 
+        /* 고정 숫자 (시스템 숫자) */
+        .cell.fixed { 
+            background-color: #0f172a; 
+            color: #ffffff; 
+            font-weight: 700;
+            font-size: 1.2rem;
+        }
+
+        /* 입력 숫자 */
         .cell input { 
             width: 100%; 
             height: 100%; 
@@ -49,40 +58,36 @@
             text-align: center; 
             color: #38bdf8; 
             border: none; 
+            outline: none;
             font-family: 'Orbitron', sans-serif;
             font-size: 1.2rem;
-            outline: none;
             padding: 0;
+            appearance: none;
         }
 
-        .cell.fixed { background-color: #0f172a; color: #94a3b8; font-weight: bold; }
-        
-        /* 3x3 구분선 */
+        /* 3x3 박스 구분선 강화 */
         .cell:nth-child(3n):not(:nth-child(9n)) { border-right: 2px solid #38bdf8; }
         .cell:nth-child(n+19):nth-child(-n+27), 
         .cell:nth-child(n+46):nth-child(-n+54) { border-bottom: 2px solid #38bdf8; }
 
-        /* 오버레이 설정 */
         .overlay {
-            position: fixed;
-            inset: 0;
+            position: fixed; inset: 0;
             background: rgba(15, 23, 42, 0.98);
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
+            display: flex; flex-direction: column;
+            align-items: center; justify-content: center;
             z-index: 100;
+            backdrop-filter: blur(10px);
         }
 
         input::-webkit-outer-spin-button,
         input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
     </style>
 </head>
-<body class="safe-area-inset">
+<body>
 
     <div id="start-overlay" class="overlay">
-        <h2 class="text-2xl font-bold text-blue-400 mb-2 tracking-widest">BRAIN PROTOCOL</h2>
-        <button onclick="startGame()" class="mt-4 px-10 py-4 bg-blue-600 text-white font-bold rounded-xl border-b-4 border-blue-800 active:translate-y-1 active:border-b-0 shadow-[0_0_20px_rgba(37,99,235,0.4)]">
+        <h2 class="text-2xl font-bold text-blue-400 mb-6 tracking-widest text-center">BRAIN PROTOCOL</h2>
+        <button onclick="startGame()" class="px-10 py-4 bg-blue-600 text-white font-bold rounded-xl border-b-4 border-blue-800 transition-all active:translate-y-1 active:border-b-0 shadow-[0_0_20px_rgba(37,99,235,0.4)]">
             SYNC START
         </button>
     </div>
@@ -90,50 +95,54 @@
     <div id="ad-overlay" class="overlay" style="display: none;">
         <div class="w-72 p-6 bg-slate-800 border-2 border-blue-400 rounded-2xl text-center shadow-2xl">
             <div class="text-4xl mb-4">💊</div>
-            <h3 class="text-lg font-bold mb-4">AD: Mana Potion</h3>
+            <h3 class="text-lg font-bold text-white mb-4 uppercase">AD: Mana Potion</h3>
             <div id="ad-timer" class="text-blue-400 text-sm mb-4">Wait 5s...</div>
-            <button id="ad-close-btn" onclick="finishGame()" disabled class="w-full py-3 bg-slate-700 text-slate-500 rounded-lg transition-all font-bold">CLOSE</button>
+            <button id="ad-close-btn" onclick="finishGame()" disabled class="w-full py-3 bg-slate-700 text-slate-500 rounded-lg font-bold transition-all">CLOSE</button>
         </div>
     </div>
 
     <header class="p-4 flex justify-between items-center shrink-0">
-        <button onclick="location.href='index.html'" class="text-slate-400 text-sm flex items-center gap-1">
-            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <button onclick="location.href='index.html'" class="text-slate-400 text-xs flex items-center gap-1">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
             </svg>
             BACK
         </button>
-        <h1 class="text-lg font-bold text-purple-400 tracking-wider">SUDOKU</h1>
+        <h1 class="text-lg font-bold text-purple-400 tracking-wider">SUDOKU INT+1</h1>
         <div class="w-8"></div>
     </header>
 
     <div class="mx-4 mb-4 p-3 bg-slate-900/80 border border-slate-700 rounded-lg flex justify-around shrink-0">
         <div class="text-center">
-            <span class="text-[10px] text-slate-400 block uppercase">REWARD</span>
+            <span class="text-[10px] text-slate-400 block uppercase font-bold">Reward</span>
             <span class="text-purple-400 font-bold text-sm">INT +1</span>
         </div>
         <div class="text-center border-l border-slate-700 pl-4">
-            <span class="text-[10px] text-slate-400 block uppercase">TIME</span>
+            <span class="text-[10px] text-slate-400 block uppercase font-bold">Time</span>
             <span id="timer-display" class="text-emerald-400 font-bold text-sm">00:00</span>
         </div>
     </div>
 
-    <div class="flex-1 flex items-center justify-center overflow-hidden">
-        <div id="sudoku-container" class="sudoku-grid shadow-2xl">
+    <div class="flex-1 flex items-center justify-center">
+        <div class="sudoku-container-box">
+            <div id="sudoku-grid" class="sudoku-grid shadow-2xl">
+            </div>
         </div>
     </div>
 
-    <footer class="p-4 shrink-0">
-        <button onclick="checkAnswer()" class="w-full bg-purple-600 hover:bg-purple-500 text-white font-bold py-4 rounded-xl border-b-4 border-purple-800 active:translate-y-1 active:border-b-0 shadow-[0_0_15px_rgba(147,51,234,0.3)] transition-all">
+    <footer class="p-6 shrink-0">
+        <button onclick="checkAnswer()" class="w-full bg-purple-600 hover:bg-purple-500 text-white font-bold py-4 rounded-xl border-b-4 border-purple-800 active:translate-y-1 active:border-b-0 shadow-lg transition-all">
             CHECK ANSWER
         </button>
     </footer>
 
     <script>
+        // 로그인 체크
         if (sessionStorage.getItem('isLoggedIn') !== 'true') {
             location.href = 'login.html';
         }
 
+        // 초기 보드 (0은 빈칸)
         const board = [
             [5, 3, 0, 0, 7, 0, 0, 0, 0], [6, 0, 0, 1, 9, 5, 0, 0, 0], [0, 9, 8, 0, 0, 0, 0, 6, 0],
             [8, 0, 0, 0, 6, 0, 0, 0, 3], [4, 0, 0, 8, 0, 3, 0, 0, 1], [7, 0, 0, 0, 2, 0, 0, 0, 6],
@@ -151,7 +160,7 @@
 
         function startGame() {
             document.getElementById('start-overlay').style.display = 'none';
-            initBoard();
+            renderBoard();
             startTimer();
         }
 
@@ -159,23 +168,24 @@
             startTime = Date.now();
             timerInterval = setInterval(() => {
                 const delta = Date.now() - startTime;
-                const minutes = Math.floor(delta / 60000);
-                const seconds = Math.floor((delta % 60000) / 1000);
-                document.getElementById('timer-display').innerText = 
-                    `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+                const min = Math.floor(delta / 60000).toString().padStart(2, '0');
+                const sec = Math.floor((delta % 60000) / 1000).toString().padStart(2, '0');
+                document.getElementById('timer-display').innerText = `${min}:${sec}`;
             }, 1000);
         }
 
-        function initBoard() {
-            const container = document.getElementById('sudoku-container');
-            container.innerHTML = '';
+        function renderBoard() {
+            const grid = document.getElementById('sudoku-grid');
+            grid.innerHTML = ''; 
+            
             for (let r = 0; r < 9; r++) {
                 for (let c = 0; c < 9; c++) {
                     const cell = document.createElement('div');
                     cell.className = 'cell';
+                    
                     if (board[r][c] !== 0) {
-                        cell.innerText = board[r][c];
                         cell.classList.add('fixed');
+                        cell.innerText = board[r][c];
                     } else {
                         const input = document.createElement('input');
                         input.type = 'number';
@@ -184,7 +194,7 @@
                         input.oninput = function() { if(this.value.length > 1) this.value = this.value.slice(0,1); };
                         cell.appendChild(input);
                     }
-                    container.appendChild(cell);
+                    grid.appendChild(cell);
                 }
             }
         }
@@ -198,14 +208,12 @@
                         const input = document.getElementById(`cell-${r}-${c}`);
                         const val = parseInt(input.value);
                         if (!val) { complete = false; break; }
-                        if (val !== solution[r][c]) {
-                            correct = false; break;
-                        }
+                        if (val !== solution[r][c]) { correct = false; break; }
                     }
                 }
                 if (!complete) break;
             }
-            
+
             if (!complete) {
                 alert('빈칸을 모두 채워주세요!');
                 return;
@@ -215,7 +223,7 @@
                 clearInterval(timerInterval);
                 showAd();
             } else {
-                alert('숫자를 다시 확인해봐!');
+                alert('틀린 숫자가 있는 것 같아! 다시 한번 확인해볼래?');
             }
         }
 
@@ -232,7 +240,7 @@
                     document.getElementById('ad-timer').innerText = "AD COMPLETE!";
                     adCloseBtn.disabled = false;
                     adCloseBtn.classList.remove('bg-slate-700', 'text-slate-500');
-                    adCloseBtn.classList.add('bg-blue-600', 'text-white', 'hover:bg-blue-500');
+                    adCloseBtn.classList.add('bg-blue-600', 'text-white', 'hover:bg-blue-500', 'shadow-lg');
                 }
             }, 1000);
         }
