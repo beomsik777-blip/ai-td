@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>QuestBody - Sudoku</title>
+    <title>QuestBody - Sudoku Core</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&display=swap');
@@ -20,23 +20,21 @@
             overflow: hidden;
         }
 
-        /* 그리드 컨테이너: 고정된 비율 유지 */
+        /* 중앙 그리드 영역 */
         .sudoku-wrapper {
-            width: 92vw;
+            width: 94vw;
             max-width: 360px;
             margin: 0 auto;
-            position: relative;
+            border: 2px solid #38bdf8; /* 전체 외곽선 */
         }
 
         .sudoku-grid { 
             display: grid; 
             grid-template-columns: repeat(9, 1fr); 
-            grid-template-rows: repeat(9, 1fr);
-            background-color: #38bdf8; /* 선 색상 */
-            border: 2px solid #38bdf8;
-            gap: 1px; /* 선 굵기 */
             width: 100%;
             aspect-ratio: 1 / 1;
+            background-color: #38bdf8; /* 선 색상 역할을 할 배경 */
+            gap: 1px; /* 얇은 실선 */
         }
 
         .cell { 
@@ -44,38 +42,34 @@
             display: flex; 
             align-items: center; 
             justify-content: center;
-            overflow: hidden; /* 숫자가 밖으로 나가는 것 방지 */
+            overflow: hidden;
             position: relative;
         }
 
-        /* 고정 숫자 */
+        /* 3x3 구역 강조 (진한 파란색 선) */
+        .cell:nth-child(3n):not(:nth-child(9n)) { border-right: 2px solid #38bdf8; }
+        .cell:nth-child(n+19):nth-child(-n+27), 
+        .cell:nth-child(n+46):nth-child(-n+54) { border-bottom: 2px solid #38bdf8; }
+
+        /* 숫자 스타일 */
         .cell.fixed { 
             background-color: #0f172a; 
             color: #ffffff; 
             font-weight: 700;
-            font-size: min(4.5vw, 18px);
+            font-size: 1.25rem;
         }
 
-        /* 입력 숫자 */
         .cell input { 
-            width: 100%; 
-            height: 100%; 
+            width: 100%; height: 100%; 
             background: transparent; 
             text-align: center; 
             color: #38bdf8; 
-            border: none; 
-            outline: none;
+            border: none; outline: none;
             font-family: 'Orbitron', sans-serif;
-            font-size: min(4.5vw, 18px);
+            font-size: 1.25rem;
             padding: 0;
             display: block;
-            appearance: none;
         }
-
-        /* 3x3 박스 구분선 (더 굵게) */
-        .cell:nth-child(3n):not(:nth-child(9n)) { border-right: 2px solid #38bdf8; }
-        .cell:nth-child(n+19):nth-child(-n+27), 
-        .cell:nth-child(n+46):nth-child(-n+54) { border-bottom: 2px solid #38bdf8; }
 
         /* 오버레이 */
         .overlay {
@@ -94,7 +88,7 @@
 <body>
 
     <div id="start-overlay" class="overlay">
-        <h2 class="text-2xl font-bold text-blue-400 mb-6 tracking-widest uppercase text-center px-6">BRAIN PROTOCOL</h2>
+        <h2 class="text-2xl font-bold text-blue-400 mb-6 tracking-widest text-center uppercase">Brain Protocol</h2>
         <button onclick="startGame()" class="px-12 py-4 bg-blue-600 text-white font-bold rounded-xl shadow-lg active:scale-95 transition-transform">
             START PROTOCOL
         </button>
@@ -122,11 +116,11 @@
 
     <div class="mx-4 mb-4 p-3 bg-slate-900 border border-slate-700 rounded-lg flex justify-around shrink-0">
         <div class="text-center">
-            <p class="text-[8px] text-slate-500 uppercase">Int Point</p>
-            <p class="text-purple-400 font-bold text-xs">+1</p>
+            <p class="text-[8px] text-slate-500 uppercase font-bold">Reward</p>
+            <p class="text-purple-400 font-bold text-xs">INT +1</p>
         </div>
         <div class="text-center border-l border-slate-700 pl-6">
-            <p class="text-[8px] text-slate-500 uppercase">Timer</p>
+            <p class="text-[8px] text-slate-500 uppercase font-bold">Timer</p>
             <p id="timer-display" class="text-emerald-400 font-bold text-xs">00:00</p>
         </div>
     </div>
@@ -134,12 +128,12 @@
     <div class="flex-1 flex items-center justify-center min-h-0">
         <div class="sudoku-wrapper">
             <div id="sudoku-grid" class="sudoku-grid shadow-2xl">
-            </div>
+                </div>
         </div>
     </div>
 
     <footer class="p-6 shrink-0">
-        <button onclick="checkAnswer()" class="w-full bg-purple-600 hover:bg-purple-500 text-white font-bold py-4 rounded-xl shadow-xl active:translate-y-1 active:shadow-none transition-all">
+        <button onclick="checkAnswer()" class="w-full bg-purple-600 text-white font-bold py-4 rounded-xl border-b-4 border-purple-800 active:translate-y-1 active:border-b-0 transition-all shadow-xl">
             CHECK ANSWER
         </button>
     </footer>
@@ -213,12 +207,7 @@
                 }
                 if (!complete) break;
             }
-
-            if (!complete) {
-                alert('모든 빈칸을 분석하여 채워주세요!');
-                return;
-            }
-
+            if (!complete) { alert('빈칸을 채워주세요!'); return; }
             if (correct) {
                 clearInterval(timerInterval);
                 document.getElementById('ad-overlay').style.display = 'flex';
@@ -231,17 +220,17 @@
                         document.getElementById('ad-timer').innerText = "AD COMPLETE!";
                         const btn = document.getElementById('ad-close-btn');
                         btn.disabled = false;
-                        btn.classList.replace('bg-slate-700', 'bg-blue-600');
-                        btn.classList.replace('text-slate-500', 'text-white');
+                        btn.classList.remove('bg-slate-700', 'text-slate-500');
+                        btn.classList.add('bg-blue-600', 'text-white');
                     }
                 }, 1000);
             } else {
-                alert('데이터 불일치! 다시 분석해봐.');
+                alert('데이터 분석 실패! 다시 입력해봐.');
             }
         }
 
         function finishGame() {
-            alert('INT +1 상승! 브레인 동기화가 완료되었습니다.');
+            alert('INT +1 상승!');
             location.href = 'index.html';
         }
     </script>
