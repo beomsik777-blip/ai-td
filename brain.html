@@ -23,32 +23,35 @@
         /* 중앙 그리드 영역: 고정 크기 사용 */
         .sudoku-container {
             width: 90vw;
-            height: 90vw; /* 가로세로 비율 강제 고정 */
+            height: 90vw;
             max-width: 360px;
             max-height: 360px;
             margin: auto;
             display: flex;
             flex-wrap: wrap;
-            border: 2px solid #38bdf8;
-            background-color: #38bdf8;
+            border-top: 2px solid #38bdf8;
+            border-left: 2px solid #38bdf8;
+            background-color: #1e293b;
         }
 
         .cell { 
-            width: calc(100% / 9); /* 정확히 9등분 */
-            height: calc(100% / 9);
-            background-color: #1e293b; 
+            width: 11.111%; 
+            height: 11.111%;
             display: flex; 
             align-items: center; 
             justify-content: center;
-            border: 0.5px solid rgba(56, 189, 248, 0.3);
+            border-right: 1px solid #38bdf8;
+            border-bottom: 1px solid #38bdf8;
             position: relative;
         }
 
-        /* 3x3 구역 강조 */
-        .cell:nth-child(3n) { border-right: 2px solid #38bdf8; }
-        .cell:nth-child(9n) { border-right: none; }
+        /* 3x3 박스 구분을 위한 굵은 테두리 */
+        .cell:nth-child(3n) { border-right: 3px solid #38bdf8; }
+        .cell:nth-child(9n) { border-right: 2px solid #38bdf8; } 
+        
         .cell:nth-child(n+19):nth-child(-n+27), 
-        .cell:nth-child(n+46):nth-child(-n+54) { border-bottom: 2px solid #38bdf8; }
+        .cell:nth-child(n+46):nth-child(-n+54),
+        .cell:nth-child(n+73):nth-child(-n+81) { border-bottom: 3px solid #38bdf8; }
 
         .cell.fixed { background-color: #0f172a; color: #ffffff; font-weight: bold; font-size: 1rem; }
         
@@ -58,9 +61,8 @@
             border: none; outline: none;
             color: #38bdf8; text-align: center;
             font-family: 'Orbitron', sans-serif;
-            font-size: 1rem;
-            display: flex; align-items: center; justify-content: center;
-            padding: 0; margin: 0;
+            font-size: 1.1rem;
+            padding: 0;
         }
 
         .overlay {
@@ -71,15 +73,12 @@
             z-index: 100;
             backdrop-filter: blur(10px);
         }
-
-        input::-webkit-outer-spin-button,
-        input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
     </style>
 </head>
 <body>
 
     <div id="start-overlay" class="overlay">
-        <h2 class="text-2xl font-bold text-blue-400 mb-8 tracking-widest text-center uppercase px-6">Brain Protocol</h2>
+        <h2 class="text-2xl font-bold text-blue-400 mb-8 tracking-widest text-center uppercase">Brain Protocol</h2>
         <button onclick="startGame()" class="px-12 py-4 bg-blue-600 text-white font-bold rounded-xl shadow-lg active:scale-95 transition-transform">
             START
         </button>
@@ -88,8 +87,8 @@
     <div id="ad-overlay" class="overlay" style="display: none;">
         <div class="w-72 p-6 bg-slate-800 border-2 border-blue-400 rounded-2xl text-center shadow-2xl">
             <div class="text-4xl mb-4">💊</div>
-            <h3 class="text-lg font-bold text-white mb-2">MANA POTION</h3>
-            <p class="text-xs text-slate-400 mb-6">Brain Sync Successful!</p>
+            <h3 class="text-lg font-bold text-white mb-2 uppercase">Mana Potion</h3>
+            <p class="text-xs text-slate-400 mb-6 uppercase">Protocol Completed</p>
             <div id="ad-timer" class="text-blue-400 text-sm mb-4">Wait 5s...</div>
             <button id="ad-close-btn" onclick="finishGame()" disabled class="w-full py-3 bg-slate-700 text-slate-500 rounded-lg font-bold transition-all">CLOSE</button>
         </div>
@@ -102,11 +101,11 @@
             </svg>
             BACK
         </button>
-        <h1 class="text-sm font-bold text-purple-400">SUDOKU CORE</h1>
+        <h1 class="text-sm font-bold text-purple-400 tracking-tighter uppercase">Sudoku Core</h1>
         <div class="w-8"></div>
     </header>
 
-    <div class="mx-4 mb-4 p-3 bg-slate-900 border border-slate-700 rounded-lg flex justify-around shrink-0">
+    <div class="mx-4 mb-4 p-3 bg-slate-900 border border-slate-700 rounded-lg flex justify-around shrink-0 shadow-lg">
         <div class="text-center">
             <p class="text-[8px] text-slate-500 uppercase font-bold">Reward</p>
             <p class="text-purple-400 font-bold text-xs">INT +1</p>
@@ -197,12 +196,7 @@
                 }
                 if (!complete) break;
             }
-            
-            if (!complete) {
-                alert('모든 빈칸을 채워주세요!');
-                return;
-            }
-
+            if (!complete) { alert('빈칸을 모두 분석하여 채워주세요!'); return; }
             if (correct) {
                 clearInterval(timerInterval);
                 const adOverlay = document.getElementById('ad-overlay');
@@ -218,8 +212,8 @@
                         clearInterval(timer);
                         adTimerDisplay.innerText = "AD COMPLETE!";
                         adCloseBtn.disabled = false;
-                        adCloseBtn.classList.replace('bg-slate-700', 'bg-blue-600');
-                        adCloseBtn.classList.replace('text-slate-500', 'text-white');
+                        adCloseBtn.classList.remove('bg-slate-700', 'text-slate-500');
+                        adCloseBtn.classList.add('bg-blue-600', 'text-white', 'hover:bg-blue-500', 'shadow-lg');
                     }
                 }, 1000);
             } else {
@@ -228,7 +222,7 @@
         }
 
         function finishGame() {
-            alert('INT +1 상승!');
+            alert('INT +1 상승! 브레인 동기화 완료.');
             location.href = 'index.html';
         }
     </script>
