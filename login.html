@@ -107,13 +107,21 @@
             const id = document.getElementById('userId').value;
             const pw = document.getElementById('userPw').value;
 
-            // 테스트 계정 로직
-            if(id === 'Test89' && pw === '8989') {
+            // 허용된 계정 리스트
+            const validUsers = [
+                { id: 'Test89', pw: '8989' },
+                { id: 'Test90', pw: '9090' }
+            ];
+
+            // 계정 확인
+            const user = validUsers.find(u => u.id === id && u.pw === pw);
+
+            if(user) {
                 sessionStorage.setItem('isLoggedIn', 'true');
-                alert('QuestBody 프로토콜을 시작합니다.');
+                alert(`[${user.id}] 프로토콜을 승인합니다.`);
                 location.href = 'index.html'; 
             } else {
-                alert('ID 또는 Password가 일치하지 않습니다.');
+                alert('ACCESS DENIED: ID 또는 Password가 올바르지 않습니다.');
             }
         }
     </script>
