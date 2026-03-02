@@ -22,22 +22,22 @@
             transition: background-image 0.5s ease-in-out;
         }
         
-        /* 📱 메인 영역 스크롤 설정 */
         .main-container { height: calc(100dvh - 160px); overflow-y: auto; -webkit-overflow-scrolling: touch; }
         .main-container::-webkit-scrollbar { display: none; }
 
-        /* 오각형 차트 컨테이너 */
         .chart-container {
             background: rgba(30, 41, 59, 0.4);
             border: 1px solid rgba(56, 189, 248, 0.2);
             border-radius: 20px;
             width: 100%;
             max-width: 300px;
-            height: 260px;
-            margin-top: 1.5rem;
-            position: relative;
+            height: 240px;
+            margin-top: 1rem;
             padding: 10px;
         }
+
+        /* 📊 수치 타일 스타일 */
+        .stat-card { background: rgba(30, 41, 59, 0.6); border: 1px solid #334155; border-radius: 8px; padding: 8px; text-align: center; backdrop-filter: blur(4px); }
     </style>
 </head>
 <body class="flex flex-col h-screen overflow-hidden">
@@ -63,7 +63,7 @@
                 <p id="user-mana" class="font-bold text-blue-400 text-sm">10 / 10</p>
             </div>
             
-            <button onclick="resetCharacter()" class="p-2 bg-red-900/30 rounded-lg border border-red-900/50 text-red-500 active:scale-95 transition-all">
+            <button onclick="resetCharacter()" class="p-2 bg-red-900/30 rounded-lg border border-red-900/50 text-red-500 active:scale-95 transition-all ml-1">
                 <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
                 </svg>
@@ -87,6 +87,29 @@
             <canvas id="bodyChart"></canvas>
         </div>
 
+        <div class="w-full max-w-xs mt-4 grid grid-cols-3 gap-2 z-10">
+            <div class="stat-card">
+                <p class="text-[7px] text-orange-400 uppercase font-bold">Muscle</p>
+                <p id="stat-muscle" class="text-[11px] font-bold">--</p>
+            </div>
+            <div class="stat-card">
+                <p class="text-[7px] text-blue-400 uppercase font-bold">Fat</p>
+                <p id="stat-fat" class="text-[11px] font-bold">--</p>
+            </div>
+            <div class="stat-card">
+                <p class="text-[7px] text-emerald-400 uppercase font-bold">BMI</p>
+                <p id="stat-bmi" class="text-[11px] font-bold">--</p>
+            </div>
+            <div class="stat-card">
+                <p class="text-[7px] text-rose-400 uppercase font-bold">Fat %</p>
+                <p id="stat-percent" class="text-[11px] font-bold">--</p>
+            </div>
+            <div class="stat-card col-span-2">
+                <p class="text-[7px] text-purple-400 uppercase font-bold">BMR (Metabolism)</p>
+                <p id="stat-bmr" class="text-[11px] font-bold">-- kcal</p>
+            </div>
+        </div>
+
         <div class="w-full max-w-xs mt-6 space-y-4 z-10">
             <div class="bg-slate-900/60 p-3 rounded border border-slate-700 backdrop-blur-sm shadow-inner">
                 <div class="flex justify-between text-[10px] mb-1">
@@ -97,7 +120,6 @@
                     <div id="str-bar" class="status-bar bg-gradient-to-r from-orange-600 to-orange-400 h-full w-[0%]"></div>
                 </div>
             </div>
-            
             <div class="bg-slate-900/60 p-3 rounded border border-slate-700 backdrop-blur-sm shadow-inner">
                 <div class="flex justify-between text-[10px] mb-1">
                     <span class="text-purple-400 font-bold uppercase">Int (지능)</span>
@@ -116,7 +138,7 @@
             <div class="w-10 h-10 bg-blue-500/20 rounded-full flex-shrink-0 border border-blue-400 flex items-center justify-center text-xl">🧬</div>
             <div>
                 <p id="sync-status" class="text-[9px] text-blue-400 font-bold tracking-tighter uppercase">QuestBody Guide</p>
-                <p id="guide-text" class="text-[11px] leading-tight text-slate-200 mt-1">"인바디 데이터를 동기화하여 분석 차트를 생성해!"</p>
+                <p id="guide-text" class="text-[11px] leading-tight text-slate-200 mt-1">"최신 데이터를 동기화하여 분석 차트를 생성해!"</p>
             </div>
         </div>
     </main>
@@ -172,11 +194,18 @@
                 else sprite.style.backgroundImage = "url('image/nocheck.png')";
                 
                 document.getElementById('user-weight').innerText = `Weight: ${inbody.weight} kg`;
+                
+                // 📊 수치 텍스트 업데이트
+                document.getElementById('stat-muscle').innerText = `${inbody.muscle}kg`;
+                document.getElementById('stat-fat').innerText = `${inbody.fatMass}kg`;
+                document.getElementById('stat-bmi').innerText = inbody.bmi;
+                document.getElementById('stat-percent').innerText = `${inbody.fatPercent}%`;
+                document.getElementById('stat-bmr').innerText = `${inbody.bmr}`;
+
                 document.getElementById('sync-status').innerText = "BODY DATA SYNCHRONIZED ✓";
                 document.getElementById('sync-status').classList.replace('text-blue-400', 'text-emerald-400');
-                document.getElementById('guide-text').innerText = "분석 차트가 활성화되었습니다. 스탯을 키워 마을을 지키세요!";
                 
-                renderRadarChart(inbody); // 차트 렌더링 호출
+                renderRadarChart(inbody);
             } else {
                 sprite.style.backgroundImage = "url('image/nocheck.png')"; 
                 document.getElementById('user-weight').innerText = "Weight: 0.0 kg";
@@ -186,8 +215,6 @@
         function renderRadarChart(data) {
             const ctx = document.getElementById('bodyChart').getContext('2d');
             if (bodyChart) { bodyChart.destroy(); }
-
-            // 데이터 정규화 로직 (오각형 밸런스 조정)
             const chartData = [
                 (parseFloat(data.muscle) / 45) * 100,
                 (parseFloat(data.fatMass) / 30) * 100,
@@ -195,7 +222,6 @@
                 (parseFloat(data.fatPercent) / 40) * 100,
                 (parseFloat(data.bmr) / 2000) * 100
             ];
-
             bodyChart = new Chart(ctx, {
                 type: 'radar',
                 data: {
@@ -205,21 +231,19 @@
                         backgroundColor: 'rgba(56, 189, 248, 0.2)',
                         borderColor: '#38bdf8',
                         borderWidth: 2,
-                        pointRadius: 3,
+                        pointRadius: 2,
                         pointBackgroundColor: '#38bdf8'
                     }]
                 },
                 options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
+                    responsive: true, maintainAspectRatio: false,
                     scales: {
                         r: {
                             angleLines: { color: 'rgba(255, 255, 255, 0.1)' },
                             grid: { color: 'rgba(255, 255, 255, 0.1)' },
-                            pointLabels: { color: '#94a3b8', font: { size: 10, family: 'Orbitron' } },
+                            pointLabels: { color: '#94a3b8', font: { size: 9, family: 'Orbitron' } },
                             ticks: { display: false },
-                            suggestedMin: 0,
-                            suggestedMax: 100
+                            suggestedMin: 0, suggestedMax: 100
                         }
                     },
                     plugins: { legend: { display: false } }
