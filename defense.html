@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>QuestBody - Ultimate Defense</title>
+    <title>QuestBody - Tactical Defense</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&display=swap');
@@ -17,36 +17,31 @@
         }
         .grid-cell { border: 0.1px solid rgba(56, 189, 248, 0.05); position: relative; z-index: 5; }
 
-        /* 🛣️ 은은한 경로 가이드 라인 */
-        .path-line { position: absolute; background: rgba(56, 189, 248, 0.1); z-index: 1; pointer-events: none; }
-
+        #path-canvas { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 2; }
         #base { position: absolute; top: 45%; left: 45%; width: 10%; height: 10%; background: #1e293b; border: 2px solid #38bdf8; z-index: 10; border-radius: 4px; display: flex; align-items: center; justify-content: center; font-size: 1rem; box-shadow: 0 0 15px rgba(56, 189, 248, 0.4); }
 
-        /* 🤺 캐릭터 중앙 정렬 수정 */
         #player { 
             position: absolute; width: 5%; height: 5%; z-index: 100; 
             background-size: contain; background-repeat: no-repeat; background-position: center;
             transition: all 0.2s ease-out; cursor: pointer;
-            transform-origin: center;
         }
         #player.active { filter: drop-shadow(0 0 10px #38bdf8); outline: 2px solid #38bdf8; border-radius: 50%; }
 
         .range-circle { position: absolute; border: 1px dashed rgba(56, 189, 248, 0.4); border-radius: 50%; background: rgba(56, 189, 248, 0.05); pointer-events: none; z-index: 5; transform: translate(-50%, -50%); display: none; }
-        #p-range-circle { border-color: #fbbf24; background: rgba(251, 191, 36, 0.05); z-index: 90; }
 
-        /* 👾 몬스터 및 체력바 */
-        .monster { position: absolute; width: 5%; height: 5%; z-index: 30; transition: all 0.3s linear; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+        .monster { position: absolute; width: 5%; height: 5%; z-index: 30; display: flex; flex-direction: column; align-items: center; justify-content: center; transition: top 0.1s linear, left 0.1s linear; }
         .hp-bg { width: 100%; height: 3px; background: #ef4444; position: absolute; top: -5px; border-radius: 2px; }
-        .hp-fill { height: 100%; background: #22c55e; transition: width 0.2s; }
+        .hp-fill { height: 100%; background: #22c55e; }
 
-        .tower { position: absolute; width: 5%; height: 5%; z-index: 40; display: flex; align-items: center; justify-content: center; background: rgba(56, 189, 248, 0.15); border-radius: 4px; }
+        .tower { position: absolute; width: 5%; height: 5%; z-index: 40; display: flex; align-items: center; justify-content: center; background: rgba(56, 189, 248, 0.2); border-radius: 4px; }
         #preview-tower { position: absolute; width: 5%; height: 5%; z-index: 45; display: none; filter: opacity(0.6); pointer-events: none; }
 
-        /* 💥 데미지 텍스트 */
+        /* 🚀 투사체 스타일 */
+        .projectile { position: absolute; width: 6px; height: 6px; border-radius: 50%; z-index: 80; pointer-events: none; box-shadow: 0 0 8px currentColor; transition: all 0.2s linear; }
+
         .dmg-text { position: absolute; font-weight: bold; color: #fbbf24; font-size: 10px; z-index: 110; animation: up-fade 0.5s forwards; pointer-events: none; }
         @keyframes up-fade { from { transform: translateY(0); opacity: 1; } to { transform: translateY(-20px); opacity: 0; } }
 
-        .laser { position: absolute; background: #38bdf8; z-index: 45; transform-origin: 0 50%; height: 2px; pointer-events: none; }
         .ui-panel { background: #0f172a; border-top: 2px solid #334155; padding: 10px; }
         .tower-btn { background: #1e293b; border: 1px solid #475569; border-radius: 8px; padding: 5px; text-align: center; }
         .tower-btn.selected { border-color: #38bdf8; color: #38bdf8; background: #1e293b88; }
@@ -56,10 +51,7 @@
 <body class="flex flex-col">
 
     <audio id="bgm" loop><source src="music/townbgm.mp3" type="audio/mpeg"></audio>
-    <audio id="snd-atk"><source src="https://assets.mixkit.co/active_storage/sfx/2571/2571-preview.mp3" type="audio/mpeg"></audio>
-    <audio id="snd-tower"><source src="https://assets.mixkit.co/active_storage/sfx/1653/1653-preview.mp3" type="audio/mpeg"></audio>
-
-    <header class="p-3 bg-slate-900 flex justify-between items-center border-b border-slate-700">
+    <audio id="snd-atk"><source src="https://assets.mixkit.co/active_storage/sfx/2578/2578-preview.mp3" type="audio/mpeg"></audio> <audio id="snd-tower"><source src="https://assets.mixkit.co/active_storage/sfx/2568/2568-preview.mp3" type="audio/mpeg"></audio> <header class="p-3 bg-slate-900 flex justify-between items-center border-b border-slate-700">
         <button onclick="location.href='index.html'" class="text-slate-400 text-[10px] font-bold">◀ EXIT</button>
         <div class="text-center flex-1 mx-4">
             <div class="flex justify-between items-center mb-1">
@@ -67,7 +59,7 @@
                 <span id="monster-info" class="text-rose-400 text-[9px] font-bold uppercase">ENEMY: SLIME</span>
             </div>
             <div class="w-full bg-slate-800 h-1.5 rounded-full overflow-hidden border border-slate-700">
-                <div id="hp-bar" class="bg-emerald-500 h-full w-full transition-all"></div>
+                <div id="hp-bar" class="bg-emerald-500 h-full w-full"></div>
             </div>
         </div>
         <p id="d-coin" class="text-xs font-bold text-yellow-400">200 DG</p>
@@ -75,11 +67,9 @@
 
     <div class="flex-1 flex flex-col items-center justify-center bg-black">
         <div id="map" class="grid-map" onclick="handleMapClick(event)">
-            <div class="path-line" style="top: 47.5%; left: 0; width: 100%; height: 5%;"></div>
-            <div class="path-line" style="top: 0; left: 47.5%; width: 5%; height: 100%;"></div>
-            
+            <canvas id="path-canvas"></canvas>
             <div id="base">🏰</div>
-            <div id="p-range-circle" class="range-circle"></div>
+            <div id="p-range-circle" class="range-circle" style="border-color: #fbbf24;"></div>
             <div id="preview-range" class="range-circle" style="border-color: #38bdf8;"></div>
             <div id="preview-tower"></div>
             <div id="player" onclick="togglePlayer(event)"></div>
@@ -91,7 +81,7 @@
             <button onclick="selectTowerType('arrow', 50)" id="btn-arrow" class="tower-btn flex-1 text-[8px]">🏹 Arrow</button>
             <button onclick="selectTowerType('magic', 80)" id="btn-magic" class="tower-btn flex-1 text-[8px]">⚡ Magic</button>
             <button onclick="selectTowerType('cannon', 120)" id="btn-cannon" class="tower-btn flex-1 text-[8px]">💣 Cannon</button>
-            <button id="confirm-btn" onclick="confirmBuild()" class="flex-1 bg-emerald-600 rounded text-[9px] font-bold hidden">INSTALL (설치)</button>
+            <button id="confirm-btn" onclick="confirmBuild()" class="flex-1 bg-emerald-600 rounded text-[9px] font-bold hidden">INSTALL</button>
         </div>
         
         <div class="flex justify-between items-center">
@@ -102,10 +92,7 @@
                 <button class="ctrl-btn" onclick="movePlayer(0, 1)">▶</button>
             </div>
             <button onclick="playerAttack()" class="w-14 h-14 bg-orange-600 rounded-full border-2 border-white font-bold active:scale-90 text-[10px]">ATTACK</button>
-            <div class="flex flex-col items-end gap-1">
-                <button onclick="startWave()" id="start-btn" class="px-4 py-2 bg-blue-600 rounded font-bold text-[10px]">START</button>
-                <p class="text-[8px] text-slate-500">STR: <span id="s-val" class="text-orange-400">0</span></p>
-            </div>
+            <button onclick="startWave()" id="start-btn" class="px-6 py-3 bg-blue-600 rounded font-bold text-xs">START WAVE</button>
         </div>
     </div>
 
@@ -118,17 +105,18 @@
         
         const map = document.getElementById('map'), player = document.getElementById('player'), pRange = document.getElementById('p-range-circle');
         const previewTower = document.getElementById('preview-tower'), previewRange = document.getElementById('preview-range');
-        const bgm = document.getElementById('bgm'), sndAtk = document.getElementById('snd-atk'), sndTower = document.getElementById('snd-tower');
+        const pathCanvas = document.getElementById('path-canvas'), ctx = pathCanvas.getContext('2d');
+        const sndAtk = document.getElementById('snd-atk'), sndTower = document.getElementById('snd-tower');
 
         const inbody = JSON.parse(localStorage.getItem('user_inbody'));
         if (inbody) player.style.backgroundImage = inbody.gender === 'woman' ? "url('image/woman.png')" : "url('image/man/man.png')";
         else player.style.backgroundImage = "url('image/nocheck.png')";
 
         window.onload = () => {
+            pathCanvas.width = map.clientWidth; pathCanvas.height = map.clientHeight;
             for (let i = 0; i < 400; i++) map.appendChild(document.createElement('div')).className = 'grid-cell';
             updatePlayerUI();
-            document.getElementById('s-val').innerText = user_str;
-            document.body.onclick = () => { if(bgm.paused) bgm.play().catch(e=>{}); };
+            document.body.onclick = () => { document.getElementById('bgm').play().catch(e=>{}); };
         };
 
         function togglePlayer(e) {
@@ -140,7 +128,6 @@
         }
 
         function updatePlayerUI() {
-            // 중앙 정렬을 위해 0.5 더함
             player.style.top = (playerPos.r * 5) + '%';
             player.style.left = (playerPos.c * 5) + '%';
             const rangeVal = 3 + (user_int / 50);
@@ -160,15 +147,8 @@
         }
 
         function selectTowerType(type, cost) {
-            if (selectedType && selectedType.type === type) {
-                cancelBuild();
-                selectedType = null;
-                document.querySelectorAll('.tower-btn').forEach(b => b.classList.remove('selected'));
-            } else {
-                selectedType = { type, cost };
-                document.querySelectorAll('.tower-btn').forEach(b => b.classList.remove('selected'));
-                document.getElementById('btn-' + type).classList.add('selected');
-            }
+            if (selectedType && selectedType.type === type) { cancelBuild(); selectedType = null; document.querySelectorAll('.tower-btn').forEach(b => b.classList.remove('selected')); }
+            else { selectedType = { type, cost }; document.querySelectorAll('.tower-btn').forEach(b => b.classList.remove('selected')); document.getElementById('btn-' + type).classList.add('selected'); }
         }
 
         function handleMapClick(e) {
@@ -176,160 +156,168 @@
             const rect = map.getBoundingClientRect();
             const c = Math.floor(((e.clientX - rect.left) / rect.width) * 20);
             const r = Math.floor(((e.clientY - rect.top) / rect.height) * 20);
-            
             if (towers.some(t => t.r === r && t.c === c) || (r >= 9 && r <= 10 && c >= 9 && c <= 10)) return;
-
             pendingBuild = { r, c, ...selectedType };
             previewTower.style.display = 'flex';
             previewTower.innerHTML = pendingBuild.type === 'arrow' ? '🏹' : pendingBuild.type === 'magic' ? '⚡' : '💣';
-            previewTower.style.top = (r * 5) + '%';
-            previewTower.style.left = (c * 5) + '%';
-
+            previewTower.style.top = (r * 5) + '%'; previewTower.style.left = (c * 5) + '%';
             previewRange.style.display = 'block';
             const tRange = pendingBuild.type === 'magic' ? 4 : 6;
-            previewRange.style.width = (tRange * 10) + '%';
-            previewRange.style.height = (tRange * 10) + '%';
-            previewRange.style.top = ((r + 0.5) * 5) + '%';
-            previewRange.style.left = ((c + 0.5) * 5) + '%';
-
+            previewRange.style.width = (tRange * 10) + '%'; previewRange.style.height = (tRange * 10) + '%';
+            previewRange.style.top = ((r + 0.5) * 5) + '%'; previewRange.style.left = ((c + 0.5) * 5) + '%';
             document.getElementById('confirm-btn').classList.remove('hidden');
         }
 
         function confirmBuild() {
-            if (!pendingBuild || dCoin < pendingBuild.cost) { alert("D-Coin이 부족합니다!"); return; }
-            dCoin -= pendingBuild.cost;
-            document.getElementById('d-coin').innerText = dCoin + " DG";
-            
+            if (!pendingBuild || dCoin < pendingBuild.cost) return;
+            dCoin -= pendingBuild.cost; document.getElementById('d-coin').innerText = dCoin + " DG";
             const el = document.createElement('div');
             el.className = 'tower'; el.innerHTML = previewTower.innerHTML;
             el.style.top = (pendingBuild.r * 5) + '%'; el.style.left = (pendingBuild.c * 5) + '%';
-            
-            const rCircle = document.createElement('div');
-            rCircle.className = 'range-circle';
-            const tr = pendingBuild.type === 'magic' ? 4 : 6;
-            rCircle.style.width = (tr * 10) + '%'; rCircle.style.height = (tr * 10) + '%';
-            rCircle.style.top = '50%'; rCircle.style.left = '50%';
-            rCircle.style.display = 'block';
-            el.appendChild(rCircle);
-
             map.appendChild(el);
-            towers.push({ ...pendingBuild, lastShot: 0, cooldown: pendingBuild.type === 'magic' ? 600 : 1200, range: tr/2 });
+            towers.push({ ...pendingBuild, lastShot: 0, cooldown: pendingBuild.type === 'magic' ? 600 : 1200, range: (pendingBuild.type === 'magic' ? 4 : 6)/2 });
             cancelBuild();
         }
 
         function cancelBuild() {
-            pendingBuild = null;
-            previewTower.style.display = 'none';
-            previewRange.style.display = 'none';
-            document.getElementById('confirm-btn').classList.add('hidden');
+            pendingBuild = null; previewTower.style.display = 'none'; previewRange.style.display = 'none'; document.getElementById('confirm-btn').classList.add('hidden');
         }
 
-        function showDamage(r, c, dmg) {
-            const txt = document.createElement('div');
-            txt.className = 'dmg-text';
-            txt.innerText = `-${Math.floor(dmg)}`;
-            txt.style.top = (r * 5) + '%';
-            txt.style.left = (c * 5) + '%';
-            map.appendChild(txt);
-            setTimeout(() => txt.remove(), 500);
+        // 🚀 투사체 발사 함수
+        function fireProjectile(fromR, fromC, target, color, damage) {
+            const p = document.createElement('div');
+            p.className = 'projectile';
+            p.style.color = color;
+            p.style.backgroundColor = color;
+            p.style.top = (fromR * 5 + 2) + '%';
+            p.style.left = (fromC * 5 + 2) + '%';
+            map.appendChild(p);
+
+            setTimeout(() => {
+                p.style.top = (target.r * 5 + 2) + '%';
+                p.style.left = (target.c * 5 + 2) + '%';
+            }, 10);
+
+            setTimeout(() => {
+                p.remove();
+                if (monsters.includes(target)) {
+                    target.hp -= damage;
+                    showDmgText(target.r, target.c, damage);
+                    target.querySelector('.hp-fill').style.width = (target.hp/target.maxHp*100) + '%';
+                }
+            }, 200);
         }
 
+        function showDmgText(r, c, d) {
+            const t = document.createElement('div'); t.className = 'dmg-text'; t.innerText = `-${Math.floor(d)}`;
+            t.style.top = (r*5)+'%'; t.style.left = (c*5)+'%'; map.appendChild(t); setTimeout(() => t.remove(), 500);
+        }
+
+        // 🤺 플레이어 단일 공격 (가장 가까운 적 1개)
         function playerAttack() {
-            if (!playerActive) return;
-            sndAtk.currentTime = 0; sndAtk.play();
+            if (!playerActive || monsters.length === 0) return;
+            
             const rangeVal = 3 + (user_int / 50);
+            let closest = null;
+            let minDist = Infinity;
+
             monsters.forEach(m => {
                 const dist = Math.sqrt(Math.pow(playerPos.r - m.r, 2) + Math.pow(playerPos.c - m.c, 2));
-                if (dist <= rangeVal) {
-                    const dmg = (15 + user_str / 5);
-                    m.hp -= dmg;
-                    showDamage(m.r, m.c, dmg);
-                    updateHpBar(m);
-                    drawLaser(playerPos.r + 0.5, playerPos.c + 0.5, m.r + 0.5, m.c + 0.5, '#fbbf24');
+                if (dist <= rangeVal && dist < minDist) {
+                    minDist = dist;
+                    closest = m;
                 }
             });
-        }
 
-        function updateHpBar(m) {
-            const fill = m.querySelector('.hp-fill');
-            if(fill) fill.style.width = (m.hp / m.maxHp * 100) + '%';
+            if (closest) {
+                sndAtk.currentTime = 0; sndAtk.play();
+                fireProjectile(playerPos.r + 0.5, playerPos.c + 0.5, closest, '#fbbf24', (15 + user_str / 5));
+            }
         }
 
         function startWave() {
             if (isWaveActive) return;
             isWaveActive = true;
             document.getElementById('start-btn').style.display = 'none';
-            const isBossRound = currentRound % 5 === 0;
-            document.getElementById('monster-info').innerText = isBossRound ? "ENEMY: BOSS RED" : "ENEMY: SLIME";
-            
-            let count = isBossRound ? 1 : currentRound * 3 + 2;
+            const isBoss = currentRound % 5 === 0;
+            document.getElementById('monster-info').innerText = isBoss ? "ENEMY: BOSS RED" : "ENEMY: SLIME";
+            let count = isBoss ? 1 : currentRound * 3 + 2;
             const interval = setInterval(() => {
                 if (count-- <= 0) { clearInterval(interval); return; }
-                spawnMonster(currentRound % 4, isBossRound);
+                spawnMonster(currentRound % 4, isBoss);
             }, 1000);
         }
 
         function spawnMonster(dir, isBoss) {
             const m = document.createElement('div');
             m.className = 'monster'; m.innerHTML = isBoss ? '👹' : '👾';
-            const hpCont = document.createElement('div');
-            hpCont.className = 'hp-bg';
-            const hpFill = document.createElement('div');
-            hpFill.className = 'hp-fill';
+            const hpCont = document.createElement('div'); hpCont.className = 'hp-bg';
+            const hpFill = document.createElement('div'); hpFill.className = 'hp-fill';
             hpCont.appendChild(hpFill); m.appendChild(hpCont);
-
-            const start = [{r:0,c:10}, {r:10,c:19}, {r:19,c:10}, {r:10,c:0}][dir];
-            m.r = start.r; m.c = start.c;
-            m.maxHp = (isBoss ? 400 : 30) + (currentRound * 20);
+            const starts = [{r:0,c:10}, {r:10,c:19}, {r:19,c:10}, {r:10,c:0}];
+            const s = starts[dir];
+            m.r = s.r; m.c = s.c;
+            m.maxHp = (isBoss ? 400 : 30) + (currentRound * 25);
             m.hp = m.maxHp;
             map.appendChild(m); monsters.push(m);
         }
 
-        function drawLaser(r1, c1, r2, c2, color) {
-            const laser = document.createElement('div');
-            laser.className = 'laser';
-            const x1 = c1 * 5, y1 = r1 * 5, x2 = c2 * 5, y2 = r2 * 5;
-            const d = Math.sqrt(Math.pow(x2-x1, 2) + Math.pow(y2-y1, 2));
-            laser.style.width = d + '%'; laser.style.left = x1 + '%'; laser.style.top = y1 + '%';
-            laser.style.transform = `rotate(${Math.atan2(y2-y1, x2-x1)}rad)`;
-            laser.style.backgroundColor = color;
-            map.appendChild(laser);
-            setTimeout(() => laser.remove(), 100);
+        function drawMonsterPaths() {
+            ctx.clearRect(0, 0, pathCanvas.width, pathCanvas.height);
+            ctx.strokeStyle = 'rgba(56, 189, 248, 0.15)';
+            ctx.lineWidth = 1; ctx.setLineDash([5, 5]);
+            monsters.forEach(m => {
+                ctx.beginPath();
+                ctx.moveTo((m.c + 0.5) * (pathCanvas.width / 20), (m.r + 0.5) * (pathCanvas.height / 20));
+                ctx.lineTo(pathCanvas.width / 2, pathCanvas.height / 2);
+                ctx.stroke();
+            });
         }
 
+        // ⚙️ 엔진
         setInterval(() => {
-            if (!isWaveActive && monsters.length === 0) return;
+            if (!isWaveActive && monsters.length === 0) {
+                ctx.clearRect(0, 0, pathCanvas.width, pathCanvas.height);
+                return;
+            }
+            
             monsters.forEach((m, idx) => {
-                let dr = 9.5 - m.r, dc = 9.5 - m.c;
-                let nextR = m.r + (dr > 0 ? 0.08 : -0.08);
-                let nextC = m.c + (dc > 0 ? 0.08 : -0.08);
-                if (towers.some(t => Math.abs(t.r - nextR) < 0.7 && Math.abs(t.c - m.c) < 0.7)) nextR = m.r;
-                if (towers.some(t => Math.abs(t.r - m.r) < 0.7 && Math.abs(t.c - nextC) < 0.7)) nextC = m.c;
-                m.r = nextR; m.c = nextC;
+                const dr = 9.5 - m.r, dc = 9.5 - m.c;
+                const dist = Math.sqrt(dr*dr + dc*dc);
+                let nr = m.r + (dr/dist) * 0.1, nc = m.c + (dc/dist) * 0.1;
+                if (towers.some(t => Math.abs(t.r-nr) < 0.7 && Math.abs(t.c-m.c) < 0.7)) nr = m.r;
+                if (towers.some(t => Math.abs(t.r-m.r) < 0.7 && Math.abs(t.c-nc) < 0.7)) nc = m.c;
+                m.r = nr; m.c = nc;
                 m.style.top = (m.r * 5) + '%'; m.style.left = (m.c * 5) + '%';
-                if (Math.abs(9.5-m.r) < 0.6 && Math.abs(9.5-m.c) < 0.6) {
-                    villageHp -= 10; document.getElementById('hp-bar').style.width = villageHp + '%';
+
+                if (dist < 0.6) {
+                    villageHp -= (m.innerHTML === '👹' ? 50 : 10);
+                    document.getElementById('hp-bar').style.width = villageHp + '%';
                     m.remove(); monsters.splice(idx, 1);
                     if (villageHp <= 0) { alert("마을 함락!"); location.reload(); }
                 }
                 if (m.hp <= 0) { m.remove(); monsters.splice(idx, 1); dCoin += 25; document.getElementById('d-coin').innerText = dCoin + " DG"; }
             });
+
             const now = Date.now();
             towers.forEach(t => {
                 if (now - t.lastShot > t.cooldown) {
                     const target = monsters.find(m => Math.sqrt(Math.pow(t.r-m.r,2)+Math.pow(t.c-m.c,2)) < t.range);
                     if (target) {
                         sndTower.currentTime = 0; sndTower.play();
-                        const dmg = (20 + user_str/10);
-                        target.hp -= dmg;
-                        showDamage(target.r, target.c, dmg);
-                        updateHpBar(target);
+                        fireProjectile(t.r + 0.3, t.c + 0.3, target, '#38bdf8', (20 + user_str/10));
                         t.lastShot = now;
-                        drawLaser(t.r + 0.5, t.c + 0.5, target.r + 0.5, target.c + 0.5, '#38bdf8');
                     }
                 }
             });
-            if (isWaveActive && monsters.length === 0) { isWaveActive = false; currentRound++; document.getElementById('round-display').innerText = "ROUND " + currentRound; document.getElementById('start-btn').style.display = 'block'; }
+
+            drawMonsterPaths();
+
+            if (isWaveActive && monsters.length === 0) {
+                isWaveActive = false; currentRound++;
+                document.getElementById('round-display').innerText = "ROUND " + currentRound;
+                document.getElementById('start-btn').style.display = 'block';
+            }
         }, 100);
     </script>
 </body>
