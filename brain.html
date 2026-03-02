@@ -7,7 +7,8 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&display=swap');
-        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; touch-action: manipulation; }
+        
         body { 
             background-color: #0f172a; color: white; font-family: 'Orbitron', sans-serif;
             margin: 0; padding: 0; height: 100dvh; width: 100vw;
@@ -19,11 +20,11 @@
         .user-cell.selected { background-color: rgba(56, 189, 248, 0.35) !important; box-shadow: inset 0 0 12px #38bdf8; }
 
         .sudoku-table { 
-            width: 92vw; height: 92vw; max-width: 360px; max-height: 360px; 
+            width: 90vw; height: 90vw; max-width: 350px; max-height: 350px; 
             margin: auto; border-collapse: collapse; table-layout: fixed; 
             border: 2px solid #38bdf8; background-color: #1e293b; 
         }
-        .sudoku-table td { border: 1px solid rgba(56, 189, 248, 0.2); text-align: center; vertical-align: middle; font-size: 1.2rem; cursor: pointer; }
+        .sudoku-table td { border: 1px solid rgba(56, 189, 248, 0.2); text-align: center; vertical-align: middle; font-size: 1.1rem; cursor: pointer; }
         .sudoku-table td:nth-child(3n) { border-right: 3px solid #38bdf8; }
         .sudoku-table tr:nth-child(3n) td { border-bottom: 3px solid #38bdf8; }
         
@@ -35,19 +36,32 @@
         @keyframes shake { 0%, 100% { transform: translateX(0); } 25% { transform: translateX(-2px); } 75% { transform: translateX(2px); } }
 
         .number-pad { 
-            display: grid; grid-template-columns: repeat(5, 1fr); gap: 6px; 
-            width: 92vw; max-width: 360px; margin: 10px auto; 
+            display: grid; grid-template-columns: repeat(5, 1fr); gap: 4px; 
+            width: 92vw; max-width: 350px; margin: 5px auto; 
         }
         .num-btn { 
-            background-color: #1e293b; border: 1px solid #38bdf8; border-radius: 8px; 
-            padding: 8px 0; display: flex; flex-direction: column; align-items: center; justify-content: center; 
+            background-color: #1e293b; border: 1px solid #38bdf8; border-radius: 6px; 
+            padding: 6px 0; display: flex; flex-direction: column; align-items: center; justify-content: center; 
             transition: 0.2s; 
         }
-        .num-btn:active { transform: scale(0.95); background: #334155; }
         .num-btn.completed { opacity: 0.2; pointer-events: none; }
-        
-        .hint-btn { background-color: #854d0e; border-color: #facc15; }
         .eraser-btn { background-color: #334155; border-color: #94a3b8; }
+
+        /* 🔘 좌우 분할 버튼 영역 */
+        .action-area { 
+            display: grid; grid-template-columns: 1fr 1.5fr; gap: 8px; 
+            width: 92vw; max-width: 350px; margin: 5px auto;
+        }
+        .hint-btn { background-color: #854d0e; border: 1px solid #facc15; color: #facc15; border-radius: 8px; font-weight: bold; font-size: 10px; }
+        .submit-btn { background-color: #2563eb; border: none; color: white; border-radius: 8px; font-weight: bold; font-size: 11px; box-shadow: 0 4px 10px rgba(37,99,235,0.3); }
+
+        /* 📺 하단 고정 광고 영역 */
+        .ad-banner { 
+            width: 100%; height: 50px; background: #020617; 
+            display: flex; align-items: center; justify-content: center; 
+            border-top: 1px solid #1e293b; font-size: 10px; color: #475569; 
+            margin-top: auto;
+        }
 
         .overlay { position: fixed; inset: 0; background: rgba(15, 23, 42, 0.98); display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 100; backdrop-filter: blur(10px); }
         .stage-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 10px; width: 90%; max-width: 320px; }
@@ -65,34 +79,39 @@
 
     <div id="ad-overlay" class="overlay" style="display: none;">
         <div class="w-72 p-6 bg-slate-800 border-2 border-emerald-500 rounded-2xl text-center">
-            <h3 class="text-xl font-bold text-emerald-400 mb-2">SUCCESS!</h3>
+            <h3 class="text-xl font-bold text-emerald-400 mb-2 uppercase">Success!</h3>
             <p class="text-white text-xs mb-6 tracking-tighter uppercase">INT +1 / Coin +10 Reward</p>
             <button onclick="finishGame()" class="w-full py-3 bg-emerald-600 text-white rounded-lg font-bold">GET REWARD</button>
         </div>
     </div>
 
-    <header class="p-4 flex justify-between items-center shrink-0">
+    <header class="p-3 flex justify-between items-center shrink-0">
         <button onclick="location.href='index.html'" class="text-slate-400 text-xs font-bold">◀ BACK</button>
-        <h1 id="stage-title" class="text-sm font-bold text-purple-400 uppercase tracking-widest">Sudoku</h1>
+        <h1 id="stage-title" class="text-sm font-bold text-purple-400 uppercase">Sudoku</h1>
         <button onclick="toggleMusic()" id="music-btn" class="text-[10px] text-slate-500 border border-slate-700 px-2 py-1 rounded">BGM: OFF</button>
     </header>
 
-    <div class="info-panel mx-4 mb-2 p-3 bg-slate-900/60 border border-slate-700 rounded-lg flex justify-around text-center shrink-0 shadow-lg">
-        <div><p class="text-[8px] text-slate-500 uppercase font-bold">Life</p><p id="life-display" class="text-rose-500 font-bold text-xs">3 / 3</p></div>
+    <div class="info-panel mx-4 mb-1 p-2 bg-slate-900/60 border border-slate-700 rounded-lg flex justify-around text-center shrink-0">
+        <div><p class="text-[7px] text-slate-500 uppercase font-bold">Life</p><p id="life-display" class="text-rose-500 font-bold text-[10px]">3 / 3</p></div>
         <div class="border-x border-slate-700 px-6">
-            <p class="text-[8px] text-slate-500 uppercase font-bold">Hint</p><p id="hint-display" class="text-yellow-500 font-bold text-xs">3 / 3</p>
+            <p class="text-[7px] text-slate-500 uppercase font-bold">Hint</p><p id="hint-display" class="text-yellow-500 font-bold text-[10px]">3 / 3</p>
         </div>
-        <div><p class="text-[8px] text-slate-500 uppercase font-bold">Time</p><p id="timer-display" class="text-emerald-400 font-bold text-xs">00:00</p></div>
+        <div><p class="text-[7px] text-slate-500 uppercase font-bold">Time</p><p id="timer-display" class="text-emerald-400 font-bold text-[10px]">00:00</p></div>
     </div>
 
-    <div class="flex-1 flex flex-col items-center justify-center">
-        <table id="sudoku-grid" class="sudoku-table shadow-2xl"></table>
+    <div class="flex-1 flex flex-col items-center justify-center overflow-hidden">
+        <table id="sudoku-grid" class="sudoku-table"></table>
         <div id="number-pad" class="number-pad"></div>
+        
+        <div class="action-area">
+            <button onclick="useHint()" id="hint-btn-ui" class="hint-btn h-12 uppercase">Hint</button>
+            <button onclick="checkAnswer()" class="submit-btn h-12 uppercase">Submit Answer</button>
+        </div>
     </div>
 
-    <footer class="p-3 shrink-0">
-        <button onclick="checkAnswer()" class="w-full bg-blue-600 text-white font-bold py-3 rounded-xl uppercase text-sm shadow-lg active:scale-95 transition-all">Submit Answer</button>
-    </footer>
+    <div class="ad-banner shrink-0">
+        <span>AD SLOT AREA (광고 영역)</span>
+    </div>
 
     <script>
         const stages = [
@@ -143,6 +162,7 @@
         function updateStatus() {
             document.getElementById('life-display').innerText = `${lives} / 3`;
             document.getElementById('hint-display').innerText = `${hints} / 3`;
+            document.getElementById('hint-btn-ui').innerText = `HINT (${hints})`;
         }
 
         function renderBoard() {
@@ -169,10 +189,8 @@
             selectedCell = { r, c };
             td.classList.add('selected');
             for(let i=0; i<9; i++) {
-                // 가로줄 하이라이트
                 const rowCell = document.querySelector(`.sudoku-table tr:nth-child(${r+1}) td:nth-child(${i+1})`);
                 if(rowCell) rowCell.classList.add('highlight-line');
-                // 세로줄 하이라이트
                 const colCell = document.querySelector(`.sudoku-table tr:nth-child(${i+1}) td:nth-child(${c+1})`);
                 if(colCell) colCell.classList.add('highlight-line');
             }
@@ -205,13 +223,9 @@
                 };
                 pad.appendChild(btn);
             }
-            const eraBtn = document.createElement('div'); eraBtn.className = "num-btn eraser-btn"; eraBtn.innerText = "ERASE";
+            const eraBtn = document.createElement('div'); eraBtn.className = "num-btn eraser-btn"; eraBtn.innerHTML = `<span class="text-xs font-bold uppercase">X</span><span class="text-[7px] text-slate-400 uppercase">Erase</span>`;
             eraBtn.onclick = () => { if(selectedCell) { document.getElementById(`cell-${selectedCell.r}-${selectedCell.c}`).innerText = ""; updateNumPad(); } };
             pad.appendChild(eraBtn);
-
-            const hntBtn = document.createElement('div'); hntBtn.className = "num-btn hint-btn col-span-5 mt-1"; hntBtn.innerHTML = `<span class="text-[10px]">USE HINT (${hints})</span>`;
-            hntBtn.onclick = () => useHint();
-            pad.appendChild(hntBtn);
         }
 
         function useHint() {
