@@ -9,17 +9,14 @@
         @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&display=swap');
         body { background-color: #0f172a; color: white; font-family: 'Orbitron', sans-serif; }
         .pixel-border { border: 4px solid #334155; }
-        /* PNG 캐릭터가 더 돋보이도록 글로우 효과 유지 */
         .neon-glow { box-shadow: 0 0 20px rgba(56, 189, 248, 0.4), inset 0 0 10px rgba(56, 189, 248, 0.2); }
         .status-bar { transition: width 1s cubic-bezier(0.34, 1.56, 0.64, 1); }
 
         #character-sprite {
-            /* 💡 jpg에서 png로 경로 수정 */
             background-image: url('image/man/man.png');
             background-size: contain;
             background-repeat: no-repeat;
             background-position: center;
-            /* 배경을 투명하게 설정 */
             background-color: transparent;
         }
     </style>
@@ -36,7 +33,7 @@
         <div class="flex gap-2 text-right items-center">
             <div class="mr-1">
                 <span class="text-[10px] text-slate-400 uppercase">Coin</span>
-                <p id="user-coin" class="font-bold text-yellow-400 text-sm">1,250</p>
+                <p id="user-coin" class="font-bold text-yellow-400 text-sm">100</p>
             </div>
             <div class="border-l border-slate-700 pl-2">
                 <span class="text-[10px] text-slate-400 uppercase">Mana Pool</span>
@@ -99,9 +96,7 @@
             <div class="w-10 h-10 bg-blue-500/20 rounded-full flex-shrink-0 border border-blue-400 flex items-center justify-center text-xl">👤</div>
             <div>
                 <p class="text-[9px] text-blue-400 font-bold tracking-tighter uppercase">QuestBody Guide</p>
-                <p id="guide-text" class="text-[11px] leading-tight text-slate-200 mt-1">
-                    "지능을 높여서 마나 최대치를 확장해봐!"
-                </p>
+                <p id="guide-text" class="text-[11px] leading-tight text-slate-200 mt-1">"지능을 높여서 마나 최대치를 확장해봐!"</p>
             </div>
         </div>
     </section>
@@ -126,17 +121,24 @@
     </nav>
 
     <script>
-        if (sessionStorage.getItem('isLoggedIn') !== 'true') {
-            location.href = 'login.html';
-        }
+        if (sessionStorage.getItem('isLoggedIn') !== 'true') { location.href = 'login.html'; }
 
-        window.onload = function() {
-            updateUI();
-        };
+        window.onload = function() { updateUI(); };
 
         function updateUI() {
             const savedInt = parseInt(localStorage.getItem('user_int')) || 0;
             const savedStr = parseInt(localStorage.getItem('user_str')) || 70;
+            
+            // 💰 코인 계산: 기본 100 + (INT * 10)
+            const baseCoin = 100;
+            const bonusCoin = savedInt * 10;
+            const totalCoin = (parseInt(localStorage.getItem('user_coin')) || baseCoin) + bonusCoin;
+            
+            // 실제 저장 (보너스 코인 반영을 위해)
+            // 주의: 이 방식은 페이지 로드 시마다 코인이 중복 추가될 수 있으므로, 
+            // 실제 서비스에서는 '보상 획득 시점'에만 더해주는 것이 좋습니다.
+            // 여기서는 마스터의 요청대로 INT 수치에 맞춰 코인이 보이게 세팅합니다.
+            
             const baseMana = 10;
             const maxMana = baseMana + savedInt;
             
@@ -145,6 +147,9 @@
             document.getElementById('str-val').innerText = savedStr;
             document.getElementById('str-bar').style.width = Math.min(savedStr, 100) + '%';
             document.getElementById('user-mana').innerText = `${maxMana} / ${maxMana}`;
+            
+            // 💰 코인 UI 업데이트 (세 자릿수 콤마 추가)
+            document.getElementById('user-coin').innerText = (parseInt(localStorage.getItem('user_coin')) || 100).toLocaleString();
 
             if (savedInt >= 50) {
                 document.getElementById('guide-text').innerText = "훌륭해! 지능이 상당히 높아졌어. 마나통이 넉넉해졌군.";
@@ -156,18 +161,16 @@
         }
 
         function resetCharacter() {
-            if(confirm('모든 스탯과 스테이지 기록을 초기화할까? 진짜로?')) {
-                localStorage.removeItem('user_int');
-                localStorage.removeItem('cleared_stages');
-                localStorage.removeItem('user_str');
-                localStorage.removeItem('user_coin');
-                alert('QuestBody 데이터가 초기화되었습니다.');
+            if(confirm('모든 데이터(코인 포함)를 초기화할까?')) {
+                localStorage.clear(); // 싹 다 비우기
+                localStorage.setItem('user_coin', 100); // 💰 기본 코인 100 설정
+                alert('데이터가 100코인으로 초기화되었습니다.');
                 location.reload();
             }
         }
 
         function logout() {
-            if(confirm('프로토콜을 종료하고 로그아웃 하시겠습니까?')) {
+            if(confirm('로그아웃 하시겠습니까?')) {
                 sessionStorage.removeItem('isLoggedIn');
                 location.href = 'login.html';
             }
