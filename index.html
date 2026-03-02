@@ -20,6 +20,10 @@
             filter: drop-shadow(0 0 10px rgba(56, 189, 248, 0.8));
             transition: background-image 0.5s ease-in-out;
         }
+        
+        /* 📱 화면이 작을 때 스크롤 가능하도록 설정 */
+        .main-container { height: calc(100dvh - 160px); overflow-y: auto; -webkit-overflow-scrolling: touch; }
+        .main-container::-webkit-scrollbar { display: none; }
     </style>
 </head>
 <body class="flex flex-col h-screen overflow-hidden">
@@ -28,7 +32,7 @@
         <source src="music/loginbgm.mp3" type="audio/mpeg">
     </audio>
 
-    <header class="p-4 bg-slate-900 border-b-2 border-slate-700 flex justify-between items-center z-20">
+    <header class="p-4 bg-slate-900 border-b-2 border-slate-700 flex justify-between items-center z-20 shrink-0">
         <div class="flex flex-col">
             <span class="text-[10px] text-slate-400 tracking-widest uppercase">Village HP</span>
             <div class="w-24 bg-slate-800 h-1.5 mt-1 rounded-full overflow-hidden border border-slate-700">
@@ -41,8 +45,8 @@
                 <p id="user-coin" class="font-bold text-yellow-400 text-sm">100</p>
             </div>
             <div class="border-l border-slate-700 pl-2">
-                <span class="text-[10px] text-slate-400 uppercase">Weight</span>
-                <p id="user-weight" class="font-bold text-blue-400 text-sm">-- kg</p>
+                <span class="text-[10px] text-slate-400 uppercase">Mana Pool</span>
+                <p id="user-mana" class="font-bold text-blue-400 text-sm">10 / 10</p>
             </div>
             
             <button onclick="resetCharacter()" class="p-2 bg-red-900/30 rounded-lg border border-red-900/50 text-red-500 active:scale-95 transition-all">
@@ -50,27 +54,22 @@
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
                 </svg>
             </button>
-
-            <button onclick="logout()" class="p-2 bg-slate-800/50 rounded-lg border border-slate-700 text-slate-400 active:scale-95 transition-all">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
-                </svg>
-            </button>
         </div>
     </header>
 
-    <main class="flex-1 relative flex flex-col items-center justify-center p-6">
+    <main class="main-container relative flex flex-col items-center p-6 shrink-0">
         <div class="absolute inset-0 bg-[linear-gradient(to_right,#1e293b_1px,transparent_1px),linear-gradient(to_bottom,#1e293b_1px,transparent_1px)] bg-[size:40px_40px] [mask-image:radial-gradient(ellipse_60%_50%_at_50%_50%,#000_70%,transparent_100%)]"></div>
 
-        <div class="relative z-10 w-72 h-80 flex flex-col items-center">
+        <div class="relative z-10 w-72 flex flex-col items-center">
             <div id="character-sprite" class="w-64 h-64 bg-slate-800/20 rounded-xl pixel-border neon-glow flex items-center justify-center overflow-hidden"></div>
             <div class="mt-4 text-center">
-                <span id="user-lv" class="bg-blue-600 text-[10px] px-2 py-0.5 rounded-full font-bold">LV. 15</span>
+                <span id="user-lv" class="bg-blue-600 text-[10px] px-2 py-0.5 rounded-full font-bold uppercase">Lv. 1</span>
                 <h2 class="text-xl font-bold mt-1 tracking-wider text-white uppercase">Future Chaser</h2>
+                <p id="user-weight" class="text-[10px] text-blue-400 font-bold mt-1 uppercase">Weight: -- kg</p>
             </div>
         </div>
 
-        <div class="w-full max-w-xs mt-8 space-y-4 z-10">
+        <div class="w-full max-w-xs mt-6 space-y-4 z-10">
             <div class="bg-slate-900/60 p-3 rounded border border-slate-700 backdrop-blur-sm shadow-inner">
                 <div class="flex justify-between text-[10px] mb-1">
                     <span class="text-orange-400 font-bold uppercase">Str (근력)</span>
@@ -94,19 +93,17 @@
                 </div>
             </div>
         </div>
-    </main>
 
-    <section id="guide-section" class="mx-4 mb-4 z-20">
-        <div onclick="location.href='inbody.html'" class="bg-slate-900 border-2 border-blue-500 p-3 rounded-lg flex items-start gap-3 shadow-[0_0_20px_rgba(59,130,246,0.3)] cursor-pointer active:scale-95 transition-all">
+        <div onclick="location.href='inbody.html'" class="w-full max-w-xs mt-6 bg-slate-900 border-2 border-blue-500 p-3 rounded-lg flex items-start gap-3 shadow-[0_0_20px_rgba(59,130,246,0.3)] cursor-pointer active:scale-95 transition-all z-10">
             <div class="w-10 h-10 bg-blue-500/20 rounded-full flex-shrink-0 border border-blue-400 flex items-center justify-center text-xl">🧬</div>
             <div>
                 <p id="sync-status" class="text-[9px] text-blue-400 font-bold tracking-tighter uppercase">QuestBody Guide</p>
                 <p id="guide-text" class="text-[11px] leading-tight text-slate-200 mt-1">"인바디 데이터를 동기화하여 성별과 체중을 적용해!"</p>
             </div>
         </div>
-    </section>
+    </main>
 
-    <nav class="bg-slate-950 border-t border-slate-800 grid grid-cols-4 h-20 z-20">
+    <nav class="bg-slate-950 border-t border-slate-800 grid grid-cols-4 h-20 z-20 shrink-0">
         <button onclick="location.href='gym.html'" class="flex flex-col items-center justify-center hover:bg-slate-900 transition text-slate-400">
             <span class="text-2xl">🏋️</span>
             <span class="text-[9px] font-bold mt-1 uppercase">Gym</span>
@@ -146,11 +143,19 @@
             document.getElementById('str-bar').style.width = Math.min(savedStr, 100) + '%';
             document.getElementById('user-coin').innerText = savedCoin.toLocaleString();
 
+            // ⚡ 마나 계산 복구 (INT 비례)
+            const baseMana = 10;
+            const maxMana = baseMana + savedInt;
+            document.getElementById('user-mana').innerText = `${maxMana} / ${maxMana}`;
+
+            // 레벨 계산 (임시: STR + INT 기반으로 레벨업 로직 넣을 수 있음)
+            const level = Math.floor((savedStr + savedInt) / 10) + 1;
+            document.getElementById('user-lv').innerText = `LV. ${level}`;
+
             const inbody = JSON.parse(localStorage.getItem('user_inbody'));
             const sprite = document.getElementById('character-sprite');
             
             if (inbody) {
-                // 🛠️ 마스터의 요청 경로에 맞게 정밀 수정
                 if (inbody.gender === 'woman') {
                     sprite.style.backgroundImage = "url('image/woman.png')";
                 } else if (inbody.gender === 'man') {
@@ -159,30 +164,23 @@
                     sprite.style.backgroundImage = "url('image/nocheck.png')";
                 }
                 
-                document.getElementById('user-weight').innerText = `${inbody.weight} kg`;
+                document.getElementById('user-weight').innerText = `Weight: ${inbody.weight} kg`;
                 document.getElementById('sync-status').innerText = "BODY DATA SYNCHRONIZED ✓";
                 document.getElementById('sync-status').classList.replace('text-blue-400', 'text-emerald-400');
-                document.getElementById('guide-text').innerText = `동기화 완료: ${inbody.gender === 'man' ? '남성' : '여성'} 캐릭터가 적용되었습니다.`;
+                document.getElementById('guide-text').innerText = `동기화 완료: ${inbody.gender === 'man' ? '남성' : '여성'} 캐릭터 적용.`;
             } else {
-                // 🛠️ 미선택 시 하이드 이미지 적용
                 sprite.style.backgroundImage = "url('image/nocheck.png')"; 
-                document.getElementById('user-weight').innerText = "0.0 kg";
+                document.getElementById('user-weight').innerText = "Weight: 0.0 kg";
             }
         }
 
         function resetCharacter() {
-            if(confirm('모든 데이터(코인 포함)를 초기화할까?')) {
+            if(confirm('모든 데이터를 초기화할까?')) {
                 localStorage.clear();
                 localStorage.setItem('user_coin', 100);
+                localStorage.setItem('user_str', 0); // 근력도 0부터 시작하고 싶으면 0으로!
                 alert('데이터가 초기화되었습니다.');
                 location.reload();
-            }
-        }
-
-        function logout() {
-            if(confirm('로그아웃 하시겠습니까?')) {
-                sessionStorage.removeItem('isLoggedIn');
-                location.href = 'login.html';
             }
         }
     </script>
