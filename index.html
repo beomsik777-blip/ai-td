@@ -22,7 +22,6 @@
             transition: background-image 0.5s ease-in-out;
         }
         
-        /* 📱 스크롤 영역 설정 */
         .main-container { height: calc(100dvh - 160px); overflow-y: auto; -webkit-overflow-scrolling: touch; }
         .main-container::-webkit-scrollbar { display: none; }
 
@@ -38,6 +37,15 @@
         }
 
         .stat-card { background: rgba(30, 41, 59, 0.6); border: 1px solid #334155; border-radius: 8px; padding: 8px; text-align: center; backdrop-filter: blur(4px); }
+        
+        /* 🚀 인바디 동기화 버튼 특수 스타일 */
+        .sync-btn-new {
+            background: linear-gradient(90deg, #1e293b, #0f172a);
+            border: 2px solid #38bdf8;
+            box-shadow: 0 0 15px rgba(56, 189, 248, 0.3);
+            transition: all 0.2s;
+        }
+        .sync-btn-new:active { transform: scale(0.95); box-shadow: 0 0 5px #38bdf8; }
     </style>
 </head>
 <body class="flex flex-col h-screen overflow-hidden">
@@ -62,7 +70,7 @@
                 <span class="text-[10px] text-slate-400 uppercase">Mana Pool</span>
                 <p id="user-mana" class="font-bold text-blue-400 text-sm">10 / 10</p>
             </div>
-            <button onclick="resetCharacter()" class="p-2 bg-red-900/30 rounded-lg border border-red-900/50 text-red-500 active:scale-95 ml-1">
+            <button onclick="resetCharacter()" class="p-2 bg-red-900/30 rounded-lg border border-red-900/50 text-red-500 active:scale-95 transition-all ml-1">
                 <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
                 </svg>
@@ -82,6 +90,14 @@
             </div>
         </div>
 
+        <div onclick="goToPage('inbody.html')" class="sync-btn-new w-full max-w-xs mt-6 p-3 rounded-lg flex items-center gap-3 cursor-pointer z-10">
+            <div class="w-8 h-8 bg-blue-500/20 rounded-full flex-shrink-0 border border-blue-400 flex items-center justify-center text-lg">🧬</div>
+            <div>
+                <p id="sync-status" class="text-[9px] text-blue-400 font-bold tracking-tighter uppercase">InBody Sync</p>
+                <p id="guide-text" class="text-[10px] leading-tight text-slate-300">"데이터 동기화 및 신체 분석하기"</p>
+            </div>
+        </div>
+
         <div class="chart-container z-10">
             <canvas id="bodyChart"></canvas>
         </div>
@@ -91,25 +107,16 @@
             <div class="stat-card"><p class="text-[7px] text-blue-400 uppercase font-bold">Fat</p><p id="stat-fat" class="text-[11px] font-bold">--</p></div>
             <div class="stat-card"><p class="text-[7px] text-emerald-400 uppercase font-bold">BMI</p><p id="stat-bmi" class="text-[11px] font-bold">--</p></div>
             <div class="stat-card"><p class="text-[7px] text-rose-400 uppercase font-bold">Fat %</p><p id="stat-percent" class="text-[11px] font-bold">--</p></div>
-            <div class="stat-card col-span-2"><p class="text-[7px] text-purple-400 uppercase font-bold">BMR (Metabolism)</p><p id="stat-bmr" class="text-[11px] font-bold">-- kcal</p></div>
+            <div class="stat-card col-span-2"><p class="text-[7px] text-purple-400 uppercase font-bold">BMR (Metabolism)</p><p id="stat-bmr" class="text-[11px] font-bold">--</p></div>
         </div>
 
-        <div class="w-full max-w-xs mt-6 space-y-4 z-10">
-            <div class="bg-slate-900/60 p-3 rounded border border-slate-700 shadow-inner">
+        <div class="w-full max-w-xs mt-6 space-y-4 z-10 pb-20"> <div class="bg-slate-900/60 p-3 rounded border border-slate-700 shadow-inner">
                 <div class="flex justify-between text-[10px] mb-1"><span class="text-orange-400 font-bold uppercase">Str</span><span id="str-val">0</span></div>
                 <div class="w-full bg-slate-800 h-2 rounded-full overflow-hidden"><div id="str-bar" class="status-bar bg-gradient-to-r from-orange-600 to-orange-400 h-full w-[0%]"></div></div>
             </div>
             <div class="bg-slate-900/60 p-3 rounded border border-slate-700 shadow-inner">
                 <div class="flex justify-between text-[10px] mb-1"><span class="text-purple-400 font-bold uppercase">Int</span><div class="flex items-center gap-2"><span id="int-val">0</span><button onclick="goToPage('brain.html')" class="bg-purple-600 text-[8px] px-2 py-0.5 rounded font-bold">TRAINING</button></div></div>
                 <div class="w-full bg-slate-800 h-2 rounded-full overflow-hidden"><div id="int-bar" class="status-bar bg-gradient-to-r from-purple-600 to-purple-400 h-full w-[0%]"></div></div>
-            </div>
-        </div>
-
-        <div onclick="goToPage('inbody.html')" class="w-full max-w-xs mt-6 bg-slate-900 border-2 border-blue-500 p-3 rounded-lg flex items-start gap-3 shadow-[0_0_20px_rgba(59,130,246,0.3)] cursor-pointer active:scale-95 transition-all z-10 mb-10">
-            <div class="w-10 h-10 bg-blue-500/20 rounded-full flex-shrink-0 border border-blue-400 flex items-center justify-center text-xl">🧬</div>
-            <div>
-                <p id="sync-status" class="text-[9px] text-blue-400 font-bold tracking-tighter uppercase">QuestBody Guide</p>
-                <p id="guide-text" class="text-[11px] leading-tight text-slate-200 mt-1">"최신 인바디 데이터를 동기화하여 분석 차트를 생성해!"</p>
             </div>
         </div>
     </main>
@@ -123,11 +130,7 @@
 
     <script>
         let bodyChart = null;
-        
-        // 🛠️ 마스터, 이 함수가 페이지 이동을 책임져!
-        function goToPage(url) {
-            window.location.href = url;
-        }
+        function goToPage(url) { window.location.href = url; }
 
         const bgm = document.getElementById('main-bgm');
         document.body.onclick = function() { if (bgm.paused) { bgm.play().catch(e => {}); } };
@@ -167,9 +170,9 @@
                 document.getElementById('stat-fat').innerText = `${inbody.fatMass}kg`;
                 document.getElementById('stat-bmi').innerText = inbody.bmi;
                 document.getElementById('stat-percent').innerText = `${inbody.fatPercent}%`;
-                document.getElementById('stat-bmr').innerText = `${inbody.bmr} kcal`;
+                document.getElementById('stat-bmr').innerText = `${inbody.bmr}`;
 
-                document.getElementById('sync-status').innerText = "BODY DATA SYNCHRONIZED ✓";
+                document.getElementById('sync-status').innerText = "BODY DATA SYNCED ✓";
                 document.getElementById('sync-status').classList.replace('text-blue-400', 'text-emerald-400');
                 
                 renderRadarChart(inbody);
