@@ -44,33 +44,16 @@
 </head>
 <body class="flex items-center justify-center h-screen px-6">
 
+    <audio id="login-bgm" loop>
+        <source src="music/loginbgm.mp3" type="audio/mpeg">
+    </audio>
+
     <div class="data-bg p-4 overflow-hidden">
         <div class="data-scroll">
-            <p>
-                Weight 70kg... Treadmill 30m... Pull-ups 40... Sit-ups 50... Butterfly 40... Inbody Check...
-                Weight 70kg... Treadmill 30m... Pull-ups 40... Sit-ups 50... Butterfly 40... Inbody Check...
-                Weight 70kg... Treadmill 30m... Pull-ups 40... Sit-ups 50... Butterfly 40... Inbody Check...
-                Weight 70kg... Treadmill 30m... Pull-ups 40... Sit-ups 50... Butterfly 40... Inbody Check...
-                Weight 70kg... Treadmill 30m... Pull-ups 40... Sit-ups 50... Butterfly 40... Inbody Check...
-                Weight 70kg... Treadmill 30m... Pull-ups 40... Sit-ups 50... Butterfly 40... Inbody Check...
-                Weight 70kg... Treadmill 30m... Pull-ups 40... Sit-ups 50... Butterfly 40... Inbody Check...
-                Weight 70kg... Treadmill 30m... Pull-ups 40... Sit-ups 50... Butterfly 40... Inbody Check...
-                Weight 70kg... Treadmill 30m... Pull-ups 40... Sit-ups 50... Butterfly 40... Inbody Check...
-                Weight 70kg... Treadmill 30m... Pull-ups 40... Sit-ups 50... Butterfly 40... Inbody Check...
-            </p>
-            <p>
-                Weight 70kg... Treadmill 30m... Pull-ups 40... Sit-ups 50... Butterfly 40... Inbody Check...
-                Weight 70kg... Treadmill 30m... Pull-ups 40... Sit-ups 50... Butterfly 40... Inbody Check...
-                Weight 70kg... Treadmill 30m... Pull-ups 40... Sit-ups 50... Butterfly 40... Inbody Check...
-                Weight 70kg... Treadmill 30m... Pull-ups 40... Sit-ups 50... Butterfly 40... Inbody Check...
-                Weight 70kg... Treadmill 30m... Pull-ups 40... Sit-ups 50... Butterfly 40... Inbody Check...
-                Weight 70kg... Treadmill 30m... Pull-ups 40... Sit-ups 50... Butterfly 40... Inbody Check...
-                Weight 70kg... Treadmill 30m... Pull-ups 40... Sit-ups 50... Butterfly 40... Inbody Check...
-                Weight 70kg... Treadmill 30m... Pull-ups 40... Sit-ups 50... Butterfly 40... Inbody Check...
-                Weight 70kg... Treadmill 30m... Pull-ups 40... Sit-ups 50... Butterfly 40... Inbody Check...
-                Weight 70kg... Treadmill 30m... Pull-ups 40... Sit-ups 50... Butterfly 40... Inbody Check...
-            </p>
-        </div>
+            <p>Weight 70kg... Treadmill 30m... Pull-ups 40... Sit-ups 50... Butterfly 40... Inbody Check...</p>
+            <p>Weight 70kg... Treadmill 30m... Pull-ups 40... Sit-ups 50... Butterfly 40... Inbody Check...</p>
+            <p>Weight 70kg... Treadmill 30m... Pull-ups 40... Sit-ups 50... Butterfly 40... Inbody Check...</p>
+            </div>
     </div>
 
     <div class="login-card p-10 rounded-2xl w-full max-w-sm shadow-2xl relative z-10">
@@ -103,17 +86,25 @@
     </div>
 
     <script>
+        // 🎵 사운드 활성화 로직
+        const bgm = document.getElementById('login-bgm');
+
+        // 브라우저 정책 대응: 화면 클릭 시 음악 시작
+        document.body.onclick = function() {
+            if (bgm.paused) {
+                bgm.play().catch(e => console.log("Audio play failed:", e));
+            }
+        };
+
         function checkLogin() {
             const id = document.getElementById('userId').value;
             const pw = document.getElementById('userPw').value;
 
-            // 허용된 계정 리스트
             const validUsers = [
                 { id: 'Test89', pw: '8989' },
                 { id: 'Test90', pw: '9090' }
             ];
 
-            // 계정 확인
             const user = validUsers.find(u => u.id === id && u.pw === pw);
 
             if(user) {
