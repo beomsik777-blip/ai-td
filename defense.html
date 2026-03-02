@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>QuestBody - Grid Defense</title>
+    <title>QuestBody - Strategic Grid Defense</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&display=swap');
@@ -17,7 +17,10 @@
         }
         .grid-cell { border: 0.1px solid rgba(56, 189, 248, 0.05); }
 
-        #base { position: absolute; top: 45%; left: 45%; width: 10%; height: 10%; background: #1e293b; border: 2px solid #38bdf8; z-index: 10; border-radius: 4px; display: flex; align-items: center; justify-content: center; font-size: 1rem; }
+        /* 🛣️ 경로 캔버스 (실시간 경로 표시) */
+        #path-canvas { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 2; }
+
+        #base { position: absolute; top: 45%; left: 45%; width: 10%; height: 10%; background: #1e293b; border: 2px solid #38bdf8; z-index: 10; border-radius: 4px; display: flex; align-items: center; justify-content: center; font-size: 1rem; box-shadow: 0 0 15px rgba(56, 189, 248, 0.4); }
 
         #player { 
             position: absolute; width: 5%; height: 5%; z-index: 100; 
@@ -28,7 +31,7 @@
 
         .range-circle { position: absolute; border: 1px dashed rgba(56, 189, 248, 0.3); border-radius: 50%; background: rgba(56, 189, 248, 0.03); pointer-events: none; z-index: 5; transform: translate(-50%, -50%); display: none; }
 
-        .monster { position: absolute; width: 5%; height: 5%; z-index: 30; display: flex; flex-direction: column; align-items: center; justify-content: center; transition: all 0.3s ease-in-out; }
+        .monster { position: absolute; width: 5%; height: 5%; z-index: 30; display: flex; flex-direction: column; align-items: center; justify-content: center; transition: all 0.35s linear; visibility: hidden; }
         .hp-bg { width: 80%; height: 3px; background: #450a0a; position: absolute; top: -5px; border-radius: 2px; }
         .hp-fill { height: 100%; background: #22c55e; width: 100%; transition: width 0.2s; }
 
@@ -37,7 +40,7 @@
 
         .projectile { position: absolute; width: 6px; height: 6px; border-radius: 50%; z-index: 80; pointer-events: none; }
 
-        .dmg-text { position: absolute; font-weight: bold; color: #fbbf24; font-size: 10px; z-index: 110; animation: up-fade 0.4s forwards; }
+        .dmg-text { position: absolute; font-weight: bold; color: #fbbf24; font-size: 10px; z-index: 110; animation: up-fade 0.4s forwards; pointer-events: none; }
         @keyframes up-fade { from { transform: translateY(0); opacity: 1; } to { transform: translateY(-15px); opacity: 0; } }
 
         .ui-panel { background: #0f172a; border-top: 2px solid #334155; padding: 10px; }
@@ -65,6 +68,7 @@
 
     <div class="flex-1 flex flex-col items-center justify-center bg-black relative">
         <div id="map" class="grid-map" onclick="handleMapClick(event)">
+            <canvas id="path-canvas"></canvas>
             <div id="base">🏰</div>
             <div id="p-range-circle" class="range-circle" style="border-color: #fbbf24;"></div>
             <div id="preview-range" class="range-circle" style="border-color: #38bdf8;"></div>
@@ -92,7 +96,7 @@
             <button onclick="startWave()" id="start-btn" class="px-8 py-4 bg-blue-600 rounded-lg font-bold text-xs shadow-lg">START WAVE</button>
 
             <div class="text-right">
-                <p class="text-[7px] text-slate-500 uppercase">Auto Attack</p>
+                <p class="text-[7px] text-slate-500 uppercase">Master Stat</p>
                 <p class="text-[10px] text-orange-400 font-bold tracking-tighter">STR <span id="s-val">0</span></p>
             </div>
         </div>
@@ -102,20 +106,23 @@
         let user_str = parseInt(localStorage.getItem('user_str')) || 0;
         let user_int = parseInt(localStorage.getItem('user_int')) || 0;
         let dCoin = 200, villageHp = 100, currentRound = 1;
-        let playerPos = { r: 9, c: 7 }, playerActive = false, lastAtkTime = 0;
+        let playerPos = { r: 9, c: 7 }, playerActive = false, playerLastShot = 0;
         let selectedType = null, pendingBuild = null, towers = [], monsters = [], isWaveActive = false;
         
         const map = document.getElementById('map'), player = document.getElementById('player'), pRange = document.getElementById('p-range-circle');
         const previewTower = document.getElementById('preview-tower'), previewRange = document.getElementById('preview-range');
+        const pathCanvas = document.getElementById('path-canvas'), ctx = pathCanvas.getContext('2d');
         const sndAtk = document.getElementById('snd-atk'), sndTower = document.getElementById('snd-tower');
 
         window.onload = () => {
+            pathCanvas.width = map.clientWidth; pathCanvas.height = map.clientHeight;
             const inbody = JSON.parse(localStorage.getItem('user_inbody'));
             player.style.backgroundImage = inbody?.gender === 'woman' ? "url('image/woman.png')" : "url('image/man/man.png')";
             for (let i = 0; i < 400; i++) map.appendChild(document.createElement('div')).className = 'grid-cell';
             updatePlayerUI();
             document.getElementById('s-val').innerText = user_str;
             document.body.addEventListener('click', () => { document.getElementById('bgm').play().catch(e=>{}); }, {once: true});
+            drawPaths(); // 시작 전 경로 미리 표시
         };
 
         function togglePlayer(e) {
@@ -129,7 +136,7 @@
         function updatePlayerUI() {
             player.style.top = (playerPos.r * 5) + '%';
             player.style.left = (playerPos.c * 5) + '%';
-            const rangeVal = 1.5 + (user_int / 100); // 범위 대폭 축소
+            const rangeVal = 1.5 + (user_int / 100); 
             pRange.style.width = (rangeVal * 10 * 2) + '%';
             pRange.style.height = (rangeVal * 10 * 2) + '%';
             pRange.style.top = ((playerPos.r + 0.5) * 5) + '%';
@@ -180,6 +187,7 @@
             map.appendChild(el);
             towers.push({ ...pendingBuild, lastShot: 0, cooldown: pendingBuild.type === 'magic' ? 700 : 1300, range: (pendingBuild.type === 'magic' ? 3 : 5)/2 });
             cancelBuild();
+            drawPaths(); // 타워 지으면 경로 갱신
         }
 
         function cancelBuild() {
@@ -191,6 +199,7 @@
         function fireProjectile(fromR, fromC, target, color, dmg) {
             const p = document.createElement('div');
             p.className = 'projectile'; p.style.backgroundColor = color;
+            p.style.boxShadow = `0 0 10px ${color}`;
             const sX = fromC * 5 + 2.5, sY = fromR * 5 + 2.5;
             p.style.left = sX + '%'; p.style.top = sY + '%';
             map.appendChild(p);
@@ -237,30 +246,55 @@
             m.maxHp = (isBoss ? 1200 : 100) + (currentRound * 50);
             m.hp = m.maxHp;
             m.style.top = (m.r * 5) + '%'; m.style.left = (m.c * 5) + '%';
+            m.style.visibility = 'visible';
             map.appendChild(m); monsters.push(m);
         }
 
-        // ⚙️ 메인 엔진 (0.3초마다 격자 이동 처리로 최적화)
+        // 🛣️ 실시간 & 미리보기 경로 그리기
+        function drawPaths() {
+            ctx.clearRect(0, 0, pathCanvas.width, pathCanvas.height);
+            ctx.setLineDash([5, 5]);
+            ctx.lineWidth = 1.5;
+
+            // 1. 현재 존재하는 몬스터의 경로 (밝은 파랑)
+            ctx.strokeStyle = 'rgba(56, 189, 248, 0.4)';
+            monsters.forEach(m => {
+                ctx.beginPath();
+                ctx.moveTo((m.c + 0.5) * (pathCanvas.width / 20), (m.r + 0.5) * (pathCanvas.height / 20));
+                ctx.lineTo(pathCanvas.width / 2, pathCanvas.height / 2);
+                ctx.stroke();
+            });
+
+            // 2. 소환될 적들의 예상 경로 (라운드 대기 중일 때 표시, 흐린 빨강)
+            if (!isWaveActive) {
+                ctx.strokeStyle = 'rgba(239, 68, 68, 0.2)';
+                const spawnPoints = [{r:0,c:10}, {r:10,c:19}, {r:19,c:10}, {r:10,c:0}];
+                const nextDir = currentRound % 4;
+                const s = spawnPoints[nextDir];
+                ctx.beginPath();
+                ctx.moveTo((s.c + 0.5) * (pathCanvas.width / 20), (s.r + 0.5) * (pathCanvas.height / 20));
+                ctx.lineTo(pathCanvas.width / 2, pathCanvas.height / 2);
+                ctx.stroke();
+            }
+        }
+
+        // ⚙️ 몬스터 이동 엔진 (0.4초마다 격자 이동)
         setInterval(() => {
-            if (!isWaveActive && monsters.length === 0) return;
+            if (!isWaveActive && monsters.length === 0) { drawPaths(); return; }
             
-            // 1. 격자 기반 몬스터 이동
             monsters.forEach((m, idx) => {
                 let dr = 9 - m.r, dc = 9 - m.c;
                 let nr = m.r, nc = m.c;
 
-                // 목표를 향해 한 칸 단위(격자)로 방향 결정
                 if (Math.abs(dr) > Math.abs(dc)) nr += (dr > 0 ? 1 : -1);
                 else if (dc !== 0) nc += (dc > 0 ? 1 : -1);
 
-                // 타워 충돌 체크: 가려는 격자에 타워가 있으면 우회
+                // 타워 충돌 시 우회
                 if (towers.some(t => t.r === nr && t.c === nc)) {
-                    // 우회 시도 (반대 축 이동)
                     if (nr !== m.r) { nr = m.r; nc += (dc >= 0 ? 1 : -1); }
                     else { nc = m.c; nr += (dr >= 0 ? 1 : -1); }
                 }
 
-                // 이동 확정
                 m.r = nr; m.c = nc;
                 m.style.top = (m.r * 5) + '%'; m.style.left = (m.c * 5) + '%';
 
@@ -274,14 +308,17 @@
                     document.getElementById('d-coin').innerText = dCoin + " DG";
                 }
             });
+            drawPaths();
+        }, 400);
 
-            // 2. 자동 공격 시스템 (엔진 루프 내에서 처리)
+        // ⚙️ 자동 공격 엔진 (0.1초마다 적 감시로 정밀도 향상)
+        setInterval(() => {
             const now = Date.now();
             
-            // 타워 공격
+            // 🗼 타워 공격
             towers.forEach(t => {
                 if (now - t.lastShot > t.cooldown) {
-                    const target = monsters.find(m => Math.abs(t.r-m.r) + Math.abs(t.c-m.c) <= t.range * 2);
+                    const target = monsters.find(m => Math.abs(t.r-m.r) + Math.abs(t.c-m.c) <= t.range * 2.5);
                     if (target) {
                         sndTower.currentTime = 0; sndTower.play();
                         fireProjectile(t.r, t.c, target, '#38bdf8', (25 + user_str/8));
@@ -290,10 +327,10 @@
                 }
             });
 
-            // 캐릭터 자동 공격
+            // 🤺 캐릭터 자동 공격 (활성화 상태일 때만)
             if (playerActive && now - playerLastShot > 500) {
                 const pRangeVal = 1.5 + (user_int / 100);
-                const target = monsters.find(m => Math.abs(playerPos.r-m.r) + Math.abs(playerPos.c-m.c) <= pRangeVal * 2);
+                const target = monsters.find(m => Math.abs(playerPos.r-m.r) + Math.abs(playerPos.c-m.c) <= pRangeVal * 2.5);
                 if (target) {
                     sndAtk.currentTime = 0; sndAtk.play();
                     fireProjectile(playerPos.r, playerPos.c, target, '#fbbf24', (20 + user_str/5));
@@ -306,7 +343,7 @@
                 document.getElementById('round-display').innerText = "ROUND " + currentRound;
                 document.getElementById('start-btn').style.display = 'block';
             }
-        }, 400); // 이동 주기를 0.4초로 늘려 부드러운 격자 이동 구현
+        }, 100);
     </script>
 </body>
 </html>
