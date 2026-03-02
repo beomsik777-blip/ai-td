@@ -28,6 +28,13 @@
         .stage-btn.cleared { opacity: 0.2; border-color: #475569; color: #475569; pointer-events: none; }
         .stage-btn:active:not(.cleared) { background: #38bdf8; color: #0f172a; }
 
+        /* 상단 정보바 스타일 */
+        .info-panel {
+            background: rgba(15, 23, 42, 0.6);
+            border: 1px solid #334155;
+            backdrop-filter: blur(5px);
+        }
+
         /* 게임 보드 */
         .sudoku-table {
             width: 90vw; height: 90vw; max-width: 340px; max-height: 340px;
@@ -41,9 +48,11 @@
         .user-cell { color: #38bdf8; cursor: pointer; }
         .user-cell.selected { background-color: #334155; box-shadow: inset 0 0 10px #38bdf8; }
 
+        /* 숫자 패드 */
         .number-pad { display: grid; grid-template-columns: repeat(9, 1fr); gap: 4px; width: 90vw; max-width: 360px; margin: 10px auto; }
         .num-btn { background-color: #1e293b; border: 1px solid #38bdf8; border-radius: 6px; padding: 8px 0; display: flex; flex-direction: column; align-items: center; }
         .num-btn.completed { opacity: 0.1; pointer-events: none; }
+        .num-btn span.label { font-size: 0.8rem; font-weight: bold; }
 
         .overlay { position: fixed; inset: 0; background: rgba(15, 23, 42, 0.98); display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 100; backdrop-filter: blur(10px); }
     </style>
@@ -67,6 +76,17 @@
         <h1 id="stage-title" class="text-sm font-bold text-purple-400 uppercase">Ready</h1>
         <div class="w-8"></div>
     </header>
+
+    <div class="info-panel mx-4 mb-2 p-3 rounded-lg flex justify-around shrink-0 shadow-lg">
+        <div class="text-center">
+            <p class="text-[8px] text-slate-500 uppercase font-bold">Reward</p>
+            <p class="text-purple-400 font-bold text-xs">INT +1</p>
+        </div>
+        <div class="text-center border-l border-slate-700 pl-6">
+            <p class="text-[8px] text-slate-500 uppercase font-bold">Time</p>
+            <p id="timer-display" class="text-emerald-400 font-bold text-xs">00:00</p>
+        </div>
+    </div>
 
     <div class="flex-1 flex flex-col items-center justify-center min-h-0">
         <div class="sudoku-container"><table id="sudoku-grid" class="sudoku-table"></table></div>
@@ -108,7 +128,7 @@
             for (let i = 1; i <= 10; i++) {
                 const btn = document.createElement('button');
                 btn.className = `stage-btn ${cleared.includes(i) ? 'cleared' : ''}`;
-                btn.innerText = i;
+                btn.innerText = i + "번"; // "번" 추가
                 btn.onclick = () => { if(!cleared.includes(i)) initGame(i-1); };
                 list.appendChild(btn);
             }
@@ -175,7 +195,7 @@
                 const btn = document.createElement('div');
                 const rem = Math.max(0, 9 - counts[i]);
                 btn.className = `num-btn ${rem === 0 ? 'completed' : ''}`;
-                btn.innerHTML = `<span>${i}</span><span class="count">${rem}</span>`;
+                btn.innerHTML = `<span class="label">${i}번</span><span class="text-[8px] text-slate-400">${rem}</span>`; // "번" 추가
                 btn.onclick = () => {
                     if (!selectedCell) return;
                     document.getElementById(`cell-${selectedCell.r}-${selectedCell.c}`).innerText = i;
