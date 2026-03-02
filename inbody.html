@@ -3,260 +3,121 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>QuestBody - Main Hub</title>
+    <title>QuestBody - InBody Sync</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&display=swap');
-        body { background-color: #0f172a; color: white; font-family: 'Orbitron', sans-serif; }
-        .pixel-border { border: 4px solid #334155; }
-        .neon-glow { box-shadow: 0 0 20px rgba(56, 189, 248, 0.4), inset 0 0 10px rgba(56, 189, 248, 0.2); }
-        .status-bar { transition: width 1s cubic-bezier(0.34, 1.56, 0.64, 1); }
-
-        #character-sprite {
-            background-size: contain;
-            background-repeat: no-repeat;
-            background-position: center bottom;
-            background-color: transparent;
-            filter: drop-shadow(0 0 10px rgba(56, 189, 248, 0.8));
-            transition: background-image 0.5s ease-in-out;
-        }
+        body { background-color: #0f172a; color: white; font-family: 'Orbitron', sans-serif; overflow-x: hidden; }
+        .input-card { background: rgba(30, 41, 59, 0.7); border: 1px solid #334155; backdrop-filter: blur(10px); }
         
-        /* 📱 메인 영역 스크롤 설정 */
-        .main-container { height: calc(100dvh - 160px); overflow-y: auto; -webkit-overflow-scrolling: touch; }
-        .main-container::-webkit-scrollbar { display: none; }
-
-        /* 오각형 차트 컨테이너 */
-        .chart-container {
-            background: rgba(30, 41, 59, 0.4);
-            border: 1px solid rgba(56, 189, 248, 0.2);
-            border-radius: 20px;
-            width: 100%;
-            max-width: 300px;
-            height: 240px;
-            margin-top: 1rem;
-            padding: 10px;
+        /* 입력창 정렬 고정 스타일 */
+        .cyber-input { 
+            background: #0f172a; 
+            border: 1px solid #475569; 
+            color: #38bdf8; 
+            text-align: center;
+            height: 48px; 
+            display: flex;
+            align-items: center;
+            justify-content: center;
         }
-
-        /* 📊 수치 타일 스타일 */
-        .stat-card { background: rgba(30, 41, 59, 0.6); border: 1px solid #334155; border-radius: 8px; padding: 8px; text-align: center; backdrop-filter: blur(4px); }
+        .cyber-input:focus { border-color: #38bdf8; outline: none; box-shadow: 0 0 10px rgba(56, 189, 248, 0.3); }
+        
+        .input-label { font-size: 10px; text-transform: uppercase; margin-bottom: 4px; display: block; letter-spacing: 0.05em; }
     </style>
 </head>
-<body class="flex flex-col h-screen overflow-hidden">
-
-    <audio id="main-bgm" loop>
-        <source src="music/loginbgm.mp3" type="audio/mpeg">
-    </audio>
-
-    <header class="p-4 bg-slate-900 border-b-2 border-slate-700 flex justify-between items-center z-20 shrink-0">
-        <div class="flex flex-col">
-            <span class="text-[10px] text-slate-400 tracking-widest uppercase">Village HP</span>
-            <div class="w-24 bg-slate-800 h-1.5 mt-1 rounded-full overflow-hidden border border-slate-700">
-                <div id="village-hp" class="bg-emerald-500 h-full w-full"></div>
-            </div>
-        </div>
-        <div class="flex gap-2 text-right items-center">
-            <div class="mr-1">
-                <span class="text-[10px] text-slate-400 uppercase">Coin</span>
-                <p id="user-coin" class="font-bold text-yellow-400 text-sm">100</p>
-            </div>
-            <div class="border-l border-slate-700 pl-2">
-                <span class="text-[10px] text-slate-400 uppercase">Mana Pool</span>
-                <p id="user-mana" class="font-bold text-blue-400 text-sm">10 / 10</p>
-            </div>
-            <button onclick="resetCharacter()" class="p-2 bg-red-900/30 rounded-lg border border-red-900/50 text-red-500 active:scale-95 transition-all ml-1">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-                </svg>
-            </button>
-        </div>
+<body class="p-6">
+    <header class="flex justify-between items-center mb-8 shrink-0">
+        <button onclick="location.href='index.html'" class="text-slate-400 text-xs font-bold">◀ BACK</button>
+        <h1 class="text-sm font-bold text-blue-400 tracking-widest uppercase text-center">Body Analysis<br><span class="text-[10px] text-slate-500">인바디 분석</span></h1>
+        <div class="w-10"></div>
     </header>
 
-    <main class="main-container relative flex flex-col items-center p-6 shrink-0">
-        <div class="absolute inset-0 bg-[linear-gradient(to_right,#1e293b_1px,transparent_1px),linear-gradient(to_bottom,#1e293b_1px,transparent_1px)] bg-[size:40px_40px] [mask-image:radial-gradient(ellipse_60%_50%_at_50%_50%,#000_70%,transparent_100%)]"></div>
-
-        <div class="relative z-10 w-72 flex flex-col items-center">
-            <div id="character-sprite" class="w-64 h-64 bg-slate-800/20 rounded-xl pixel-border neon-glow flex items-center justify-center overflow-hidden"></div>
-            <div class="mt-4 text-center">
-                <span id="user-lv" class="bg-blue-600 text-[10px] px-2 py-0.5 rounded-full font-bold uppercase">Lv. 1</span>
-                <h2 class="text-xl font-bold mt-1 tracking-wider text-white uppercase">Future Chaser</h2>
-                <p id="user-weight" class="text-[10px] text-blue-400 font-bold mt-1 uppercase">Weight: -- kg</p>
+    <div class="input-card rounded-2xl p-6 space-y-6 shadow-2xl">
+        <div class="grid grid-cols-2 gap-4">
+            <div class="flex flex-col">
+                <label class="input-label text-slate-500">Gender <span class="text-[8px] opacity-70">(성별)</span></label>
+                <select id="gender" class="cyber-input w-full rounded-lg text-xs">
+                    <option value="man">MALE (남성)</option>
+                    <option value="woman">FEMALE (여성)</option>
+                </select>
+            </div>
+            <div class="flex flex-col">
+                <label class="input-label text-slate-500">Height <span class="text-[8px] opacity-70">(키/cm)</span></label>
+                <input type="number" id="height" step="0.1" value="168.0" class="cyber-input w-full rounded-lg text-sm">
             </div>
         </div>
 
-        <div class="chart-container z-10">
-            <canvas id="bodyChart"></canvas>
+        <div class="flex flex-col">
+            <label class="input-label text-slate-400">Weight <span class="text-[8px] opacity-70">(체중/kg)</span></label>
+            <input type="number" id="weight" step="0.1" value="68.1" class="cyber-input w-full rounded-lg text-lg font-bold text-white border-slate-500">
         </div>
 
-        <div class="w-full max-w-xs mt-4 grid grid-cols-3 gap-2 z-10">
-            <div class="stat-card">
-                <p class="text-[7px] text-orange-400 uppercase font-bold">Muscle</p>
-                <p id="stat-muscle" class="text-[11px] font-bold">--</p>
+        <div class="grid grid-cols-2 gap-4">
+            <div class="flex flex-col">
+                <label class="input-label text-orange-500">Skeletal Muscle <span class="text-[8px] opacity-70">(골격근량)</span></label>
+                <input type="number" id="muscle" step="0.1" value="28.3" class="cyber-input w-full rounded-lg text-sm">
             </div>
-            <div class="stat-card">
-                <p class="text-[7px] text-blue-400 uppercase font-bold">Fat</p>
-                <p id="stat-fat" class="text-[11px] font-bold">--</p>
-            </div>
-            <div class="stat-card">
-                <p class="text-[7px] text-emerald-400 uppercase font-bold">BMI</p>
-                <p id="stat-bmi" class="text-[11px] font-bold">--</p>
-            </div>
-            <div class="stat-card">
-                <p class="text-[7px] text-rose-400 uppercase font-bold">Fat %</p>
-                <p id="stat-percent" class="text-[11px] font-bold">--</p>
-            </div>
-            <div class="stat-card col-span-2">
-                <p class="text-[7px] text-purple-400 uppercase font-bold">BMR (Metabolism)</p>
-                <p id="stat-bmr" class="text-[11px] font-bold">-- kcal</p>
+            <div class="flex flex-col">
+                <label class="input-label text-blue-500">Body Fat <span class="text-[8px] opacity-70">(체지방량)</span></label>
+                <input type="number" id="fat-mass" step="0.1" value="17.5" class="cyber-input w-full rounded-lg text-sm">
             </div>
         </div>
 
-        <div class="w-full max-w-xs mt-6 space-y-4 z-10">
-            <div class="bg-slate-900/60 p-3 rounded border border-slate-700 backdrop-blur-sm shadow-inner">
-                <div class="flex justify-between text-[10px] mb-1">
-                    <span class="text-orange-400 font-bold uppercase">Str (근력)</span>
-                    <span id="str-val">0</span>
-                </div>
-                <div class="w-full bg-slate-800 h-2 rounded-full overflow-hidden">
-                    <div id="str-bar" class="status-bar bg-gradient-to-r from-orange-600 to-orange-400 h-full w-[0%]"></div>
-                </div>
+        <div class="grid grid-cols-2 gap-4">
+            <div class="flex flex-col">
+                <label class="input-label text-emerald-500">BMI <span class="text-[8px] opacity-70">(체질량지수)</span></label>
+                <input type="number" id="bmi" step="0.1" value="24.1" class="cyber-input w-full rounded-lg text-sm">
             </div>
-            <div class="bg-slate-900/60 p-3 rounded border border-slate-700 backdrop-blur-sm shadow-inner">
-                <div class="flex justify-between text-[10px] mb-1">
-                    <span class="text-purple-400 font-bold uppercase">Int (지능)</span>
-                    <div class="flex items-center gap-2">
-                        <span id="int-val" class="text-white font-bold">0</span>
-                        <button onclick="location.href='brain.html'" class="bg-purple-600 hover:bg-purple-500 text-[8px] px-2 py-0.5 rounded font-bold transition-all active:scale-95">TRAINING</button>
-                    </div>
-                </div>
-                <div class="w-full bg-slate-800 h-2 rounded-full overflow-hidden">
-                    <div id="int-bar" class="status-bar bg-gradient-to-r from-purple-600 to-purple-400 h-full w-[0%]"></div>
-                </div>
+            <div class="flex flex-col">
+                <label class="input-label text-rose-500">Fat % <span class="text-[8px] opacity-70">(체지방률)</span></label>
+                <input type="number" id="fat-percent" step="0.1" value="25.7" class="cyber-input w-full rounded-lg text-sm">
             </div>
         </div>
 
-        <div onclick="location.href='inbody.html'" class="w-full max-w-xs mt-6 bg-slate-900 border-2 border-blue-500 p-3 rounded-lg flex items-start gap-3 shadow-[0_0_20px_rgba(59,130,246,0.3)] cursor-pointer active:scale-95 transition-all z-10 mb-10">
-            <div class="w-10 h-10 bg-blue-500/20 rounded-full flex-shrink-0 border border-blue-400 flex items-center justify-center text-xl">🧬</div>
-            <div>
-                <p id="sync-status" class="text-[9px] text-blue-400 font-bold tracking-tighter uppercase">QuestBody Guide</p>
-                <p id="guide-text" class="text-[11px] leading-tight text-slate-200 mt-1">"최신 데이터를 동기화하여 마을을 지키세요!"</p>
-            </div>
+        <div class="flex flex-col">
+            <label class="input-label text-purple-400">Basal Metabolism <span class="text-[8px] opacity-70">(기초대사량/kcal)</span></label>
+            <input type="number" id="bmr" value="1462" class="cyber-input w-full rounded-lg text-sm">
         </div>
-    </main>
 
-    <nav class="bg-slate-950 border-t border-slate-800 grid grid-cols-4 h-20 z-20 shrink-0">
-        <button onclick="location.href='gym.html'" class="flex flex-col items-center justify-center hover:bg-slate-900 transition text-slate-400">
-            <span class="text-2xl">🏋️</span><span class="text-[9px] font-bold mt-1 uppercase">Gym</span>
+        <button onclick="saveInbody()" class="w-full bg-blue-600 hover:bg-blue-500 text-white font-bold py-4 rounded-xl transition-all border-b-4 border-blue-800 active:border-b-0 active:translate-y-1 uppercase tracking-widest mt-4 text-xs">
+            Sync Data (저장하기)
         </button>
-        <button onclick="location.href='brain.html'" class="flex flex-col items-center justify-center hover:bg-slate-900 transition text-slate-400 border-x border-slate-900">
-            <span class="text-2xl">🧩</span><span class="text-[9px] font-bold mt-1 uppercase">Brain</span>
-        </button>
-        <button class="flex flex-col items-center justify-center bg-blue-900/20 text-blue-400 border-y-2 border-blue-500">
-            <span class="text-2xl">🛡️</span><span class="text-[9px] font-bold mt-1 uppercase tracking-tighter">Defense</span>
-        </button>
-        <button class="flex flex-col items-center justify-center hover:bg-slate-900 transition text-slate-400 border-l border-slate-900">
-            <span class="text-2xl">🏪</span><span class="text-[9px] font-bold mt-1 uppercase">Shop</span>
-        </button>
-    </nav>
+    </div>
 
     <script>
-        let bodyChart = null;
-        const bgm = document.getElementById('main-bgm');
-        document.body.onclick = function() { if (bgm.paused) { bgm.play().catch(e => {}); } };
+        function saveInbody() {
+            const data = {
+                gender: document.getElementById('gender').value,
+                height: document.getElementById('height').value,
+                weight: document.getElementById('weight').value,
+                muscle: document.getElementById('muscle').value,
+                fatMass: document.getElementById('fat-mass').value,
+                bmi: document.getElementById('bmi').value,
+                fatPercent: document.getElementById('fat-percent').value,
+                bmr: document.getElementById('bmr').value,
+                syncDate: new Date().toLocaleDateString()
+            };
 
-        if (sessionStorage.getItem('isLoggedIn') !== 'true') { location.href = 'login.html'; }
+            // 데이터 저장
+            localStorage.setItem('user_inbody', JSON.stringify(data));
+            localStorage.setItem('user_weight', data.weight);
 
-        window.onload = function() { updateUI(); };
-
-        function updateUI() {
-            const savedInt = parseInt(localStorage.getItem('user_int')) || 0;
-            const savedStr = parseInt(localStorage.getItem('user_str')) || 0;
-            const savedCoin = parseInt(localStorage.getItem('user_coin')) || 100;
-            
-            document.getElementById('int-val').innerText = savedInt;
-            document.getElementById('int-bar').style.width = Math.min(savedInt, 100) + '%';
-            document.getElementById('str-val').innerText = savedStr;
-            document.getElementById('str-bar').style.width = Math.min(savedStr, 100) + '%';
-            document.getElementById('user-coin').innerText = savedCoin.toLocaleString();
-
-            const baseMana = 10;
-            const maxMana = baseMana + savedInt;
-            document.getElementById('user-mana').innerText = `${maxMana} / ${maxMana}`;
-
-            const level = Math.floor((savedStr + savedInt) / 10) + 1;
-            document.getElementById('user-lv').innerText = `LV. ${level}`;
-
-            const inbody = JSON.parse(localStorage.getItem('user_inbody'));
-            const sprite = document.getElementById('character-sprite');
-            
-            if (inbody) {
-                if (inbody.gender === 'woman') sprite.style.backgroundImage = "url('image/woman.png')";
-                else if (inbody.gender === 'man') sprite.style.backgroundImage = "url('image/man/man.png')";
-                else sprite.style.backgroundImage = "url('image/nocheck.png')";
-                
-                document.getElementById('user-weight').innerText = `Weight: ${inbody.weight} kg`;
-                
-                // 💡 마스터가 요청한 수치 업데이트
-                document.getElementById('stat-muscle').innerText = `${inbody.muscle}kg`;
-                document.getElementById('stat-fat').innerText = `${inbody.fatMass}kg`;
-                document.getElementById('stat-bmi').innerText = inbody.bmi;
-                document.getElementById('stat-percent').innerText = `${inbody.fatPercent}%`;
-                document.getElementById('stat-bmr').innerText = inbody.bmr;
-
-                document.getElementById('sync-status').innerText = "BODY DATA SYNCHRONIZED ✓";
-                document.getElementById('sync-status').classList.replace('text-blue-400', 'text-emerald-400');
-                
-                renderRadarChart(inbody);
-            } else {
-                sprite.style.backgroundImage = "url('image/nocheck.png')"; 
-                document.getElementById('user-weight').innerText = "Weight: 0.0 kg";
-            }
+            alert('BODY DATA SYNCHRONIZED!\n인바디 데이터 동기화 완료!');
+            location.href = 'index.html'; // 저장 후 메인으로 이동
         }
 
-        function renderRadarChart(data) {
-            const ctx = document.getElementById('bodyChart').getContext('2d');
-            if (bodyChart) { bodyChart.destroy(); }
-            const chartData = [
-                (parseFloat(data.muscle) / 45) * 100,
-                (parseFloat(data.fatMass) / 30) * 100,
-                (parseFloat(data.bmi) / 35) * 100,
-                (parseFloat(data.fatPercent) / 40) * 100,
-                (parseFloat(data.bmr) / 2000) * 100
-            ];
-            bodyChart = new Chart(ctx, {
-                type: 'radar',
-                data: {
-                    labels: ['근육', '지방', 'BMI', '지방%', '대사량'],
-                    datasets: [{
-                        data: chartData,
-                        backgroundColor: 'rgba(56, 189, 248, 0.2)',
-                        borderColor: '#38bdf8',
-                        borderWidth: 2,
-                        pointRadius: 2,
-                        pointBackgroundColor: '#38bdf8'
-                    }]
-                },
-                options: {
-                    responsive: true, maintainAspectRatio: false,
-                    scales: {
-                        r: {
-                            angleLines: { color: 'rgba(255, 255, 255, 0.1)' },
-                            grid: { color: 'rgba(255, 255, 255, 0.1)' },
-                            pointLabels: { color: '#94a3b8', font: { size: 9, family: 'Orbitron' } },
-                            ticks: { display: false },
-                            suggestedMin: 0, suggestedMax: 100
-                        }
-                    },
-                    plugins: { legend: { display: false } }
-                }
-            });
-        }
-
-        function resetCharacter() {
-            if(confirm('모든 데이터를 초기화할까?')) {
-                localStorage.clear();
-                localStorage.setItem('user_coin', 100);
-                location.reload();
+        window.onload = function() {
+            const saved = JSON.parse(localStorage.getItem('user_inbody'));
+            if(saved) {
+                document.getElementById('gender').value = saved.gender || 'man';
+                document.getElementById('height').value = saved.height;
+                document.getElementById('weight').value = saved.weight;
+                document.getElementById('muscle').value = saved.muscle;
+                document.getElementById('fat-mass').value = saved.fatMass;
+                document.getElementById('bmi').value = saved.bmi;
+                document.getElementById('fat-percent').value = saved.fatPercent;
+                document.getElementById('bmr').value = saved.bmr;
             }
         }
     </script>
