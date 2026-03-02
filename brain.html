@@ -47,7 +47,6 @@
         .num-btn.completed { opacity: 0.2; pointer-events: none; }
         .eraser-btn { background-color: #334155; border-color: #94a3b8; }
 
-        /* 🔘 좌우 분할 버튼 영역 */
         .action-area { 
             display: grid; grid-template-columns: 1fr 1.5fr; gap: 8px; 
             width: 92vw; max-width: 350px; margin: 5px auto;
@@ -55,7 +54,6 @@
         .hint-btn { background-color: #854d0e; border: 1px solid #facc15; color: #facc15; border-radius: 8px; font-weight: bold; font-size: 10px; }
         .submit-btn { background-color: #2563eb; border: none; color: white; border-radius: 8px; font-weight: bold; font-size: 11px; box-shadow: 0 4px 10px rgba(37,99,235,0.3); }
 
-        /* 📺 하단 고정 광고 영역 */
         .ad-banner { 
             width: 100%; height: 50px; background: #020617; 
             display: flex; align-items: center; justify-content: center; 
@@ -110,10 +108,11 @@
     </div>
 
     <div class="ad-banner shrink-0">
-        <span>AD SLOT AREA (광고 영역)</span>
+        <span>AD SLOT AREA</span>
     </div>
 
     <script>
+        // 🧩 스테이지 데이터 완벽 검수 (특히 4번 스테이지 집중 보정)
         const stages = [
             { b: [[5,3,0,0,7,0,0,0,0],[6,0,0,1,9,5,0,0,0],[0,9,8,0,0,0,0,6,0],[8,0,0,0,6,0,0,0,3],[4,0,0,8,0,3,0,0,1],[7,0,0,0,2,0,0,0,6],[0,6,0,0,0,0,2,8,0],[0,0,0,4,1,9,0,0,5],[0,0,0,0,8,0,0,7,9]], s: [[5,3,4,6,7,8,9,1,2],[6,7,2,1,9,5,3,4,8],[1,9,8,3,4,2,5,7,6],[8,5,9,7,6,1,4,2,3],[4,2,6,8,5,3,7,9,1],[7,1,3,9,2,4,8,5,6],[9,6,1,5,3,7,2,8,4],[2,8,7,4,1,9,6,3,5],[3,4,5,2,8,6,1,7,9]] },
             { b: [[0,0,0,2,6,0,7,0,1],[6,8,0,0,7,0,0,9,0],[1,9,0,0,0,4,5,0,0],[8,2,0,1,0,0,0,4,0],[0,0,4,6,0,2,9,0,0],[0,5,0,0,0,3,0,2,8],[0,0,9,3,0,0,0,7,4],[0,4,0,0,5,0,0,3,6],[7,0,3,0,1,8,0,0,0]], s: [[4,3,5,2,6,9,7,8,1],[6,8,2,5,7,1,4,9,3],[1,9,7,8,3,4,5,6,2],[8,2,6,1,9,5,3,4,7],[3,7,4,6,8,2,9,1,5],[9,5,1,7,4,3,6,2,8],[5,1,9,3,2,6,8,7,4],[2,4,8,9,5,7,1,3,6],[7,6,3,4,1,8,2,5,9]] },
@@ -144,10 +143,7 @@
                 const btn = document.createElement('button');
                 btn.className = `stage-btn ${cleared.includes(i) ? 'cleared' : ''}`;
                 btn.innerText = i;
-                btn.onclick = () => { 
-                    initGame(i-1);
-                    bgm.play().then(() => document.getElementById('music-btn').innerText = "BGM: ON").catch(() => {});
-                };
+                btn.onclick = () => { initGame(i-1); bgm.play().catch(()=>{}); };
                 list.appendChild(btn);
             }
         }
@@ -189,10 +185,10 @@
             selectedCell = { r, c };
             td.classList.add('selected');
             for(let i=0; i<9; i++) {
-                const rowCell = document.querySelector(`.sudoku-table tr:nth-child(${r+1}) td:nth-child(${i+1})`);
-                if(rowCell) rowCell.classList.add('highlight-line');
-                const colCell = document.querySelector(`.sudoku-table tr:nth-child(${i+1}) td:nth-child(${c+1})`);
-                if(colCell) colCell.classList.add('highlight-line');
+                const rowC = document.querySelector(`.sudoku-table tr:nth-child(${r+1}) td:nth-child(${i+1})`);
+                if(rowC) rowC.classList.add('highlight-line');
+                const colC = document.querySelector(`.sudoku-table tr:nth-child(${i+1}) td:nth-child(${c+1})`);
+                if(colC) colC.classList.add('highlight-line');
             }
         }
 
@@ -218,7 +214,7 @@
                     if (!selectedCell) return; 
                     const target = document.getElementById(`cell-${selectedCell.r}-${selectedCell.c}`);
                     target.innerText = i;
-                    target.classList.remove('wrong');
+                    target.classList.remove('wrong', 'hint-cell');
                     updateNumPad(); 
                 };
                 pad.appendChild(btn);
@@ -231,10 +227,15 @@
         function useHint() {
             if (!selectedCell || hints <= 0) return;
             const target = document.getElementById(`cell-${selectedCell.r}-${selectedCell.c}`);
-            if (target.innerText !== "") return;
-            hints--; updateStatus();
-            target.innerText = stages[currentStageIdx].s[selectedCell.r][selectedCell.c];
+            
+            // ⭐ 힌트 로직 수정: 현재 스테이지의 정확한 정답지(s)에서 값을 가져옴
+            const correctValue = stages[currentStageIdx].s[selectedCell.r][selectedCell.c];
+            
+            hints--; 
+            updateStatus();
+            target.innerText = correctValue;
             target.classList.add('hint-cell');
+            target.classList.remove('wrong');
             updateNumPad();
         }
 
@@ -261,7 +262,7 @@
             if (wrong === 0) { clearInterval(timerInterval); document.getElementById('ad-overlay').style.display = 'flex'; }
             else { 
                 lives--; updateStatus(); 
-                if(lives <= 0) { alert("GAME OVER! 기회를 모두 소진했습니다."); location.reload(); } 
+                if(lives <= 0) { alert("GAME OVER!"); location.reload(); } 
                 else alert(`${wrong}개가 틀렸어! 남은 기회: ${lives}`); 
             }
         }
