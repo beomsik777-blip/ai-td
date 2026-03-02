@@ -22,6 +22,7 @@
             transition: background-image 0.5s ease-in-out;
         }
         
+        /* 📱 스크롤 영역 설정 */
         .main-container { height: calc(100dvh - 160px); overflow-y: auto; -webkit-overflow-scrolling: touch; }
         .main-container::-webkit-scrollbar { display: none; }
 
@@ -61,7 +62,7 @@
                 <span class="text-[10px] text-slate-400 uppercase">Mana Pool</span>
                 <p id="user-mana" class="font-bold text-blue-400 text-sm">10 / 10</p>
             </div>
-            <button onclick="resetCharacter()" class="p-2 bg-red-900/30 rounded-lg border border-red-900/50 text-red-500 active:scale-95 transition-all ml-1">
+            <button onclick="resetCharacter()" class="p-2 bg-red-900/30 rounded-lg border border-red-900/50 text-red-500 active:scale-95 ml-1">
                 <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
                 </svg>
@@ -90,7 +91,7 @@
             <div class="stat-card"><p class="text-[7px] text-blue-400 uppercase font-bold">Fat</p><p id="stat-fat" class="text-[11px] font-bold">--</p></div>
             <div class="stat-card"><p class="text-[7px] text-emerald-400 uppercase font-bold">BMI</p><p id="stat-bmi" class="text-[11px] font-bold">--</p></div>
             <div class="stat-card"><p class="text-[7px] text-rose-400 uppercase font-bold">Fat %</p><p id="stat-percent" class="text-[11px] font-bold">--</p></div>
-            <div class="stat-card col-span-2"><p class="text-[7px] text-purple-400 uppercase font-bold">BMR</p><p id="stat-bmr" class="text-[11px] font-bold">--</p></div>
+            <div class="stat-card col-span-2"><p class="text-[7px] text-purple-400 uppercase font-bold">BMR (Metabolism)</p><p id="stat-bmr" class="text-[11px] font-bold">-- kcal</p></div>
         </div>
 
         <div class="w-full max-w-xs mt-6 space-y-4 z-10">
@@ -108,7 +109,7 @@
             <div class="w-10 h-10 bg-blue-500/20 rounded-full flex-shrink-0 border border-blue-400 flex items-center justify-center text-xl">🧬</div>
             <div>
                 <p id="sync-status" class="text-[9px] text-blue-400 font-bold tracking-tighter uppercase">QuestBody Guide</p>
-                <p id="guide-text" class="text-[11px] leading-tight text-slate-200 mt-1">"최신 데이터를 동기화하여 분석 차트를 생성해!"</p>
+                <p id="guide-text" class="text-[11px] leading-tight text-slate-200 mt-1">"최신 인바디 데이터를 동기화하여 분석 차트를 생성해!"</p>
             </div>
         </div>
     </main>
@@ -123,7 +124,7 @@
     <script>
         let bodyChart = null;
         
-        // 🚀 페이지 이동 함수 정의 (가장 확실한 방법)
+        // 🛠️ 마스터, 이 함수가 페이지 이동을 책임져!
         function goToPage(url) {
             window.location.href = url;
         }
