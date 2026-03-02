@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>QuestBody - Strategic Grid Defense</title>
+    <title>QuestBody - Precise Grid Defense</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&display=swap');
@@ -15,32 +15,32 @@
             width: 95vw; height: 95vw; max-width: 550px; max-height: 550px;
             background: #0f172a; border: 2px solid #334155; position: relative; margin: 5px auto;
         }
-        .grid-cell { border: 0.1px solid rgba(56, 189, 248, 0.05); }
-
-        /* 🛣️ 경로 캔버스 (실시간 경로 표시) */
-        #path-canvas { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 2; }
+        .grid-cell { border: 0.1px solid rgba(56, 189, 248, 0.05); transition: background 0.3s; }
+        
+        /* 🛣️ 경로 타일 하이라이트 */
+        .path-tile { background: rgba(56, 189, 248, 0.15) !important; }
+        .spawn-tile { background: rgba(239, 68, 68, 0.3) !important; }
 
         #base { position: absolute; top: 45%; left: 45%; width: 10%; height: 10%; background: #1e293b; border: 2px solid #38bdf8; z-index: 10; border-radius: 4px; display: flex; align-items: center; justify-content: center; font-size: 1rem; box-shadow: 0 0 15px rgba(56, 189, 248, 0.4); }
 
         #player { 
             position: absolute; width: 5%; height: 5%; z-index: 100; 
             background-size: contain; background-repeat: no-repeat; background-position: center;
-            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1); cursor: pointer;
+            transition: all 0.3s ease-in-out; cursor: pointer;
         }
         #player.active { filter: drop-shadow(0 0 10px #38bdf8); outline: 2px solid #38bdf8; border-radius: 50%; }
 
         .range-circle { position: absolute; border: 1px dashed rgba(56, 189, 248, 0.3); border-radius: 50%; background: rgba(56, 189, 248, 0.03); pointer-events: none; z-index: 5; transform: translate(-50%, -50%); display: none; }
 
-        .monster { position: absolute; width: 5%; height: 5%; z-index: 30; display: flex; flex-direction: column; align-items: center; justify-content: center; transition: all 0.35s linear; visibility: hidden; }
+        .monster { position: absolute; width: 5%; height: 5%; z-index: 30; display: flex; flex-direction: column; align-items: center; justify-content: center; transition: all 0.8s linear; visibility: hidden; }
         .hp-bg { width: 80%; height: 3px; background: #450a0a; position: absolute; top: -5px; border-radius: 2px; }
-        .hp-fill { height: 100%; background: #22c55e; width: 100%; transition: width 0.2s; }
+        .hp-fill { height: 100%; background: #22c55e; width: 100%; }
 
-        .tower { position: absolute; width: 5%; height: 5%; z-index: 40; display: flex; align-items: center; justify-content: center; background: rgba(56, 189, 248, 0.2); border-radius: 4px; border: 1px solid #38bdf844; }
+        .tower { position: absolute; width: 5%; height: 5%; z-index: 40; display: flex; align-items: center; justify-content: center; background: rgba(56, 189, 248, 0.2); border-radius: 4px; }
         #preview-tower { position: absolute; width: 5%; height: 5%; z-index: 45; display: none; filter: opacity(0.6); pointer-events: none; }
 
         .projectile { position: absolute; width: 6px; height: 6px; border-radius: 50%; z-index: 80; pointer-events: none; }
-
-        .dmg-text { position: absolute; font-weight: bold; color: #fbbf24; font-size: 10px; z-index: 110; animation: up-fade 0.4s forwards; pointer-events: none; }
+        .dmg-text { position: absolute; font-weight: bold; color: #fbbf24; font-size: 10px; z-index: 110; animation: up-fade 0.5s forwards; }
         @keyframes up-fade { from { transform: translateY(0); opacity: 1; } to { transform: translateY(-15px); opacity: 0; } }
 
         .ui-panel { background: #0f172a; border-top: 2px solid #334155; padding: 10px; }
@@ -56,9 +56,9 @@
     <audio id="snd-tower"><source src="https://assets.mixkit.co/active_storage/sfx/2568/2568-preview.mp3" type="audio/mpeg"></audio>
 
     <header class="p-3 bg-slate-900 flex justify-between items-center border-b border-slate-700">
-        <button onclick="location.href='index.html'" class="text-slate-400 text-[10px] font-bold uppercase">◀ Exit</button>
+        <button onclick="location.href='index.html'" class="text-slate-400 text-[10px] font-bold">◀ Exit</button>
         <div class="text-center flex-1 mx-4">
-            <span id="round-display" class="text-blue-400 text-[9px] font-bold uppercase tracking-widest">Round 1</span>
+            <span id="round-display" class="text-blue-400 text-[10px] font-bold uppercase tracking-widest">Round 1</span>
             <div class="w-full bg-slate-800 h-1 mt-1 rounded-full overflow-hidden border border-slate-700">
                 <div id="hp-bar" class="bg-emerald-500 h-full w-full"></div>
             </div>
@@ -68,7 +68,6 @@
 
     <div class="flex-1 flex flex-col items-center justify-center bg-black relative">
         <div id="map" class="grid-map" onclick="handleMapClick(event)">
-            <canvas id="path-canvas"></canvas>
             <div id="base">🏰</div>
             <div id="p-range-circle" class="range-circle" style="border-color: #fbbf24;"></div>
             <div id="preview-range" class="range-circle" style="border-color: #38bdf8;"></div>
@@ -92,12 +91,10 @@
                 <button class="ctrl-btn" onclick="movePlayer(1, 0)">▼</button>
                 <button class="ctrl-btn" onclick="movePlayer(0, 1)">▶</button>
             </div>
-            
-            <button onclick="startWave()" id="start-btn" class="px-8 py-4 bg-blue-600 rounded-lg font-bold text-xs shadow-lg">START WAVE</button>
-
+            <button onclick="startWave()" id="start-btn" class="px-8 py-4 bg-blue-600 rounded-lg font-bold text-xs">START WAVE</button>
             <div class="text-right">
                 <p class="text-[7px] text-slate-500 uppercase">Master Stat</p>
-                <p class="text-[10px] text-orange-400 font-bold tracking-tighter">STR <span id="s-val">0</span></p>
+                <p class="text-[10px] text-orange-400 font-bold">STR <span id="s-val">0</span></p>
             </div>
         </div>
     </div>
@@ -111,18 +108,22 @@
         
         const map = document.getElementById('map'), player = document.getElementById('player'), pRange = document.getElementById('p-range-circle');
         const previewTower = document.getElementById('preview-tower'), previewRange = document.getElementById('preview-range');
-        const pathCanvas = document.getElementById('path-canvas'), ctx = pathCanvas.getContext('2d');
         const sndAtk = document.getElementById('snd-atk'), sndTower = document.getElementById('snd-tower');
 
+        // 🟢 초기화
         window.onload = () => {
-            pathCanvas.width = map.clientWidth; pathCanvas.height = map.clientHeight;
             const inbody = JSON.parse(localStorage.getItem('user_inbody'));
             player.style.backgroundImage = inbody?.gender === 'woman' ? "url('image/woman.png')" : "url('image/man/man.png')";
-            for (let i = 0; i < 400; i++) map.appendChild(document.createElement('div')).className = 'grid-cell';
+            for (let i = 0; i < 400; i++) {
+                const cell = document.createElement('div');
+                cell.className = 'grid-cell';
+                cell.id = `cell-${Math.floor(i/20)}-${i%20}`;
+                map.appendChild(cell);
+            }
             updatePlayerUI();
             document.getElementById('s-val').innerText = user_str;
             document.body.addEventListener('click', () => { document.getElementById('bgm').play().catch(e=>{}); }, {once: true});
-            drawPaths(); // 시작 전 경로 미리 표시
+            updateVisualPath(); // 시작 전 경로 표시
         };
 
         function togglePlayer(e) {
@@ -172,7 +173,7 @@
             previewTower.innerHTML = pendingBuild.type === 'arrow' ? '🏹' : pendingBuild.type === 'magic' ? '⚡' : '💣';
             previewTower.style.top = (r * 5) + '%'; previewTower.style.left = (c * 5) + '%';
             previewRange.style.display = 'block';
-            const tr = pendingBuild.type === 'magic' ? 3 : 5;
+            const tr = pendingBuild.type === 'magic' ? 3.5 : 5;
             previewRange.style.width = (tr * 10) + '%'; previewRange.style.height = (tr * 10) + '%';
             previewRange.style.top = ((r + 0.5) * 5) + '%'; previewRange.style.left = ((c + 0.5) * 5) + '%';
             document.getElementById('confirm-btn').classList.remove('hidden');
@@ -185,9 +186,9 @@
             el.className = 'tower'; el.innerHTML = previewTower.innerHTML;
             el.style.top = (pendingBuild.r * 5) + '%'; el.style.left = (pendingBuild.c * 5) + '%';
             map.appendChild(el);
-            towers.push({ ...pendingBuild, lastShot: 0, cooldown: pendingBuild.type === 'magic' ? 700 : 1300, range: (pendingBuild.type === 'magic' ? 3 : 5)/2 });
+            towers.push({ ...pendingBuild, lastShot: 0, cooldown: pendingBuild.type === 'magic' ? 700 : 1300, range: (pendingBuild.type === 'magic' ? 3.5 : 5)/2 });
             cancelBuild();
-            drawPaths(); // 타워 지으면 경로 갱신
+            updateVisualPath();
         }
 
         function cancelBuild() {
@@ -196,31 +197,40 @@
             document.querySelectorAll('.tower-btn').forEach(b => b.classList.remove('selected'));
         }
 
-        function fireProjectile(fromR, fromC, target, color, dmg) {
-            const p = document.createElement('div');
-            p.className = 'projectile'; p.style.backgroundColor = color;
-            p.style.boxShadow = `0 0 10px ${color}`;
-            const sX = fromC * 5 + 2.5, sY = fromR * 5 + 2.5;
-            p.style.left = sX + '%'; p.style.top = sY + '%';
-            map.appendChild(p);
+        // 🛣️ 격자 경로 시각화 시스템
+        function updateVisualPath() {
+            // 모든 하이라이트 초기화
+            document.querySelectorAll('.grid-cell').forEach(c => c.classList.remove('path-tile', 'spawn-tile'));
+            
+            const startDir = (currentRound - 1) % 4; // 0북, 1동, 2남, 3서
+            const start = [{r:0,c:10}, {r:10,c:19}, {r:19,c:10}, {r:10,c:0}][startDir];
+            
+            // 소환지점 표시
+            document.getElementById(`cell-${start.r}-${start.c}`).classList.add('spawn-tile');
 
-            p.animate([
-                { left: sX + '%', top: sY + '%' },
-                { left: (target.c * 5 + 2.5) + '%', top: (target.r * 5 + 2.5) + '%' }
-            ], { duration: 150, easing: 'linear' }).onfinish = () => {
-                p.remove();
-                if (monsters.includes(target)) {
-                    target.hp -= dmg;
-                    showDmgText(target.r, target.c, dmg);
-                    const fill = target.querySelector('.hp-fill');
-                    if (fill) fill.style.width = Math.max(0, (target.hp/target.maxHp*100)) + '%';
+            let curR = start.r, curC = start.c;
+            const targetR = 9, targetC = 9;
+
+            // 마을까지의 경로 타일 계산 (단순 최단거리 알고리즘 시각화)
+            for(let i=0; i<40; i++) {
+                let cell = document.getElementById(`cell-${curR}-${curC}`);
+                if(cell) cell.classList.add('path-tile');
+                
+                if (curR === targetR && curC === targetC) break;
+
+                let dr = targetR - curR, dc = targetC - curC;
+                let nextR = curR, nextC = curC;
+
+                if (Math.abs(dr) > Math.abs(dc)) nextR += (dr > 0 ? 1 : -1);
+                else nextC += (dc > 0 ? 1 : -1);
+
+                // 타워 회피 시각화
+                if (towers.some(t => t.r === nextR && t.c === nextC)) {
+                    if (nextR !== curR) { nextR = curR; nextC += (dc >= 0 ? 1 : -1); }
+                    else { nextC = curC; nextR += (dr >= 0 ? 1 : -1); }
                 }
-            };
-        }
-
-        function showDmgText(r, c, d) {
-            const t = document.createElement('div'); t.className = 'dmg-text'; t.innerText = `-${Math.floor(d)}`;
-            t.style.top = (r*5)+'%'; t.style.left = (c*5)+'%'; map.appendChild(t); setTimeout(() => t.remove(), 400);
+                curR = nextR; curC = nextC;
+            }
         }
 
         function startWave() {
@@ -228,11 +238,11 @@
             isWaveActive = true;
             document.getElementById('start-btn').style.display = 'none';
             const isBoss = currentRound % 5 === 0;
-            let count = isBoss ? 1 : currentRound * 5 + 5;
+            let count = isBoss ? 1 : 5 + currentRound;
             const interval = setInterval(() => {
                 if (count-- <= 0) { clearInterval(interval); return; }
-                spawnMonster(currentRound % 4, isBoss);
-            }, 800);
+                spawnMonster((currentRound - 1) % 4, isBoss);
+            }, 1000);
         }
 
         function spawnMonster(dir, isBoss) {
@@ -243,44 +253,36 @@
             hpCont.appendChild(hpFill); m.appendChild(hpCont);
             const s = [{r:0,c:10}, {r:10,c:19}, {r:19,c:10}, {r:10,c:0}][dir];
             m.r = s.r; m.c = s.c;
-            m.maxHp = (isBoss ? 1200 : 100) + (currentRound * 50);
+            m.maxHp = (isBoss ? 1500 : 150) + (currentRound * 50);
             m.hp = m.maxHp;
             m.style.top = (m.r * 5) + '%'; m.style.left = (m.c * 5) + '%';
             m.style.visibility = 'visible';
             map.appendChild(m); monsters.push(m);
         }
 
-        // 🛣️ 실시간 & 미리보기 경로 그리기
-        function drawPaths() {
-            ctx.clearRect(0, 0, pathCanvas.width, pathCanvas.height);
-            ctx.setLineDash([5, 5]);
-            ctx.lineWidth = 1.5;
+        function fireProjectile(fromR, fromC, target, color, dmg) {
+            const p = document.createElement('div');
+            p.className = 'projectile'; p.style.backgroundColor = color;
+            const sX = fromC * 5 + 2.5, sY = fromR * 5 + 2.5;
+            p.style.left = sX + '%'; p.style.top = sY + '%';
+            map.appendChild(p);
 
-            // 1. 현재 존재하는 몬스터의 경로 (밝은 파랑)
-            ctx.strokeStyle = 'rgba(56, 189, 248, 0.4)';
-            monsters.forEach(m => {
-                ctx.beginPath();
-                ctx.moveTo((m.c + 0.5) * (pathCanvas.width / 20), (m.r + 0.5) * (pathCanvas.height / 20));
-                ctx.lineTo(pathCanvas.width / 2, pathCanvas.height / 2);
-                ctx.stroke();
-            });
-
-            // 2. 소환될 적들의 예상 경로 (라운드 대기 중일 때 표시, 흐린 빨강)
-            if (!isWaveActive) {
-                ctx.strokeStyle = 'rgba(239, 68, 68, 0.2)';
-                const spawnPoints = [{r:0,c:10}, {r:10,c:19}, {r:19,c:10}, {r:10,c:0}];
-                const nextDir = currentRound % 4;
-                const s = spawnPoints[nextDir];
-                ctx.beginPath();
-                ctx.moveTo((s.c + 0.5) * (pathCanvas.width / 20), (s.r + 0.5) * (pathCanvas.height / 20));
-                ctx.lineTo(pathCanvas.width / 2, pathCanvas.height / 2);
-                ctx.stroke();
-            }
+            p.animate([
+                { left: sX + '%', top: sY + '%' },
+                { left: (target.c * 5 + 2.5) + '%', top: (target.r * 5 + 2.5) + '%' }
+            ], { duration: 150 }).onfinish = () => {
+                p.remove();
+                if (monsters.includes(target)) {
+                    target.hp -= dmg;
+                    const fill = target.querySelector('.hp-fill');
+                    if (fill) fill.style.width = Math.max(0, (target.hp/target.maxHp*100)) + '%';
+                }
+            };
         }
 
-        // ⚙️ 몬스터 이동 엔진 (0.4초마다 격자 이동)
+        // ⚙️ 메인 엔진 (이동 속도 0.8초로 늦춤)
         setInterval(() => {
-            if (!isWaveActive && monsters.length === 0) { drawPaths(); return; }
+            if (!isWaveActive && monsters.length === 0) return;
             
             monsters.forEach((m, idx) => {
                 let dr = 9 - m.r, dc = 9 - m.c;
@@ -289,7 +291,6 @@
                 if (Math.abs(dr) > Math.abs(dc)) nr += (dr > 0 ? 1 : -1);
                 else if (dc !== 0) nc += (dc > 0 ? 1 : -1);
 
-                // 타워 충돌 시 우회
                 if (towers.some(t => t.r === nr && t.c === nc)) {
                     if (nr !== m.r) { nr = m.r; nc += (dc >= 0 ? 1 : -1); }
                     else { nc = m.c; nr += (dr >= 0 ? 1 : -1); }
@@ -304,44 +305,40 @@
                     m.remove(); monsters.splice(idx, 1);
                     if (villageHp <= 0) { alert("DEFENSE FAILED"); location.reload(); }
                 } else if (m.hp <= 0) {
-                    m.remove(); monsters.splice(idx, 1); dCoin += 40;
+                    m.remove(); monsters.splice(idx, 1); dCoin += 45;
                     document.getElementById('d-coin').innerText = dCoin + " DG";
                 }
             });
-            drawPaths();
-        }, 400);
-
-        // ⚙️ 자동 공격 엔진 (0.1초마다 적 감시로 정밀도 향상)
-        setInterval(() => {
-            const now = Date.now();
-            
-            // 🗼 타워 공격
-            towers.forEach(t => {
-                if (now - t.lastShot > t.cooldown) {
-                    const target = monsters.find(m => Math.abs(t.r-m.r) + Math.abs(t.c-m.c) <= t.range * 2.5);
-                    if (target) {
-                        sndTower.currentTime = 0; sndTower.play();
-                        fireProjectile(t.r, t.c, target, '#38bdf8', (25 + user_str/8));
-                        t.lastShot = now;
-                    }
-                }
-            });
-
-            // 🤺 캐릭터 자동 공격 (활성화 상태일 때만)
-            if (playerActive && now - playerLastShot > 500) {
-                const pRangeVal = 1.5 + (user_int / 100);
-                const target = monsters.find(m => Math.abs(playerPos.r-m.r) + Math.abs(playerPos.c-m.c) <= pRangeVal * 2.5);
-                if (target) {
-                    sndAtk.currentTime = 0; sndAtk.play();
-                    fireProjectile(playerPos.r, playerPos.c, target, '#fbbf24', (20 + user_str/5));
-                    playerLastShot = now;
-                }
-            }
 
             if (isWaveActive && monsters.length === 0) {
                 isWaveActive = false; currentRound++;
                 document.getElementById('round-display').innerText = "ROUND " + currentRound;
                 document.getElementById('start-btn').style.display = 'block';
+                updateVisualPath();
+            }
+        }, 800); // 🐢 이동 주기 0.8초로 변경
+
+        // ⚔️ 자동 공격 (0.1초마다 독립 감시)
+        setInterval(() => {
+            const now = Date.now();
+            towers.forEach(t => {
+                if (now - t.lastShot > t.cooldown) {
+                    const target = monsters.find(m => Math.abs(t.r-m.r) + Math.abs(t.c-m.c) <= t.range * 2.5);
+                    if (target) {
+                        sndTower.currentTime = 0; sndTower.play();
+                        fireProjectile(t.r, t.c, target, '#38bdf8', (30 + user_str/8));
+                        t.lastShot = now;
+                    }
+                }
+            });
+            if (playerActive && now - playerLastShot > 600) {
+                const pRangeVal = 1.5 + (user_int / 100);
+                const target = monsters.find(m => Math.abs(playerPos.r-m.r) + Math.abs(playerPos.c-m.c) <= pRangeVal * 2.5);
+                if (target) {
+                    sndAtk.currentTime = 0; sndAtk.play();
+                    fireProjectile(playerPos.r, playerPos.c, target, '#fbbf24', (25 + user_str/5));
+                    playerLastShot = now;
+                }
             }
         }, 100);
     </script>
