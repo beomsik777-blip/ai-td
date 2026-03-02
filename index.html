@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="ko">
+<html lang="ko" class="notranslate" translate="no">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
@@ -8,7 +8,7 @@
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&display=swap');
         body { background-color: #0f172a; color: white; font-family: 'Orbitron', sans-serif; }
-        .pixel-border { border: 4px solid #334155; }
+        .pixel-border { border: 2px solid #334155; }
         .neon-glow { box-shadow: 0 0 20px rgba(56, 189, 248, 0.4), inset 0 0 10px rgba(56, 189, 248, 0.2); }
         .status-bar { transition: width 1s cubic-bezier(0.34, 1.56, 0.64, 1); }
 
@@ -21,9 +21,12 @@
             transition: background-image 0.5s ease-in-out;
         }
         
-        /* 📱 화면이 작을 때 스크롤 가능하도록 설정 */
+        /* 📱 메인 영역 스크롤 설정 */
         .main-container { height: calc(100dvh - 160px); overflow-y: auto; -webkit-overflow-scrolling: touch; }
         .main-container::-webkit-scrollbar { display: none; }
+
+        /* 인바디 스탯 카드 스타일 */
+        .stat-card { background: rgba(30, 41, 59, 0.5); border: 1px solid #334155; border-radius: 8px; padding: 8px; text-align: center; }
     </style>
 </head>
 <body class="flex flex-col h-screen overflow-hidden">
@@ -69,6 +72,29 @@
             </div>
         </div>
 
+        <div class="w-full max-w-xs mt-6 grid grid-cols-3 gap-2 z-10">
+            <div class="stat-card">
+                <p class="text-[7px] text-orange-400 uppercase font-bold">Muscle (근육)</p>
+                <p id="stat-muscle" class="text-xs font-bold">--</p>
+            </div>
+            <div class="stat-card">
+                <p class="text-[7px] text-blue-400 uppercase font-bold">Fat (지방)</p>
+                <p id="stat-fat" class="text-xs font-bold">--</p>
+            </div>
+            <div class="stat-card">
+                <p class="text-[7px] text-emerald-400 uppercase font-bold">BMI</p>
+                <p id="stat-bmi" class="text-xs font-bold">--</p>
+            </div>
+            <div class="stat-card col-span-1">
+                <p class="text-[7px] text-rose-400 uppercase font-bold">Fat % (률)</p>
+                <p id="stat-percent" class="text-xs font-bold">--</p>
+            </div>
+            <div class="stat-card col-span-2">
+                <p class="text-[7px] text-purple-400 uppercase font-bold">BMR (기초대사량)</p>
+                <p id="stat-bmr" class="text-xs font-bold">-- kcal</p>
+            </div>
+        </div>
+
         <div class="w-full max-w-xs mt-6 space-y-4 z-10">
             <div class="bg-slate-900/60 p-3 rounded border border-slate-700 backdrop-blur-sm shadow-inner">
                 <div class="flex justify-between text-[10px] mb-1">
@@ -94,7 +120,7 @@
             </div>
         </div>
 
-        <div onclick="location.href='inbody.html'" class="w-full max-w-xs mt-6 bg-slate-900 border-2 border-blue-500 p-3 rounded-lg flex items-start gap-3 shadow-[0_0_20px_rgba(59,130,246,0.3)] cursor-pointer active:scale-95 transition-all z-10">
+        <div onclick="location.href='inbody.html'" class="w-full max-w-xs mt-6 bg-slate-900 border-2 border-blue-500 p-3 rounded-lg flex items-start gap-3 shadow-[0_0_20px_rgba(59,130,246,0.3)] cursor-pointer active:scale-95 transition-all z-10 mb-10">
             <div class="w-10 h-10 bg-blue-500/20 rounded-full flex-shrink-0 border border-blue-400 flex items-center justify-center text-xl">🧬</div>
             <div>
                 <p id="sync-status" class="text-[9px] text-blue-400 font-bold tracking-tighter uppercase">QuestBody Guide</p>
@@ -134,7 +160,7 @@
 
         function updateUI() {
             const savedInt = parseInt(localStorage.getItem('user_int')) || 0;
-            const savedStr = parseInt(localStorage.getItem('user_str')) || 70;
+            const savedStr = parseInt(localStorage.getItem('user_str')) || 0;
             const savedCoin = parseInt(localStorage.getItem('user_coin')) || 100;
             
             document.getElementById('int-val').innerText = savedInt;
@@ -143,12 +169,11 @@
             document.getElementById('str-bar').style.width = Math.min(savedStr, 100) + '%';
             document.getElementById('user-coin').innerText = savedCoin.toLocaleString();
 
-            // ⚡ 마나 계산 복구 (INT 비례)
             const baseMana = 10;
             const maxMana = baseMana + savedInt;
             document.getElementById('user-mana').innerText = `${maxMana} / ${maxMana}`;
 
-            // 레벨 계산 (임시: STR + INT 기반으로 레벨업 로직 넣을 수 있음)
+            // 레벨 계산: STR + INT 기반
             const level = Math.floor((savedStr + savedInt) / 10) + 1;
             document.getElementById('user-lv').innerText = `LV. ${level}`;
 
@@ -156,18 +181,23 @@
             const sprite = document.getElementById('character-sprite');
             
             if (inbody) {
-                if (inbody.gender === 'woman') {
-                    sprite.style.backgroundImage = "url('image/woman.png')";
-                } else if (inbody.gender === 'man') {
-                    sprite.style.backgroundImage = "url('image/man/man.png')";
-                } else {
-                    sprite.style.backgroundImage = "url('image/nocheck.png')";
-                }
+                // 성별 이미지 적용
+                if (inbody.gender === 'woman') sprite.style.backgroundImage = "url('image/woman.png')";
+                else if (inbody.gender === 'man') sprite.style.backgroundImage = "url('image/man/man.png')";
+                else sprite.style.backgroundImage = "url('image/nocheck.png')";
                 
                 document.getElementById('user-weight').innerText = `Weight: ${inbody.weight} kg`;
+                
+                // 📊 인바디 대시보드 업데이트
+                document.getElementById('stat-muscle').innerText = `${inbody.muscle}kg`;
+                document.getElementById('stat-fat').innerText = `${inbody.fatMass}kg`;
+                document.getElementById('stat-bmi').innerText = inbody.bmi;
+                document.getElementById('stat-percent').innerText = `${inbody.fatPercent}%`;
+                document.getElementById('stat-bmr').innerText = `${inbody.bmr}`;
+
                 document.getElementById('sync-status').innerText = "BODY DATA SYNCHRONIZED ✓";
                 document.getElementById('sync-status').classList.replace('text-blue-400', 'text-emerald-400');
-                document.getElementById('guide-text').innerText = `동기화 완료: ${inbody.gender === 'man' ? '남성' : '여성'} 캐릭터 적용.`;
+                document.getElementById('guide-text').innerText = "최신 인바디 데이터가 모든 스탯에 동기화되었습니다.";
             } else {
                 sprite.style.backgroundImage = "url('image/nocheck.png')"; 
                 document.getElementById('user-weight').innerText = "Weight: 0.0 kg";
@@ -178,7 +208,7 @@
             if(confirm('모든 데이터를 초기화할까?')) {
                 localStorage.clear();
                 localStorage.setItem('user_coin', 100);
-                localStorage.setItem('user_str', 0); // 근력도 0부터 시작하고 싶으면 0으로!
+                localStorage.setItem('user_str', 0);
                 alert('데이터가 초기화되었습니다.');
                 location.reload();
             }
