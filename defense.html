@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>QuestBody - Elite Defense</title>
+    <title>QuestBody - Tactical North Defense</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&display=swap');
@@ -12,17 +12,23 @@
         
         .grid-map { 
             display: grid; grid-template-columns: repeat(20, 1fr); grid-template-rows: repeat(20, 1fr);
-            width: 95vw; height: 95vw; max-width: 500px; max-height: 500px;
+            width: 95vw; height: 95vw; max-width: 550px; max-height: 550px;
             background: #0f172a; border: 2px solid #334155; position: relative; margin: 5px auto;
+            background-image: radial-gradient(circle at center, #1e293b 0.5px, transparent 0.5px);
+            background-size: 5% 5%;
         }
-        .grid-cell { border: 0.1px solid rgba(56, 189, 248, 0.05); transition: background 0.3s; }
-        .path-tile { background: rgba(56, 189, 248, 0.12) !important; }
+        .grid-cell { border: 0.1px solid rgba(56, 189, 248, 0.03); transition: background 0.3s; }
+        .path-tile { background: rgba(56, 189, 248, 0.08) !important; }
 
+        /* 🏰 하단 성벽 디자인 (보내준 이미지 느낌) */
         #base { 
-            position: absolute; bottom: 0; left: 25%; width: 50%; height: 10%; 
-            background: #1e293b; border: 2px solid #38bdf8; z-index: 10; border-radius: 10px 10px 0 0;
-            display: flex; align-items: center; justify-content: center; font-size: 0.7rem; font-weight: bold;
+            position: absolute; bottom: 0; left: 25%; width: 50%; height: 12%; 
+            background: linear-gradient(to bottom, #334155, #1e293b); 
+            border: 3px solid #38bdf8; z-index: 10; border-radius: 12px 12px 0 0;
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            box-shadow: 0 -8px 30px rgba(56, 189, 248, 0.4);
         }
+        .castle-tower { width: 100%; height: 4px; background: #38bdf8; position: absolute; top: 0; }
 
         #player { 
             position: absolute; width: 5%; height: 5%; z-index: 100; 
@@ -33,21 +39,21 @@
 
         .range-circle { position: absolute; border: 1px dashed rgba(56, 189, 248, 0.3); border-radius: 50%; background: rgba(56, 189, 248, 0.03); pointer-events: none; z-index: 5; transform: translate(-50%, -50%); display: none; }
 
-        .monster { position: absolute; width: 5%; height: 5%; z-index: 30; display: flex; flex-direction: column; align-items: center; justify-content: center; transition: all 0.75s linear; visibility: hidden; }
-        .hp-bg { width: 80%; height: 3px; background: #450a0a; position: absolute; top: -5px; border-radius: 2px; }
-        .hp-fill { height: 100%; background: #22c55e; width: 100%; transition: width 0.2s; }
+        .monster { position: absolute; width: 5%; height: 5%; z-index: 30; display: flex; flex-direction: column; align-items: center; justify-content: center; transition: all 0.7s linear; visibility: hidden; }
+        .hp-bg { width: 85%; height: 3px; background: #450a0a; position: absolute; top: -6px; border-radius: 2px; }
+        .hp-fill { height: 100%; background: #22c55e; transition: width 0.2s; }
 
-        .tower { position: absolute; width: 5%; height: 5%; z-index: 40; display: flex; align-items: center; justify-content: center; background: rgba(56, 189, 248, 0.2); border-radius: 4px; border: 1px solid #38bdf866; }
+        .tower { position: absolute; width: 5%; height: 5%; z-index: 40; display: flex; align-items: center; justify-content: center; background: rgba(56, 189, 248, 0.1); border-radius: 4px; border: 1px solid rgba(56, 189, 248, 0.3); }
         #preview-tower { position: absolute; width: 5%; height: 5%; z-index: 45; display: none; filter: opacity(0.6); pointer-events: none; }
 
         .projectile { position: absolute; width: 6px; height: 6px; border-radius: 50%; z-index: 80; pointer-events: none; }
         .dmg-text { position: absolute; font-weight: bold; color: #fbbf24; font-size: 10px; z-index: 110; animation: up-fade 0.5s forwards; }
         @keyframes up-fade { from { transform: translateY(0); opacity: 1; } to { transform: translateY(-15px); opacity: 0; } }
 
-        .ui-panel { background: #0f172a; border-top: 2px solid #334155; padding: 8px; }
-        .tower-btn { background: #1e293b; border: 1px solid #475569; border-radius: 6px; padding: 4px; text-align: center; }
-        .tower-btn.selected { border-color: #38bdf8; background: #0f172a; color: #38bdf8; }
-        .ctrl-btn { background: #1e293b; color: white; width: 35px; height: 35px; border-radius: 6px; font-size: 1rem; display: flex; align-items: center; justify-content: center; }
+        .ui-panel { background: #0f172a; border-top: 2px solid #334155; padding: 10px; }
+        .tower-btn { background: #1e293b; border: 1px solid #475569; border-radius: 8px; padding: 4px; text-align: center; transition: 0.2s; }
+        .tower-btn.selected { border-color: #38bdf8; background: #0f172a; box-shadow: inset 0 0 10px rgba(56, 189, 248, 0.2); }
+        .ctrl-btn { background: #1e293b; color: white; width: 38px; height: 38px; border-radius: 8px; font-size: 1rem; display: flex; align-items: center; justify-content: center; }
     </style>
 </head>
 <body class="flex flex-col">
@@ -69,7 +75,10 @@
 
     <div class="flex-1 flex flex-col items-center justify-center bg-black relative">
         <div id="map" class="grid-map" onclick="handleMapClick(event)">
-            <div id="base">🏰 VILLAGE</div>
+            <div id="base">
+                <div class="castle-tower"></div>
+                <span class="text-[10px]">🛡️ VILLAGE</span>
+            </div>
             <div id="p-range-circle" class="range-circle" style="border-color: #fbbf24;"></div>
             <div id="preview-range" class="range-circle" style="border-color: #38bdf8;"></div>
             <div id="preview-tower"></div>
@@ -81,17 +90,17 @@
         <div class="flex gap-1.5 mb-2">
             <button onclick="selectTowerType('arrow', 50)" id="btn-arrow" class="tower-btn flex-1">
                 <p class="text-[9px] font-bold">🏹 Arrow</p>
-                <p id="dmg-arrow" class="text-[7px] text-orange-400">ATK: --</p>
+                <p id="dmg-arrow" class="text-[7px] text-orange-400 font-bold">ATK: 0</p>
             </button>
             <button onclick="selectTowerType('magic', 80)" id="btn-magic" class="tower-btn flex-1">
                 <p class="text-[9px] font-bold">⚡ Magic</p>
-                <p id="dmg-magic" class="text-[7px] text-blue-400">ATK: --</p>
+                <p id="dmg-magic" class="text-[7px] text-blue-400 font-bold">ATK: 0</p>
             </button>
             <button onclick="selectTowerType('cannon', 120)" id="btn-cannon" class="tower-btn flex-1">
                 <p class="text-[9px] font-bold">💣 Cannon</p>
-                <p id="dmg-cannon" class="text-[7px] text-red-400">ATK: --</p>
+                <p id="dmg-cannon" class="text-[7px] text-red-400 font-bold">ATK: 0</p>
             </button>
-            <button id="confirm-btn" onclick="confirmBuild()" class="flex-1 bg-emerald-700 rounded text-[9px] font-bold hidden shadow-lg">INSTALL</button>
+            <button id="confirm-btn" onclick="confirmBuild()" class="flex-1 bg-emerald-700 rounded text-[9px] font-bold hidden shadow-lg animate-pulse">INSTALL</button>
         </div>
         
         <div class="flex justify-between items-center gap-2">
@@ -103,15 +112,14 @@
             </div>
             
             <div class="flex flex-col items-center gap-1.5 flex-1">
-                <div class="text-[7px] text-slate-500 uppercase font-bold tracking-widest">Auto Attack System</div>
-                <button onclick="startWave()" id="start-btn" class="w-full py-2 bg-blue-600 rounded-md font-bold text-[10px] shadow-lg active:scale-95 transition-all">START WAVE</button>
+                <button onclick="startWave()" id="start-btn" class="w-full py-3 bg-blue-600 rounded-md font-bold text-[10px] shadow-lg active:scale-95 transition-all">START WAVE</button>
             </div>
 
-            <div class="bg-slate-900/80 p-2 rounded border border-slate-700 min-w-[65px] text-center">
-                <p class="text-[7px] text-slate-500 uppercase mb-0.5">Hero ATK</p>
+            <div class="bg-slate-900/80 p-2 rounded border border-slate-700 min-w-[70px] text-center">
+                <p class="text-[7px] text-slate-500 uppercase mb-0.5 tracking-tighter">Hero ATK</p>
                 <p id="hero-atk-val" class="text-[11px] text-orange-400 font-bold">0</p>
                 <div class="h-[1px] bg-slate-700 my-1"></div>
-                <p class="text-[7px] text-slate-500 uppercase mb-0.5">INT (Mana)</p>
+                <p class="text-[7px] text-slate-500 uppercase mb-0.5 tracking-tighter">INT (Mana)</p>
                 <p id="hero-int-val" class="text-[11px] text-blue-400 font-bold">0</p>
             </div>
         </div>
@@ -138,15 +146,14 @@
             }
             updatePlayerUI();
             
-            // ⚔️ 공격력 수치 계산 및 표시
-            const heroAtk = 30 + user_str / 4;
-            document.getElementById('hero-atk-val').innerText = Math.floor(heroAtk);
+            // 공격력 세팅
+            document.getElementById('hero-atk-val').innerText = Math.floor(30 + user_str / 4);
             document.getElementById('hero-int-val').innerText = user_int;
             document.getElementById('dmg-arrow').innerText = `ATK: ${Math.floor(35 + user_str/6)}`;
             document.getElementById('dmg-magic').innerText = `ATK: ${Math.floor(25 + user_str/8)}`;
             document.getElementById('dmg-cannon').innerText = `ATK: ${Math.floor(60 + user_str/4)}`;
 
-            document.body.addEventListener('click', () => { document.getElementById('bgm').play().catch(e=>{}); }, {once: true});
+            document.body.onclick = () => { document.getElementById('bgm').play().catch(e=>{}); };
             updateVisualPath();
         };
 
@@ -161,7 +168,7 @@
         function updatePlayerUI() {
             player.style.top = (playerPos.r * 5) + '%';
             player.style.left = (playerPos.c * 5) + '%';
-            const rangeVal = 1.6 + (user_int / 120); 
+            const rangeVal = 1.8 + (user_int / 120); 
             pRange.style.width = (rangeVal * 10 * 2) + '%';
             pRange.style.height = (rangeVal * 10 * 2) + '%';
             pRange.style.top = ((playerPos.r + 0.5) * 5) + '%';
@@ -193,6 +200,7 @@
             const c = Math.floor(((e.clientX - rect.left) / rect.width) * 20);
             const r = Math.floor(((e.clientY - rect.top) / rect.height) * 20);
             if (towers.some(t => t.r === r && t.c === c) || (r >= 18 && c >= 5 && c <= 14)) return;
+            
             pendingBuild = { r, c, ...selectedType };
             previewTower.style.display = 'flex';
             previewTower.innerHTML = pendingBuild.type === 'arrow' ? '🏹' : pendingBuild.type === 'magic' ? '⚡' : '💣';
@@ -222,7 +230,30 @@
             document.querySelectorAll('.tower-btn').forEach(b => b.classList.remove('selected'));
         }
 
-        // 🧠 지능형 길찾기 미리보기 (A* 알고리즘 약식 버전)
+        // 🧠 우회 길찾기 로직 (A* 가중치 시스템)
+        function findBestMove(curR, curC, targetR, targetC) {
+            let options = [
+                {r: curR + 1, c: curC}, {r: curR, c: curC + 1}, {r: curR, c: curC - 1}, {r: curR - 1, c: curC}
+            ];
+            
+            // 맵 안이고 타워가 없는 칸만 필터링
+            options = options.filter(p => 
+                p.r >= 0 && p.r < 20 && p.c >= 0 && p.c < 20 && 
+                !towers.some(t => t.r === p.r && t.c === p.c)
+            );
+
+            if (options.length === 0) return {r: curR, c: curC}; // 갇힌 경우
+
+            // 타겟(마을)과의 최단 거리 계산
+            options.sort((a, b) => {
+                const distA = Math.abs(targetR - a.r) + Math.abs(targetC - a.c);
+                const distB = Math.abs(targetR - b.r) + Math.abs(targetC - b.c);
+                return distA - distB;
+            });
+
+            return options[0];
+        }
+
         function updateVisualPath() {
             document.querySelectorAll('.grid-cell').forEach(c => c.classList.remove('path-tile'));
             let curR = 0, curC = 10;
@@ -232,27 +263,10 @@
                 const cell = document.getElementById(`cell-${curR}-${curC}`);
                 if(cell) cell.classList.add('path-tile');
                 if (curR >= targetR) break;
-
-                let possible = [
-                    {r: curR + 1, c: curC}, // 아래
-                    {r: curR, c: curC + 1}, // 우
-                    {r: curR, c: curC - 1}, // 좌
-                    {r: curR - 1, c: curC}  // 위
-                ];
-
-                // 타워 없는 곳 중 마을과 가장 가까운 칸 선택
-                possible = possible.filter(p => p.r >= 0 && p.r < 20 && p.c >= 0 && p.c < 20 && !towers.some(t => t.r === p.r && t.c === p.c));
                 
-                if (possible.length > 0) {
-                    possible.sort((a, b) => {
-                        const distA = Math.sqrt(Math.pow(targetR-a.r,2) + Math.pow(targetC-a.c,2));
-                        const distB = Math.sqrt(Math.pow(targetR-b.r,2) + Math.pow(targetC-b.c,2));
-                        return distA - distB;
-                    });
-                    curR = possible[0].r; curC = possible[0].c;
-                } else {
-                    break; // 길이 완전히 막힘 (이런 경우는 없도록 설계 필요)
-                }
+                const next = findBestMove(curR, curC, targetR, targetC);
+                if(next.r === curR && next.c === curC) break;
+                curR = next.r; curC = next.c;
             }
         }
 
@@ -275,7 +289,7 @@
             const hpFill = document.createElement('div'); hpFill.className = 'hp-fill';
             hpCont.appendChild(hpFill); m.appendChild(hpCont);
             m.r = 0; m.c = 10;
-            m.maxHp = (isBoss ? 2500 : 250) + (currentRound * 100);
+            m.maxHp = (isBoss ? 3000 : 300) + (currentRound * 100);
             m.hp = m.maxHp;
             m.style.top = (m.r * 5) + '%'; m.style.left = (m.c * 5) + '%';
             m.style.visibility = 'visible';
@@ -294,40 +308,29 @@
                 p.remove();
                 if (monsters.includes(target)) {
                     target.hp -= dmg;
-                    const t = document.createElement('div'); t.className = 'dmg-text'; t.innerText = `-${Math.floor(dmg)}`;
-                    t.style.top = (target.r*5)+'%'; t.style.left = (target.c*5)+'%'; map.appendChild(t); setTimeout(() => t.remove(), 400);
                     const fill = target.querySelector('.hp-fill');
                     if (fill) fill.style.width = Math.max(0, (target.hp/target.maxHp*100)) + '%';
+                    const t = document.createElement('div'); t.className = 'dmg-text'; t.innerText = `-${Math.floor(dmg)}`;
+                    t.style.top = (target.r*5)+'%'; t.style.left = (target.c*5)+'%'; map.appendChild(t); setTimeout(() => t.remove(), 400);
                 }
             };
         }
 
-        // ⚙️ 몬스터 지능형 이동 엔진 (0.8초)
+        // ⚙️ 몬스터 이동 엔진 (0.75초)
         setInterval(() => {
             if (!isWaveActive && monsters.length === 0) return;
             monsters.forEach((m, idx) => {
-                const targetR = 18, targetC = 10;
-                let possible = [{r: m.r+1, c: m.c}, {r: m.r, c: m.c+1}, {r: m.r, c: m.c-1}, {r: m.r-1, c: m.c}];
-                possible = possible.filter(p => p.r >= 0 && p.r < 20 && p.c >= 0 && p.c < 20 && !towers.some(t => t.r === p.r && t.c === p.c));
-
-                if (possible.length > 0) {
-                    possible.sort((a, b) => {
-                        const distA = Math.sqrt(Math.pow(targetR-a.r,2) + Math.pow(targetC-a.c,2));
-                        const distB = Math.sqrt(Math.pow(targetR-b.r,2) + Math.pow(targetC-b.c,2));
-                        return distA - distB;
-                    });
-                    m.r = possible[0].r; m.c = possible[0].c;
-                }
-
+                const next = findBestMove(m.r, m.c, 18, 10);
+                m.r = next.r; m.c = next.c;
                 m.style.top = (m.r * 5) + '%'; m.style.left = (m.c * 5) + '%';
 
                 if (m.r >= 18) {
                     villageHp -= (m.innerHTML === '👹' ? 60 : 15);
                     document.getElementById('hp-bar').style.width = Math.max(0, villageHp) + '%';
                     m.remove(); monsters.splice(idx, 1);
-                    if (villageHp <= 0) { alert("VILLAGE DESTROYED!"); location.reload(); }
+                    if (villageHp <= 0) { alert("DEFENSE FAILED!"); location.reload(); }
                 } else if (m.hp <= 0) {
-                    m.remove(); monsters.splice(idx, 1); dCoin += 60;
+                    m.remove(); monsters.splice(idx, 1); dCoin += 65;
                     document.getElementById('d-coin').innerText = dCoin + " DG";
                 }
             });
@@ -338,9 +341,9 @@
                 document.getElementById('start-btn').classList.remove('opacity-50', 'pointer-events-none');
                 updateVisualPath();
             }
-        }, 800);
+        }, 750);
 
-        // ⚔️ 공격 엔진 (0.1초)
+        // ⚔️ 자동 공격 엔진 (0.1초)
         setInterval(() => {
             const now = Date.now();
             towers.forEach(t => {
@@ -348,7 +351,7 @@
                     const target = monsters.find(m => Math.abs(t.r-m.r) + Math.abs(t.c-m.c) <= t.range * 2.5);
                     if (target) {
                         sndTower.currentTime = 0; sndTower.play();
-                        fireProjectile(t.r, t.c, target, '#38bdf8', (35 + user_str/6));
+                        fireProjectile(t.r, t.c, target, '#38bdf8', (40 + user_str/6));
                         t.lastShot = now;
                     }
                 }
