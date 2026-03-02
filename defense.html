@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>QuestBody - Tactical Defense</title>
+    <title>QuestBody - Pro Defense</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&display=swap');
@@ -23,27 +23,26 @@
         #player { 
             position: absolute; width: 5%; height: 5%; z-index: 100; 
             background-size: contain; background-repeat: no-repeat; background-position: center;
-            transition: all 0.2s ease-out; cursor: pointer;
+            transition: top 0.2s, left 0.2s; cursor: pointer;
         }
         #player.active { filter: drop-shadow(0 0 10px #38bdf8); outline: 2px solid #38bdf8; border-radius: 50%; }
 
         .range-circle { position: absolute; border: 1px dashed rgba(56, 189, 248, 0.4); border-radius: 50%; background: rgba(56, 189, 248, 0.05); pointer-events: none; z-index: 5; transform: translate(-50%, -50%); display: none; }
 
-        .monster { position: absolute; width: 5%; height: 5%; z-index: 30; display: flex; flex-direction: column; align-items: center; justify-content: center; transition: top 0.1s linear, left 0.1s linear; }
-        .hp-bg { width: 100%; height: 3px; background: #ef4444; position: absolute; top: -5px; border-radius: 2px; }
-        .hp-fill { height: 100%; background: #22c55e; }
+        .monster { position: absolute; width: 5%; height: 5%; z-index: 30; display: flex; flex-direction: column; align-items: center; justify-content: center; visibility: hidden; }
+        .hp-bg { width: 100%; height: 3px; background: #ef4444; position: absolute; top: -5px; border-radius: 2px; pointer-events: none; }
+        .hp-fill { height: 100%; background: #22c55e; width: 100%; }
 
         .tower { position: absolute; width: 5%; height: 5%; z-index: 40; display: flex; align-items: center; justify-content: center; background: rgba(56, 189, 248, 0.2); border-radius: 4px; }
         #preview-tower { position: absolute; width: 5%; height: 5%; z-index: 45; display: none; filter: opacity(0.6); pointer-events: none; }
 
-        /* 🚀 투사체 스타일 */
-        .projectile { position: absolute; width: 6px; height: 6px; border-radius: 50%; z-index: 80; pointer-events: none; box-shadow: 0 0 8px currentColor; transition: all 0.2s linear; }
+        .projectile { position: absolute; width: 6px; height: 6px; border-radius: 50%; z-index: 80; pointer-events: none; box-shadow: 0 0 8px currentColor; }
 
         .dmg-text { position: absolute; font-weight: bold; color: #fbbf24; font-size: 10px; z-index: 110; animation: up-fade 0.5s forwards; pointer-events: none; }
         @keyframes up-fade { from { transform: translateY(0); opacity: 1; } to { transform: translateY(-20px); opacity: 0; } }
 
         .ui-panel { background: #0f172a; border-top: 2px solid #334155; padding: 10px; }
-        .tower-btn { background: #1e293b; border: 1px solid #475569; border-radius: 8px; padding: 5px; text-align: center; }
+        .tower-btn { background: #1e293b; border: 1px solid #475569; border-radius: 8px; padding: 5px; text-align: center; transition: 0.2s; }
         .tower-btn.selected { border-color: #38bdf8; color: #38bdf8; background: #1e293b88; }
         .ctrl-btn { background: #1e293b; color: white; width: 40px; height: 35px; border-radius: 8px; font-size: 1rem; }
     </style>
@@ -51,12 +50,15 @@
 <body class="flex flex-col">
 
     <audio id="bgm" loop><source src="music/townbgm.mp3" type="audio/mpeg"></audio>
-    <audio id="snd-atk"><source src="https://assets.mixkit.co/active_storage/sfx/2578/2578-preview.mp3" type="audio/mpeg"></audio> <audio id="snd-tower"><source src="https://assets.mixkit.co/active_storage/sfx/2568/2568-preview.mp3" type="audio/mpeg"></audio> <header class="p-3 bg-slate-900 flex justify-between items-center border-b border-slate-700">
+    <audio id="snd-atk"><source src="https://assets.mixkit.co/active_storage/sfx/2578/2578-preview.mp3" type="audio/mpeg"></audio>
+    <audio id="snd-tower"><source src="https://assets.mixkit.co/active_storage/sfx/2568/2568-preview.mp3" type="audio/mpeg"></audio>
+
+    <header class="p-3 bg-slate-900 flex justify-between items-center border-b border-slate-700">
         <button onclick="location.href='index.html'" class="text-slate-400 text-[10px] font-bold">◀ EXIT</button>
         <div class="text-center flex-1 mx-4">
             <div class="flex justify-between items-center mb-1">
                 <span id="round-display" class="text-blue-400 text-[9px] font-bold uppercase">Round 1</span>
-                <span id="monster-info" class="text-rose-400 text-[9px] font-bold uppercase">ENEMY: SLIME</span>
+                <span id="monster-info" class="text-rose-400 text-[9px] font-bold uppercase">ENEMY: READY</span>
             </div>
             <div class="w-full bg-slate-800 h-1.5 rounded-full overflow-hidden border border-slate-700">
                 <div id="hp-bar" class="bg-emerald-500 h-full w-full"></div>
@@ -65,7 +67,7 @@
         <p id="d-coin" class="text-xs font-bold text-yellow-400">200 DG</p>
     </header>
 
-    <div class="flex-1 flex flex-col items-center justify-center bg-black">
+    <div class="flex-1 flex flex-col items-center justify-center bg-black relative">
         <div id="map" class="grid-map" onclick="handleMapClick(event)">
             <canvas id="path-canvas"></canvas>
             <div id="base">🏰</div>
@@ -116,7 +118,7 @@
             pathCanvas.width = map.clientWidth; pathCanvas.height = map.clientHeight;
             for (let i = 0; i < 400; i++) map.appendChild(document.createElement('div')).className = 'grid-cell';
             updatePlayerUI();
-            document.body.onclick = () => { document.getElementById('bgm').play().catch(e=>{}); };
+            document.body.addEventListener('click', () => { document.getElementById('bgm').play().catch(e=>{}); }, {once: true});
         };
 
         function togglePlayer(e) {
@@ -183,29 +185,29 @@
             pendingBuild = null; previewTower.style.display = 'none'; previewRange.style.display = 'none'; document.getElementById('confirm-btn').classList.add('hidden');
         }
 
-        // 🚀 투사체 발사 함수
         function fireProjectile(fromR, fromC, target, color, damage) {
             const p = document.createElement('div');
             p.className = 'projectile';
-            p.style.color = color;
             p.style.backgroundColor = color;
-            p.style.top = (fromR * 5 + 2) + '%';
-            p.style.left = (fromC * 5 + 2) + '%';
+            p.style.color = color;
+            const startX = fromC * 5 + 2.5, startY = fromR * 5 + 2.5;
+            p.style.left = startX + '%'; p.style.top = startY + '%';
             map.appendChild(p);
 
-            setTimeout(() => {
-                p.style.top = (target.r * 5 + 2) + '%';
-                p.style.left = (target.c * 5 + 2) + '%';
-            }, 10);
-
-            setTimeout(() => {
+            const targetX = target.c * 5 + 2.5, targetY = target.r * 5 + 2.5;
+            
+            p.animate([
+                { left: startX + '%', top: startY + '%' },
+                { left: targetX + '%', top: targetY + '%' }
+            ], { duration: 200, easing: 'linear' }).onfinish = () => {
                 p.remove();
                 if (monsters.includes(target)) {
                     target.hp -= damage;
                     showDmgText(target.r, target.c, damage);
-                    target.querySelector('.hp-fill').style.width = (target.hp/target.maxHp*100) + '%';
+                    const fill = target.querySelector('.hp-fill');
+                    if(fill) fill.style.width = Math.max(0, (target.hp / target.maxHp * 100)) + '%';
                 }
-            }, 200);
+            };
         }
 
         function showDmgText(r, c, d) {
@@ -213,25 +215,17 @@
             t.style.top = (r*5)+'%'; t.style.left = (c*5)+'%'; map.appendChild(t); setTimeout(() => t.remove(), 500);
         }
 
-        // 🤺 플레이어 단일 공격 (가장 가까운 적 1개)
         function playerAttack() {
             if (!playerActive || monsters.length === 0) return;
-            
             const rangeVal = 3 + (user_int / 50);
-            let closest = null;
-            let minDist = Infinity;
-
+            let closest = null, minDist = Infinity;
             monsters.forEach(m => {
                 const dist = Math.sqrt(Math.pow(playerPos.r - m.r, 2) + Math.pow(playerPos.c - m.c, 2));
-                if (dist <= rangeVal && dist < minDist) {
-                    minDist = dist;
-                    closest = m;
-                }
+                if (dist <= rangeVal && dist < minDist) { minDist = dist; closest = m; }
             });
-
             if (closest) {
                 sndAtk.currentTime = 0; sndAtk.play();
-                fireProjectile(playerPos.r + 0.5, playerPos.c + 0.5, closest, '#fbbf24', (15 + user_str / 5));
+                fireProjectile(playerPos.r, playerPos.c, closest, '#fbbf24', (15 + user_str / 5));
             }
         }
 
@@ -259,6 +253,9 @@
             m.r = s.r; m.c = s.c;
             m.maxHp = (isBoss ? 400 : 30) + (currentRound * 25);
             m.hp = m.maxHp;
+            // 초기 위치 설정 후 보이게 처리 (깜빡임 방지)
+            m.style.top = (m.r * 5) + '%'; m.style.left = (m.c * 5) + '%';
+            m.style.visibility = 'visible';
             map.appendChild(m); monsters.push(m);
         }
 
@@ -268,35 +265,40 @@
             ctx.lineWidth = 1; ctx.setLineDash([5, 5]);
             monsters.forEach(m => {
                 ctx.beginPath();
-                ctx.moveTo((m.c + 0.5) * (pathCanvas.width / 20), (m.r + 0.5) * (pathCanvas.height / 20));
+                ctx.moveTo((m.c + 0.25) * (pathCanvas.width / 20), (m.r + 0.25) * (pathCanvas.height / 20));
                 ctx.lineTo(pathCanvas.width / 2, pathCanvas.height / 2);
                 ctx.stroke();
             });
         }
 
-        // ⚙️ 엔진
         setInterval(() => {
-            if (!isWaveActive && monsters.length === 0) {
-                ctx.clearRect(0, 0, pathCanvas.width, pathCanvas.height);
-                return;
-            }
-            
+            if (!isWaveActive && monsters.length === 0) { ctx.clearRect(0, 0, pathCanvas.width, pathCanvas.height); return; }
             monsters.forEach((m, idx) => {
                 const dr = 9.5 - m.r, dc = 9.5 - m.c;
                 const dist = Math.sqrt(dr*dr + dc*dc);
-                let nr = m.r + (dr/dist) * 0.1, nc = m.c + (dc/dist) * 0.1;
-                if (towers.some(t => Math.abs(t.r-nr) < 0.7 && Math.abs(t.c-m.c) < 0.7)) nr = m.r;
-                if (towers.some(t => Math.abs(t.r-m.r) < 0.7 && Math.abs(t.c-nc) < 0.7)) nc = m.c;
-                m.r = nr; m.c = nc;
+                
+                // 타워 회피 로직 개선 (부드러운 우회)
+                let moveR = (dr/dist) * 0.08, moveC = (dc/dist) * 0.08;
+                if (towers.some(t => Math.abs(t.r - (m.r + moveR)) < 0.8 && Math.abs(t.c - m.c) < 0.8)) moveR = 0;
+                if (towers.some(t => Math.abs(t.r - m.r) < 0.8 && Math.abs(t.c - (m.c + moveC)) < 0.8)) moveC = 0;
+                
+                // 만약 두 방향 다 막혔다면 강제 이동 방지
+                if (moveR === 0 && moveC === 0) {
+                    m.r += (dr > 0 ? 0.05 : -0.05); // 아주 조금씩이라도 전진
+                }
+
+                m.r += moveR; m.c += moveC;
                 m.style.top = (m.r * 5) + '%'; m.style.left = (m.c * 5) + '%';
 
                 if (dist < 0.6) {
                     villageHp -= (m.innerHTML === '👹' ? 50 : 10);
-                    document.getElementById('hp-bar').style.width = villageHp + '%';
+                    document.getElementById('hp-bar').style.width = Math.max(0, villageHp) + '%';
                     m.remove(); monsters.splice(idx, 1);
                     if (villageHp <= 0) { alert("마을 함락!"); location.reload(); }
+                } else if (m.hp <= 0) {
+                    m.remove(); monsters.splice(idx, 1);
+                    dCoin += 25; document.getElementById('d-coin').innerText = dCoin + " DG";
                 }
-                if (m.hp <= 0) { m.remove(); monsters.splice(idx, 1); dCoin += 25; document.getElementById('d-coin').innerText = dCoin + " DG"; }
             });
 
             const now = Date.now();
@@ -305,19 +307,13 @@
                     const target = monsters.find(m => Math.sqrt(Math.pow(t.r-m.r,2)+Math.pow(t.c-m.c,2)) < t.range);
                     if (target) {
                         sndTower.currentTime = 0; sndTower.play();
-                        fireProjectile(t.r + 0.3, t.c + 0.3, target, '#38bdf8', (20 + user_str/10));
+                        fireProjectile(t.r, t.c, target, '#38bdf8', (20 + user_str/10));
                         t.lastShot = now;
                     }
                 }
             });
-
             drawMonsterPaths();
-
-            if (isWaveActive && monsters.length === 0) {
-                isWaveActive = false; currentRound++;
-                document.getElementById('round-display').innerText = "ROUND " + currentRound;
-                document.getElementById('start-btn').style.display = 'block';
-            }
+            if (isWaveActive && monsters.length === 0) { isWaveActive = false; currentRound++; document.getElementById('round-display').innerText = "ROUND " + currentRound; document.getElementById('start-btn').style.display = 'block'; }
         }, 100);
     </script>
 </body>
