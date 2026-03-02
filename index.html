@@ -38,7 +38,6 @@
         
         .sync-btn-new { background: linear-gradient(90deg, #1e293b, #0f172a); border: 2px solid #38bdf8; }
 
-        /* 🌊 수분 웨이브 및 깜빡이 효과 복구 */
         .water-wave {
             position: relative; width: 100%; height: 120px; background: #020617; 
             border-radius: 12px; overflow: hidden; border: 1px solid #1e293b;
@@ -55,7 +54,6 @@
         }
         @keyframes wave { from { transform: translateX(0); } to { transform: translateX(-50%); } }
         
-        /* ✨ 마스터가 좋아한 깜빡이 효과 */
         .evaporating-text { animation: blink 1.5s infinite; }
         @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0.3; } }
     </style>
@@ -105,7 +103,7 @@
 
         <div class="w-full max-w-xs bg-slate-900/70 p-5 rounded-2xl border border-slate-800 neon-glow z-10 space-y-4">
             <div class="flex justify-between items-center">
-                <h3 class="text-blue-400 font-bold text-xs tracking-widest">HYDRATION (수분)</h3>
+                <h3 class="text-blue-400 font-bold text-xs tracking-widest uppercase">Hydration</h3>
                 <span class="text-[8px] text-slate-500 evaporating-text uppercase font-bold">Evaporating (증발중)...</span>
             </div>
             <div class="water-wave">
@@ -121,8 +119,9 @@
                 <button onclick="drinkWater(350)" class="bg-slate-800 border border-blue-500/20 py-2 rounded-lg text-[9px] active:scale-95 transition-all">🥤 350ml</button>
             </div>
             <div class="pt-2 border-t border-slate-800">
-                <p class="text-[8px] text-slate-600 uppercase mb-2">Daily Intake Record (일일 섭취 기록)</p>
-                <div id="hydration-history" class="space-y-1.5"></div>
+                <p class="text-[8px] text-slate-600 uppercase mb-2">Record (최근 3일 기록)</p>
+                <div id="hydration-history" class="space-y-1.5">
+                    </div>
             </div>
         </div>
 
@@ -160,14 +159,25 @@
             setInterval(evaporateWater, 1000 * 60 * 15);
         };
 
-        let hydData = JSON.parse(localStorage.getItem('user_hydration')) || { current: 0, history: [], lastUpdate: Date.now(), dailyIntake: 0, lastDrinkDate: new Date().toLocaleDateString() };
+        // 초기 수분 데이터 구조
+        let hydData = JSON.parse(localStorage.getItem('user_hydration')) || { 
+            current: 0, 
+            history: [], 
+            lastUpdate: Date.now(), 
+            dailyIntake: 0, 
+            lastDrinkDate: new Date().toLocaleDateString() 
+        };
 
         function checkAndResetDailyWater() {
             const today = new Date().toLocaleDateString();
             if (hydData.lastDrinkDate !== today) {
+                // 어제 기록을 history에 저장 (최대 3개)
                 hydData.history.push({ date: hydData.lastDrinkDate, amount: hydData.dailyIntake });
                 if (hydData.history.length > 3) hydData.history.shift();
-                hydData.dailyIntake = 0; hydData.lastDrinkDate = today;
+                
+                // 오늘 데이터 초기화
+                hydData.dailyIntake = 0; 
+                hydData.lastDrinkDate = today;
                 saveHydData();
             }
         }
@@ -177,7 +187,7 @@
             hydData.current = Math.min(2000, hydData.current + ml);
             hydData.lastUpdate = Date.now();
             hydData.dailyIntake += ml;
-            saveHydData(); updateHydUI();
+            saveHydData();
         }
 
         function evaporateWater() {
@@ -192,21 +202,30 @@
             }
         }
 
-        function saveHydData() { localStorage.setItem('user_hydration', JSON.stringify(hydData)); updateHydUI(); }
+        function saveHydData() { 
+            localStorage.setItem('user_hydration', JSON.stringify(hydData)); 
+            updateHydUI(); 
+        }
+
         function updateWaterBarOnly() {
             const pct = (hydData.current / 2000) * 100;
             document.getElementById('water-fill').style.height = pct + '%';
             document.getElementById('current-water').innerText = Math.floor(hydData.current);
         }
 
+        // ⭐ 3일치 기록 출력 로직 복구
         function updateHydUI() {
             updateWaterBarOnly();
             const histDiv = document.getElementById('hydration-history');
             histDiv.innerHTML = "";
+            
+            // 1. 오늘 섭취량 표시
             const todayItem = document.createElement('div');
             todayItem.className = "flex justify-between p-2 bg-slate-800/60 rounded border-l-2 border-emerald-500 text-[10px]";
-            todayItem.innerHTML = `<span class="text-emerald-400 font-bold">Today Total (금일 총량)</span><span class="text-emerald-400 font-bold">${hydData.dailyIntake}ml</span>`;
+            todayItem.innerHTML = `<span class="text-emerald-400 font-bold">Today (오늘 총량)</span><span class="text-emerald-400 font-bold">${hydData.dailyIntake}ml</span>`;
             histDiv.appendChild(todayItem);
+            
+            // 2. 과거 3일 기록 표시 (역순)
             [...hydData.history].reverse().forEach(h => {
                 const item = document.createElement('div');
                 item.className = "flex justify-between p-2 bg-slate-800/40 rounded border-l-2 border-slate-700 text-[10px] text-slate-500";
@@ -227,7 +246,6 @@
             document.getElementById('user-coin').innerText = sCoin.toLocaleString();
             document.getElementById('user-mana').innerText = `${10 + sInt} / ${10 + sInt}`;
             
-            // ⭐ 레벨업 로직: 훈련 1당 1레벨
             const level = (sStr + sInt) + 1;
             document.getElementById('user-lv').innerText = `LV. ${level}`;
 
@@ -250,7 +268,6 @@
             bodyChart = new Chart(ctx, {
                 type: 'radar',
                 data: {
-                    // 📊 차트 레이블 한/영 병기 및 가이드 화살표
                     labels: [
                         `Muscle (근육) ▲ ${data.muscle}kg`, 
                         `Fat (지방) ▼ ${data.fatMass}kg`, 
