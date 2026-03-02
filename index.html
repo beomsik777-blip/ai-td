@@ -15,33 +15,29 @@
         .neon-glow { box-shadow: 0 0 15px rgba(56, 189, 248, 0.3), inset 0 0 5px rgba(56, 189, 248, 0.1); }
         .status-bar { transition: width 1s cubic-bezier(0.34, 1.56, 0.64, 1); }
 
-        /* 🏰 메인 스크롤 영역 */
         .main-container { height: calc(100dvh - 160px); overflow-y: auto; -webkit-overflow-scrolling: touch; scrollbar-width: none; }
         .main-container::-webkit-scrollbar { display: none; }
 
-        /* 🤺 캐릭터 스프라이트 */
         #character-sprite {
             background-size: contain; background-repeat: no-repeat; background-position: center bottom;
             background-color: transparent; filter: drop-shadow(0 0 10px rgba(56, 189, 248, 0.8));
             transition: background-image 0.5s ease-in-out;
         }
 
-        /* 📊 차트 및 스탯 카드 */
         .chart-section {
             background: rgba(30, 41, 59, 0.3); border: 1px solid rgba(56, 189, 248, 0.15);
             border-radius: 24px; width: 100%; max-width: 320px; padding: 15px;
             display: flex; flex-direction: column; align-items: center; justify-content: center;
         }
-        .chart-container { width: 100%; height: 180px; position: relative; }
+        .chart-container { width: 100%; height: 210px; position: relative; }
 
-        .stat-card { background: rgba(15, 23, 42, 0.8); border-radius: 12px; padding: 10px; text-align: center; border: 1px solid #1e293b; }
-        .stat-card.muscle { border-color: rgba(249, 115, 22, 0.5); box-shadow: 0 0 10px rgba(249, 115, 22, 0.1); }
-        .stat-card.fat { border-color: rgba(59, 130, 246, 0.5); box-shadow: 0 0 10px rgba(59, 130, 246, 0.1); }
-        .stat-card.bmi { border-color: rgba(16, 185, 129, 0.5); box-shadow: 0 0 10px rgba(16, 185, 129, 0.1); }
+        .stat-card { background: rgba(15, 23, 42, 0.8); border-radius: 12px; padding: 8px; text-align: center; border: 1px solid #1e293b; }
+        .stat-card.muscle { border-color: rgba(249, 115, 22, 0.5); }
+        .stat-card.fat { border-color: rgba(59, 130, 246, 0.5); }
+        .stat-card.bmi { border-color: rgba(16, 185, 129, 0.5); }
         
-        .sync-btn-new { background: linear-gradient(90deg, #1e293b, #0f172a); border: 2px solid #38bdf8; box-shadow: 0 0 10px rgba(56, 189, 248, 0.2); }
+        .sync-btn-new { background: linear-gradient(90deg, #1e293b, #0f172a); border: 2px solid #38bdf8; }
 
-        /* 🌊 수분 웨이브 */
         .water-wave {
             position: relative; width: 100%; height: 120px; background: #020617; 
             border-radius: 12px; overflow: hidden; border: 1px solid #1e293b;
@@ -114,9 +110,9 @@
                 </div>
             </div>
             <div class="grid grid-cols-3 gap-2">
+                <button onclick="drinkWater(100)" class="bg-slate-800 border border-blue-500/20 py-2 rounded-lg text-[9px] active:scale-95 transition-all">💧 100ml</button>
                 <button onclick="drinkWater(200)" class="bg-slate-800 border border-blue-500/20 py-2 rounded-lg text-[9px] active:scale-95 transition-all">🥛 200ml</button>
                 <button onclick="drinkWater(350)" class="bg-slate-800 border border-blue-500/20 py-2 rounded-lg text-[9px] active:scale-95 transition-all">🥤 350ml</button>
-                <button onclick="drinkWater(500)" class="bg-slate-800 border border-blue-500/20 py-2 rounded-lg text-[9px] active:scale-95 transition-all">Bottle (병)</button>
             </div>
             <div class="pt-2 border-t border-slate-800">
                 <p class="text-[8px] text-slate-600 uppercase mb-2">Daily Intake Record (일일 섭취 기록)</p>
@@ -148,7 +144,7 @@
         const bgm = document.getElementById('main-bgm');
 
         function goToPage(url) { window.location.href = url; }
-        document.body.onclick = () => { if (bgm.paused) bgm.play().catch(e => {}); };
+        document.body.addEventListener('click', () => { if (bgm.paused) bgm.play().catch(e => {}); }, { once: true });
 
         window.onload = () => {
             if (sessionStorage.getItem('isLoggedIn') !== 'true') location.href = 'login.html';
@@ -245,8 +241,14 @@
             bodyChart = new Chart(ctx, {
                 type: 'radar',
                 data: {
-                    // 📊 5각형 레이블 한/영 병기
-                    labels: ['Muscle (근육)', 'Fat (지방)', 'BMI (지수)', 'Fat % (지방%)', 'BMR (대사량)'],
+                    // ⭐ 레이블에 인바디 수치 직접 반영
+                    labels: [
+                        `Muscle ${data.muscle}kg`, 
+                        `Fat ${data.fatMass}kg`, 
+                        `BMI ${data.bmi}`, 
+                        `Fat% ${data.fatPercent}%`, 
+                        `BMR ${data.bmr}kcal`
+                    ],
                     datasets: [{
                         data: [(data.muscle/45)*100, (data.fatMass/30)*100, (data.bmi/35)*100, (data.fatPercent/40)*100, (data.bmr/2000)*100],
                         backgroundColor: 'rgba(56, 189, 248, 0.15)', borderColor: '#38bdf8', borderWidth: 1.5, pointRadius: 0
@@ -254,9 +256,9 @@
                 },
                 options: {
                     responsive: true, maintainAspectRatio: false,
-                    scales: { r: { angleLines: { color: 'rgba(255,255,255,0.08)' }, grid: { color: 'rgba(255,255,255,0.08)' }, ticks: { display: false }, suggestedMin: 0, suggestedMax: 100, pointLabels: { color: '#94a3b8', font: { size: 8, weight: 'bold' } } } },
+                    scales: { r: { angleLines: { color: 'rgba(255,255,255,0.08)' }, grid: { color: 'rgba(255,255,255,0.08)' }, ticks: { display: false }, suggestedMin: 0, suggestedMax: 100, pointLabels: { color: '#94a3b8', font: { size: 7, weight: 'bold' } } } },
                     plugins: { legend: { display: false } },
-                    layout: { padding: 15 }
+                    layout: { padding: 25 }
                 }
             });
         }
