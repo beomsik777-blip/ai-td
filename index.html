@@ -12,7 +12,6 @@
         .neon-glow { box-shadow: 0 0 20px rgba(56, 189, 248, 0.4), inset 0 0 10px rgba(56, 189, 248, 0.2); }
         .status-bar { transition: width 1s cubic-bezier(0.34, 1.56, 0.64, 1); }
 
-        /* 캐릭터 스프라이트 기본 설정 */
         #character-sprite {
             background-size: contain;
             background-repeat: no-repeat;
@@ -127,7 +126,6 @@
     </nav>
 
     <script>
-        // BGM 로직
         const bgm = document.getElementById('main-bgm');
         document.body.onclick = function() {
             if (bgm.paused) { bgm.play().catch(e => console.log(e)); }
@@ -138,7 +136,6 @@
         window.onload = function() { updateUI(); };
 
         function updateUI() {
-            // 1. 기본 스탯 로드
             const savedInt = parseInt(localStorage.getItem('user_int')) || 0;
             const savedStr = parseInt(localStorage.getItem('user_str')) || 70;
             const savedCoin = parseInt(localStorage.getItem('user_coin')) || 100;
@@ -149,26 +146,26 @@
             document.getElementById('str-bar').style.width = Math.min(savedStr, 100) + '%';
             document.getElementById('user-coin').innerText = savedCoin.toLocaleString();
 
-            // 2. 인바디 데이터 로드 및 반영
             const inbody = JSON.parse(localStorage.getItem('user_inbody'));
             const sprite = document.getElementById('character-sprite');
             
             if (inbody) {
-                // 성별에 따른 이미지 교체
+                // 🛠️ 마스터의 요청 경로에 맞게 정밀 수정
                 if (inbody.gender === 'woman') {
-                    sprite.style.backgroundImage = "url('image/man/woman.png')";
-                } else {
+                    sprite.style.backgroundImage = "url('image/woman.png')";
+                } else if (inbody.gender === 'man') {
                     sprite.style.backgroundImage = "url('image/man/man.png')";
+                } else {
+                    sprite.style.backgroundImage = "url('image/nocheck.png')";
                 }
                 
-                // 체중 및 가이드 텍스트 업데이트
                 document.getElementById('user-weight').innerText = `${inbody.weight} kg`;
                 document.getElementById('sync-status').innerText = "BODY DATA SYNCHRONIZED ✓";
                 document.getElementById('sync-status').classList.replace('text-blue-400', 'text-emerald-400');
-                document.getElementById('guide-text').innerText = `성별(${inbody.gender}) 및 체중 데이터가 성공적으로 반영되었습니다.`;
+                document.getElementById('guide-text').innerText = `동기화 완료: ${inbody.gender === 'man' ? '남성' : '여성'} 캐릭터가 적용되었습니다.`;
             } else {
-                // 데이터 없을 때 기본값 (검정 실루엣 이미지 등)
-                sprite.style.backgroundImage = "url('image/man/man.png')"; // 기본값
+                // 🛠️ 미선택 시 하이드 이미지 적용
+                sprite.style.backgroundImage = "url('image/nocheck.png')"; 
                 document.getElementById('user-weight').innerText = "0.0 kg";
             }
         }
