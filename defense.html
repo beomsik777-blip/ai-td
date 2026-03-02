@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>QuestBody - Auto Defense</title>
+    <title>QuestBody - Grid Defense</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&display=swap');
@@ -15,36 +15,35 @@
             width: 95vw; height: 95vw; max-width: 550px; max-height: 550px;
             background: #0f172a; border: 2px solid #334155; position: relative; margin: 5px auto;
         }
-        .grid-cell { border: 0.1px solid rgba(56, 189, 248, 0.05); position: relative; z-index: 5; }
+        .grid-cell { border: 0.1px solid rgba(56, 189, 248, 0.05); }
 
-        #path-canvas { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 2; }
         #base { position: absolute; top: 45%; left: 45%; width: 10%; height: 10%; background: #1e293b; border: 2px solid #38bdf8; z-index: 10; border-radius: 4px; display: flex; align-items: center; justify-content: center; font-size: 1rem; }
 
         #player { 
             position: absolute; width: 5%; height: 5%; z-index: 100; 
             background-size: contain; background-repeat: no-repeat; background-position: center;
-            transition: top 0.2s, left 0.2s; cursor: pointer;
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1); cursor: pointer;
         }
         #player.active { filter: drop-shadow(0 0 10px #38bdf8); outline: 2px solid #38bdf8; border-radius: 50%; }
 
         .range-circle { position: absolute; border: 1px dashed rgba(56, 189, 248, 0.3); border-radius: 50%; background: rgba(56, 189, 248, 0.03); pointer-events: none; z-index: 5; transform: translate(-50%, -50%); display: none; }
 
-        .monster { position: absolute; width: 5%; height: 5%; z-index: 30; display: flex; flex-direction: column; align-items: center; justify-content: center; visibility: hidden; }
-        .hp-bg { width: 100%; height: 3px; background: #450a0a; position: absolute; top: -5px; border-radius: 2px; }
-        .hp-fill { height: 100%; background: #22c55e; width: 100%; }
+        .monster { position: absolute; width: 5%; height: 5%; z-index: 30; display: flex; flex-direction: column; align-items: center; justify-content: center; transition: all 0.3s ease-in-out; }
+        .hp-bg { width: 80%; height: 3px; background: #450a0a; position: absolute; top: -5px; border-radius: 2px; }
+        .hp-fill { height: 100%; background: #22c55e; width: 100%; transition: width 0.2s; }
 
-        .tower { position: absolute; width: 5%; height: 5%; z-index: 40; display: flex; align-items: center; justify-content: center; background: rgba(56, 189, 248, 0.15); border-radius: 4px; }
+        .tower { position: absolute; width: 5%; height: 5%; z-index: 40; display: flex; align-items: center; justify-content: center; background: rgba(56, 189, 248, 0.2); border-radius: 4px; border: 1px solid #38bdf844; }
         #preview-tower { position: absolute; width: 5%; height: 5%; z-index: 45; display: none; filter: opacity(0.6); pointer-events: none; }
 
-        .projectile { position: absolute; width: 5px; height: 5px; border-radius: 50%; z-index: 80; pointer-events: none; }
+        .projectile { position: absolute; width: 6px; height: 6px; border-radius: 50%; z-index: 80; pointer-events: none; }
 
-        .dmg-text { position: absolute; font-weight: bold; color: #fbbf24; font-size: 9px; z-index: 110; animation: up-fade 0.4s forwards; pointer-events: none; }
+        .dmg-text { position: absolute; font-weight: bold; color: #fbbf24; font-size: 10px; z-index: 110; animation: up-fade 0.4s forwards; }
         @keyframes up-fade { from { transform: translateY(0); opacity: 1; } to { transform: translateY(-15px); opacity: 0; } }
 
         .ui-panel { background: #0f172a; border-top: 2px solid #334155; padding: 10px; }
         .tower-btn { background: #1e293b; border: 1px solid #475569; border-radius: 8px; padding: 6px; text-align: center; }
         .tower-btn.selected { border-color: #38bdf8; color: #38bdf8; }
-        .ctrl-btn { background: #1e293b; color: white; width: 45px; height: 40px; border-radius: 8px; font-size: 1.2rem; }
+        .ctrl-btn { background: #1e293b; color: white; width: 45px; height: 40px; border-radius: 8px; font-size: 1.2rem; display: flex; align-items: center; justify-content: center; }
     </style>
 </head>
 <body class="flex flex-col">
@@ -54,13 +53,10 @@
     <audio id="snd-tower"><source src="https://assets.mixkit.co/active_storage/sfx/2568/2568-preview.mp3" type="audio/mpeg"></audio>
 
     <header class="p-3 bg-slate-900 flex justify-between items-center border-b border-slate-700">
-        <button onclick="location.href='index.html'" class="text-slate-400 text-[10px] font-bold uppercase tracking-tighter">◀ Exit</button>
+        <button onclick="location.href='index.html'" class="text-slate-400 text-[10px] font-bold uppercase">◀ Exit</button>
         <div class="text-center flex-1 mx-4">
-            <div class="flex justify-between items-center mb-1">
-                <span id="round-display" class="text-blue-400 text-[9px] font-bold uppercase">Round 1</span>
-                <span id="monster-info" class="text-rose-500 text-[9px] font-bold uppercase">Elite Battle</span>
-            </div>
-            <div class="w-full bg-slate-800 h-1 rounded-full overflow-hidden border border-slate-700">
+            <span id="round-display" class="text-blue-400 text-[9px] font-bold uppercase tracking-widest">Round 1</span>
+            <div class="w-full bg-slate-800 h-1 mt-1 rounded-full overflow-hidden border border-slate-700">
                 <div id="hp-bar" class="bg-emerald-500 h-full w-full"></div>
             </div>
         </div>
@@ -69,7 +65,6 @@
 
     <div class="flex-1 flex flex-col items-center justify-center bg-black relative">
         <div id="map" class="grid-map" onclick="handleMapClick(event)">
-            <canvas id="path-canvas"></canvas>
             <div id="base">🏰</div>
             <div id="p-range-circle" class="range-circle" style="border-color: #fbbf24;"></div>
             <div id="preview-range" class="range-circle" style="border-color: #38bdf8;"></div>
@@ -86,7 +81,7 @@
             <button id="confirm-btn" onclick="confirmBuild()" class="flex-1 bg-emerald-700 rounded text-[9px] font-bold hidden">BUILD</button>
         </div>
         
-        <div class="flex justify-between items-center">
+        <div class="flex justify-between items-center px-2">
             <div class="grid grid-cols-3 gap-1">
                 <div></div><button class="ctrl-btn" onclick="movePlayer(-1, 0)">▲</button><div></div>
                 <button class="ctrl-btn" onclick="movePlayer(0, -1)">◀</button>
@@ -94,14 +89,11 @@
                 <button class="ctrl-btn" onclick="movePlayer(0, 1)">▶</button>
             </div>
             
-            <div class="flex flex-col items-center gap-2 flex-1 px-4">
-                <div class="text-[8px] text-orange-400 font-bold uppercase animate-pulse">Auto Combat Active</div>
-                <button onclick="startWave()" id="start-btn" class="w-full py-3 bg-blue-600 rounded-lg font-bold text-sm shadow-[0_0_15px_rgba(37,99,235,0.4)]">START WAVE</button>
-            </div>
+            <button onclick="startWave()" id="start-btn" class="px-8 py-4 bg-blue-600 rounded-lg font-bold text-xs shadow-lg">START WAVE</button>
 
             <div class="text-right">
-                <p class="text-[8px] text-slate-500 uppercase">Master Stat</p>
-                <p class="text-[10px] text-orange-400 font-bold">STR <span id="s-val">0</span></p>
+                <p class="text-[7px] text-slate-500 uppercase">Auto Attack</p>
+                <p class="text-[10px] text-orange-400 font-bold tracking-tighter">STR <span id="s-val">0</span></p>
             </div>
         </div>
     </div>
@@ -110,20 +102,16 @@
         let user_str = parseInt(localStorage.getItem('user_str')) || 0;
         let user_int = parseInt(localStorage.getItem('user_int')) || 0;
         let dCoin = 200, villageHp = 100, currentRound = 1;
-        let playerPos = { r: 9, c: 7 }, playerActive = false, playerLastShot = 0;
+        let playerPos = { r: 9, c: 7 }, playerActive = false, lastAtkTime = 0;
         let selectedType = null, pendingBuild = null, towers = [], monsters = [], isWaveActive = false;
         
         const map = document.getElementById('map'), player = document.getElementById('player'), pRange = document.getElementById('p-range-circle');
         const previewTower = document.getElementById('preview-tower'), previewRange = document.getElementById('preview-range');
-        const pathCanvas = document.getElementById('path-canvas'), ctx = pathCanvas.getContext('2d');
         const sndAtk = document.getElementById('snd-atk'), sndTower = document.getElementById('snd-tower');
 
-        const inbody = JSON.parse(localStorage.getItem('user_inbody'));
-        if (inbody) player.style.backgroundImage = inbody.gender === 'woman' ? "url('image/woman.png')" : "url('image/man/man.png')";
-        else player.style.backgroundImage = "url('image/nocheck.png')";
-
         window.onload = () => {
-            pathCanvas.width = map.clientWidth; pathCanvas.height = map.clientHeight;
+            const inbody = JSON.parse(localStorage.getItem('user_inbody'));
+            player.style.backgroundImage = inbody?.gender === 'woman' ? "url('image/woman.png')" : "url('image/man/man.png')";
             for (let i = 0; i < 400; i++) map.appendChild(document.createElement('div')).className = 'grid-cell';
             updatePlayerUI();
             document.getElementById('s-val').innerText = user_str;
@@ -141,10 +129,9 @@
         function updatePlayerUI() {
             player.style.top = (playerPos.r * 5) + '%';
             player.style.left = (playerPos.c * 5) + '%';
-            // ⚔️ 공격 범위 축소 (기존 3에서 2로)
-            const rangeVal = 2 + (user_int / 80); 
-            pRange.style.width = (rangeVal * 10) + '%';
-            pRange.style.height = (rangeVal * 10) + '%';
+            const rangeVal = 1.5 + (user_int / 100); // 범위 대폭 축소
+            pRange.style.width = (rangeVal * 10 * 2) + '%';
+            pRange.style.height = (rangeVal * 10 * 2) + '%';
             pRange.style.top = ((playerPos.r + 0.5) * 5) + '%';
             pRange.style.left = ((playerPos.c + 0.5) * 5) + '%';
         }
@@ -159,8 +146,12 @@
         }
 
         function selectTowerType(type, cost) {
-            if (selectedType && selectedType.type === type) { cancelBuild(); selectedType = null; document.querySelectorAll('.tower-btn').forEach(b => b.classList.remove('selected')); }
-            else { selectedType = { type, cost }; document.querySelectorAll('.tower-btn').forEach(b => b.classList.remove('selected')); document.getElementById('btn-' + type).classList.add('selected'); }
+            if (selectedType?.type === type) { cancelBuild(); selectedType = null; }
+            else { 
+                selectedType = { type, cost };
+                document.querySelectorAll('.tower-btn').forEach(b => b.classList.remove('selected'));
+                document.getElementById('btn-' + type).classList.add('selected');
+            }
         }
 
         function handleMapClick(e) {
@@ -174,8 +165,8 @@
             previewTower.innerHTML = pendingBuild.type === 'arrow' ? '🏹' : pendingBuild.type === 'magic' ? '⚡' : '💣';
             previewTower.style.top = (r * 5) + '%'; previewTower.style.left = (c * 5) + '%';
             previewRange.style.display = 'block';
-            const tRange = pendingBuild.type === 'magic' ? 3.5 : 5; // 타워 사거리도 소폭 하향
-            previewRange.style.width = (tRange * 10) + '%'; previewRange.style.height = (tRange * 10) + '%';
+            const tr = pendingBuild.type === 'magic' ? 3 : 5;
+            previewRange.style.width = (tr * 10) + '%'; previewRange.style.height = (tr * 10) + '%';
             previewRange.style.top = ((r + 0.5) * 5) + '%'; previewRange.style.left = ((c + 0.5) * 5) + '%';
             document.getElementById('confirm-btn').classList.remove('hidden');
         }
@@ -187,31 +178,33 @@
             el.className = 'tower'; el.innerHTML = previewTower.innerHTML;
             el.style.top = (pendingBuild.r * 5) + '%'; el.style.left = (pendingBuild.c * 5) + '%';
             map.appendChild(el);
-            towers.push({ ...pendingBuild, lastShot: 0, cooldown: pendingBuild.type === 'magic' ? 700 : 1300, range: (pendingBuild.type === 'magic' ? 3.5 : 5)/2 });
+            towers.push({ ...pendingBuild, lastShot: 0, cooldown: pendingBuild.type === 'magic' ? 700 : 1300, range: (pendingBuild.type === 'magic' ? 3 : 5)/2 });
             cancelBuild();
         }
 
         function cancelBuild() {
-            pendingBuild = null; previewTower.style.display = 'none'; previewRange.style.display = 'none'; document.getElementById('confirm-btn').classList.add('hidden');
+            pendingBuild = null; previewTower.style.display = 'none'; previewRange.style.display = 'none'; 
+            document.getElementById('confirm-btn').classList.add('hidden');
+            document.querySelectorAll('.tower-btn').forEach(b => b.classList.remove('selected'));
         }
 
-        function fireProjectile(fromR, fromC, target, color, damage) {
+        function fireProjectile(fromR, fromC, target, color, dmg) {
             const p = document.createElement('div');
-            p.className = 'projectile';
-            p.style.backgroundColor = color;
-            p.style.boxShadow = `0 0 10px ${color}`;
-            const startX = fromC * 5 + 2.5, startY = fromR * 5 + 2.5;
-            p.style.left = startX + '%'; p.style.top = startY + '%';
+            p.className = 'projectile'; p.style.backgroundColor = color;
+            const sX = fromC * 5 + 2.5, sY = fromR * 5 + 2.5;
+            p.style.left = sX + '%'; p.style.top = sY + '%';
             map.appendChild(p);
 
-            const targetX = target.c * 5 + 2.5, targetY = target.r * 5 + 2.5;
-            p.animate([{ left: startX + '%', top: startY + '%' }, { left: targetX + '%', top: targetY + '%' }], { duration: 180, easing: 'linear' }).onfinish = () => {
+            p.animate([
+                { left: sX + '%', top: sY + '%' },
+                { left: (target.c * 5 + 2.5) + '%', top: (target.r * 5 + 2.5) + '%' }
+            ], { duration: 150, easing: 'linear' }).onfinish = () => {
                 p.remove();
                 if (monsters.includes(target)) {
-                    target.hp -= damage;
-                    showDmgText(target.r, target.c, damage);
+                    target.hp -= dmg;
+                    showDmgText(target.r, target.c, dmg);
                     const fill = target.querySelector('.hp-fill');
-                    if(fill) fill.style.width = Math.max(0, (target.hp / target.maxHp * 100)) + '%';
+                    if (fill) fill.style.width = Math.max(0, (target.hp/target.maxHp*100)) + '%';
                 }
             };
         }
@@ -226,12 +219,11 @@
             isWaveActive = true;
             document.getElementById('start-btn').style.display = 'none';
             const isBoss = currentRound % 5 === 0;
-            document.getElementById('monster-info').innerText = isBoss ? "BOSS INBOUND" : "WAVE ATTACK";
-            let count = isBoss ? 1 : currentRound * 4 + 3; // 개수 증가
+            let count = isBoss ? 1 : currentRound * 5 + 5;
             const interval = setInterval(() => {
                 if (count-- <= 0) { clearInterval(interval); return; }
                 spawnMonster(currentRound % 4, isBoss);
-            }, 900);
+            }, 800);
         }
 
         function spawnMonster(dir, isBoss) {
@@ -240,87 +232,81 @@
             const hpCont = document.createElement('div'); hpCont.className = 'hp-bg';
             const hpFill = document.createElement('div'); hpFill.className = 'hp-fill';
             hpCont.appendChild(hpFill); m.appendChild(hpCont);
-            const starts = [{r:0,c:10}, {r:10,c:19}, {r:19,c:10}, {r:10,c:0}];
-            const s = starts[dir];
+            const s = [{r:0,c:10}, {r:10,c:19}, {r:19,c:10}, {r:10,c:0}][dir];
             m.r = s.r; m.c = s.c;
-            // 🩸 몬스터 체력 대폭 상향
-            m.maxHp = (isBoss ? 800 : 60) + (currentRound * 40);
+            m.maxHp = (isBoss ? 1200 : 100) + (currentRound * 50);
             m.hp = m.maxHp;
             m.style.top = (m.r * 5) + '%'; m.style.left = (m.c * 5) + '%';
-            m.style.visibility = 'visible';
             map.appendChild(m); monsters.push(m);
         }
 
-        function drawMonsterPaths() {
-            ctx.clearRect(0, 0, pathCanvas.width, pathCanvas.height);
-            ctx.strokeStyle = 'rgba(56, 189, 248, 0.12)';
-            ctx.lineWidth = 1; ctx.setLineDash([4, 6]);
-            monsters.forEach(m => {
-                ctx.beginPath();
-                ctx.moveTo((m.c + 0.25) * (pathCanvas.width / 20), (m.r + 0.25) * (pathCanvas.height / 20));
-                ctx.lineTo(pathCanvas.width / 2, pathCanvas.height / 2);
-                ctx.stroke();
-            });
-        }
-
-        // ⚙️ 메인 엔진 (100ms)
+        // ⚙️ 메인 엔진 (0.3초마다 격자 이동 처리로 최적화)
         setInterval(() => {
-            if (!isWaveActive && monsters.length === 0) { ctx.clearRect(0, 0, pathCanvas.width, pathCanvas.height); return; }
+            if (!isWaveActive && monsters.length === 0) return;
             
-            const now = Date.now();
-
-            // 1. 몬스터 이동
+            // 1. 격자 기반 몬스터 이동
             monsters.forEach((m, idx) => {
-                const dr = 9.5 - m.r, dc = 9.5 - m.c;
-                const dist = Math.sqrt(dr*dr + dc*dc);
-                let moveR = (dr/dist) * 0.09, moveC = (dc/dist) * 0.09;
-                if (towers.some(t => Math.abs(t.r - (m.r + moveR)) < 0.8 && Math.abs(t.c - m.c) < 0.8)) moveR = 0;
-                if (towers.some(t => Math.abs(t.r - m.r) < 0.8 && Math.abs(t.c - (m.c + moveC)) < 0.8)) moveC = 0;
-                if (moveR === 0 && moveC === 0) { m.r += (dr > 0 ? 0.05 : -0.05); }
-                m.r += moveR; m.c += moveC;
+                let dr = 9 - m.r, dc = 9 - m.c;
+                let nr = m.r, nc = m.c;
+
+                // 목표를 향해 한 칸 단위(격자)로 방향 결정
+                if (Math.abs(dr) > Math.abs(dc)) nr += (dr > 0 ? 1 : -1);
+                else if (dc !== 0) nc += (dc > 0 ? 1 : -1);
+
+                // 타워 충돌 체크: 가려는 격자에 타워가 있으면 우회
+                if (towers.some(t => t.r === nr && t.c === nc)) {
+                    // 우회 시도 (반대 축 이동)
+                    if (nr !== m.r) { nr = m.r; nc += (dc >= 0 ? 1 : -1); }
+                    else { nc = m.c; nr += (dr >= 0 ? 1 : -1); }
+                }
+
+                // 이동 확정
+                m.r = nr; m.c = nc;
                 m.style.top = (m.r * 5) + '%'; m.style.left = (m.c * 5) + '%';
 
-                if (dist < 0.6) {
+                if (Math.abs(9-m.r) <= 1 && Math.abs(9-m.c) <= 1) {
                     villageHp -= (m.innerHTML === '👹' ? 60 : 15);
                     document.getElementById('hp-bar').style.width = Math.max(0, villageHp) + '%';
                     m.remove(); monsters.splice(idx, 1);
                     if (villageHp <= 0) { alert("DEFENSE FAILED"); location.reload(); }
                 } else if (m.hp <= 0) {
-                    m.remove(); monsters.splice(idx, 1);
-                    dCoin += 30; document.getElementById('d-coin').innerText = dCoin + " DG";
+                    m.remove(); monsters.splice(idx, 1); dCoin += 40;
+                    document.getElementById('d-coin').innerText = dCoin + " DG";
                 }
             });
 
-            // 2. 🤺 캐릭터 자동 공격 (0.6초마다)
-            if (playerActive && monsters.length > 0 && now - playerLastShot > 600) {
-                const pRangeVal = 2 + (user_int / 80);
-                let closest = null, minDist = Infinity;
-                monsters.forEach(m => {
-                    const dist = Math.sqrt(Math.pow(playerPos.r - m.r, 2) + Math.pow(playerPos.c - m.c, 2));
-                    if (dist <= pRangeVal && dist < minDist) { minDist = dist; closest = m; }
-                });
-                if (closest) {
-                    sndAtk.currentTime = 0; sndAtk.play();
-                    fireProjectile(playerPos.r, playerPos.c, closest, '#fbbf24', (12 + user_str / 6));
-                    playerLastShot = now;
-                }
-            }
-
-            // 3. 🗼 타워 자동 공격
+            // 2. 자동 공격 시스템 (엔진 루프 내에서 처리)
+            const now = Date.now();
+            
+            // 타워 공격
             towers.forEach(t => {
                 if (now - t.lastShot > t.cooldown) {
-                    const target = monsters.find(m => Math.sqrt(Math.pow(t.r-m.r,2)+Math.pow(t.c-m.c,2)) < t.range);
+                    const target = monsters.find(m => Math.abs(t.r-m.r) + Math.abs(t.c-m.c) <= t.range * 2);
                     if (target) {
                         sndTower.currentTime = 0; sndTower.play();
-                        fireProjectile(t.r, t.c, target, '#38bdf8', (18 + user_str/10));
+                        fireProjectile(t.r, t.c, target, '#38bdf8', (25 + user_str/8));
                         t.lastShot = now;
                     }
                 }
             });
 
-            drawMonsterPaths();
-            if (isWaveActive && monsters.length === 0) { isWaveActive = false; currentRound++; document.getElementById('round-display').innerText = "ROUND " + currentRound; document.getElementById('start-btn').style.display = 'block'; }
-        }, 100);
+            // 캐릭터 자동 공격
+            if (playerActive && now - playerLastShot > 500) {
+                const pRangeVal = 1.5 + (user_int / 100);
+                const target = monsters.find(m => Math.abs(playerPos.r-m.r) + Math.abs(playerPos.c-m.c) <= pRangeVal * 2);
+                if (target) {
+                    sndAtk.currentTime = 0; sndAtk.play();
+                    fireProjectile(playerPos.r, playerPos.c, target, '#fbbf24', (20 + user_str/5));
+                    playerLastShot = now;
+                }
+            }
+
+            if (isWaveActive && monsters.length === 0) {
+                isWaveActive = false; currentRound++;
+                document.getElementById('round-display').innerText = "ROUND " + currentRound;
+                document.getElementById('start-btn').style.display = 'block';
+            }
+        }, 400); // 이동 주기를 0.4초로 늘려 부드러운 격자 이동 구현
     </script>
 </body>
 </html>
