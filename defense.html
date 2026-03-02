@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>QuestBody - 20 Round Elite Defense</title>
+    <title>QuestBody - 20 Round Elite Defense (Fast Mode)</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&display=swap');
@@ -33,7 +33,7 @@
         }
         #player.active { outline: 2px solid #fbbf24; border-radius: 50%; box-shadow: 0 0 10px #fbbf24; }
 
-        .monster { position: absolute; width: 5%; height: 5%; z-index: 30; display: flex; flex-direction: column; align-items: center; justify-content: center; transition: all 1.2s linear; visibility: hidden; }
+        .monster { position: absolute; width: 5%; height: 5%; z-index: 30; display: flex; flex-direction: column; align-items: center; justify-content: center; visibility: hidden; }
         .hp-bg { width: 90%; height: 3px; background: #450a0a; position: absolute; top: -4px; border-radius: 1px; }
         .hp-fill { height: 100%; background: #22c55e; }
 
@@ -41,7 +41,7 @@
         #preview-tower { position: absolute; width: 5%; height: 5%; z-index: 45; display: none; background: rgba(251, 191, 36, 0.3); border: 1px solid #fbbf24; pointer-events: none; }
 
         .range-circle { position: absolute; border: 1px dashed rgba(56, 189, 248, 0.4); border-radius: 50%; pointer-events: none; z-index: 5; transform: translate(-50%, -50%); display: none; }
-        .projectile { position: absolute; width: 4px; height: 4px; border-radius: 50%; z-index: 80; pointer-events: none; transition: all 0.15s linear; }
+        .projectile { position: absolute; width: 4px; height: 4px; border-radius: 50%; z-index: 80; pointer-events: none; }
 
         .ui-panel { background: #0f172a; border-top: 2px solid #334155; padding: 10px; }
         .tower-btn { background: #1e293b; border: 1px solid #475569; border-radius: 8px; padding: 4px; text-align: center; }
@@ -50,6 +50,10 @@
         
         .exp-container { width: 100%; height: 4px; background: #1e293b; border-radius: 2px; margin-top: 4px; overflow: hidden; }
         #exp-fill { height: 100%; background: #a855f7; width: 0%; transition: width 0.3s; }
+        
+        /* ⚡ 배속 버튼 스타일 */
+        #speed-btn { background: #1e293b; border: 1px solid #fbbf24; color: #fbbf24; font-size: 10px; padding: 4px 8px; border-radius: 4px; font-weight: bold; }
+        #speed-btn.fast { background: #fbbf24; color: #000; }
     </style>
 </head>
 <body class="flex flex-col">
@@ -68,7 +72,10 @@
             </div>
             <div class="exp-container"><div id="exp-fill"></div></div>
         </div>
-        <p id="d-coin" class="text-xs font-bold text-yellow-400">200 DG</p>
+        <div class="flex flex-col items-end gap-1">
+            <p id="d-coin" class="text-xs font-bold text-yellow-400">200 DG</p>
+            <button id="speed-btn" onclick="toggleSpeed()">SPEED x1</button>
+        </div>
     </header>
 
     <div class="flex-1 flex flex-col items-center justify-center bg-black relative">
@@ -121,6 +128,9 @@
         let playerPos = { r: 18, c: 9 }, playerActive = false, playerLastShot = 0;
         let selectedType = null, pendingBuild = null, towers = [], monsters = [], isWaveActive = false;
         
+        // ⚡ 배속 변수 추가
+        let gameSpeed = 1;
+
         const map = document.getElementById('map'), player = document.getElementById('player'), pRange = document.getElementById('p-range-circle');
         const previewTower = document.getElementById('preview-tower'), previewRange = document.getElementById('preview-range');
 
@@ -136,6 +146,16 @@
             document.body.onclick = () => { document.getElementById('bgm').play().catch(e=>{}); };
             updateVisualPath();
         };
+
+        // ⚡ 배속 토글 함수
+        function toggleSpeed() {
+            gameSpeed = gameSpeed === 1 ? 2 : 1;
+            const btn = document.getElementById('speed-btn');
+            btn.innerText = `SPEED x${gameSpeed}`;
+            btn.className = gameSpeed === 2 ? 'fast' : '';
+            
+            // 이동 엔진 주기 변경을 위해 기존 엔진 로직 수정 필요 (인터벌 방식 대신 변수 참조)
+        }
 
         function updateStats() {
             document.getElementById('hero-atk-val').innerText = Math.floor(30 + user_str/4 + (dLevel-1)*10);
@@ -266,10 +286,14 @@
             document.getElementById('start-btn').classList.add('opacity-50', 'pointer-events-none');
             const isBoss = currentRound % 5 === 0;
             let count = isBoss ? 1 : 5 + currentRound;
-            const interval = setInterval(() => {
-                if (count-- <= 0) { clearInterval(interval); return; }
+            
+            // ⚡ 소환 간격도 배속 적용
+            const spawnInternal = () => {
+                if (count-- <= 0) return;
                 spawnMonster(isBoss);
-            }, 1000);
+                setTimeout(spawnInternal, 1000 / gameSpeed);
+            };
+            spawnInternal();
         }
 
         function spawnMonster(isBoss) {
@@ -279,7 +303,6 @@
             const hpFill = document.createElement('div'); hpFill.className = 'hp-fill';
             hpCont.appendChild(hpFill); m.appendChild(hpCont);
             m.r = 0; m.c = 10; 
-            // 보스 및 일반 몬스터 체력 밸런스 조정
             m.maxHp = (isBoss ? 4000 : 300) + (currentRound * 150); 
             m.hp = m.maxHp;
             m.style.top = '0%'; m.style.left = '50%'; m.style.visibility = 'visible';
@@ -293,7 +316,9 @@
             p.style.left = sX + '%'; p.style.top = sY + '%';
             map.appendChild(p);
 
-            p.animate([{ left: sX + '%', top: sY + '%' }, { left: (target.c * 5 + 2.5) + '%', top: (target.r * 5 + 2.5) + '%' }], { duration: 150 }).onfinish = () => {
+            // ⚡ 투사체 속도 배속 적용
+            const duration = 150 / gameSpeed;
+            p.animate([{ left: sX + '%', top: sY + '%' }, { left: (target.c * 5 + 2.5) + '%', top: (target.r * 5 + 2.5) + '%' }], { duration: duration }).onfinish = () => {
                 p.remove();
                 if (monsters.includes(target)) {
                     target.hp -= dmg;
@@ -323,7 +348,6 @@
         }
 
         function showVictoryScreen() {
-            // 💰 퀘스트 보상 코인 100 지급
             let mainCoin = parseInt(localStorage.getItem('user_coin')) || 0;
             localStorage.setItem('user_coin', mainCoin + 100);
 
@@ -343,49 +367,56 @@
             document.body.appendChild(victoryDiv);
         }
 
-        setInterval(() => {
-            if (!isWaveActive && monsters.length === 0) return;
-            
-            monsters.forEach((m) => {
-                const next = findNextStep(m.r, m.c);
-                m.r = next.r; m.c = next.c;
-                m.style.top = (m.r * 5) + '%'; m.style.left = (m.c * 5) + '%';
+        // ⚡ 이동 루프: 재귀적 setTimeout을 사용하여 배속 변경 즉시 반영
+        function moveLoop() {
+            if (isWaveActive || monsters.length > 0) {
+                monsters.forEach((m) => {
+                    const next = findNextStep(m.r, m.c);
+                    m.r = next.r; m.c = next.c;
+                    m.style.top = (m.r * 5) + '%'; m.style.left = (m.c * 5) + '%';
 
-                if (m.r >= 18) {
-                    villageHp -= (m.innerHTML === '👹' ? 60 : 15);
-                    document.getElementById('hp-bar').style.width = Math.max(0, villageHp) + '%';
-                    m.remove(); monsters.splice(monsters.indexOf(m), 1);
-                    if (villageHp <= 0) { alert("VILLAGE DESTROYED!"); location.reload(); }
-                }
-            });
+                    if (m.r >= 18) {
+                        villageHp -= (m.innerHTML === '👹' ? 60 : 15);
+                        document.getElementById('hp-bar').style.width = Math.max(0, villageHp) + '%';
+                        m.remove(); monsters.splice(monsters.indexOf(m), 1);
+                        if (villageHp <= 0) { alert("VILLAGE DESTROYED!"); location.reload(); }
+                    }
+                });
 
-            if (isWaveActive && monsters.length === 0) {
-                isWaveActive = false;
-                if (currentRound >= 20) {
-                    showVictoryScreen();
-                } else {
-                    currentRound++;
-                    document.getElementById('round-display').innerText = `ROUND ${currentRound}/20`;
-                    document.getElementById('start-btn').classList.remove('opacity-50', 'pointer-events-none');
-                    updateVisualPath();
+                if (isWaveActive && monsters.length === 0) {
+                    isWaveActive = false;
+                    if (currentRound >= 20) {
+                        showVictoryScreen();
+                    } else {
+                        currentRound++;
+                        document.getElementById('round-display').innerText = `ROUND ${currentRound}/20`;
+                        document.getElementById('start-btn').classList.remove('opacity-50', 'pointer-events-none');
+                        updateVisualPath();
+                    }
                 }
             }
-        }, 1200);
+            setTimeout(moveLoop, 1200 / gameSpeed);
+        }
+        moveLoop();
 
-        setInterval(() => {
-            if (monsters.length === 0) return;
-            const now = Date.now();
-            towers.forEach(t => {
-                if (now - t.lastShot > t.cooldown) {
-                    const target = monsters.find(m => Math.abs(t.r-m.r) + Math.abs(t.c-m.c) <= t.range * 2.5);
-                    if (target) { fireProjectile(t.r, t.c, target, '#38bdf8', (40 + user_str/6)); t.lastShot = now; }
+        // ⚡ 공격 루프
+        function attackLoop() {
+            if (monsters.length > 0) {
+                const now = Date.now();
+                towers.forEach(t => {
+                    if (now - t.lastShot > t.cooldown / gameSpeed) { // ⚡ 쿨타임 배속 적용
+                        const target = monsters.find(m => Math.abs(t.r-m.r) + Math.abs(t.c-m.c) <= t.range * 2.5);
+                        if (target) { fireProjectile(t.r, t.c, target, '#38bdf8', (40 + user_str/6)); t.lastShot = now; }
+                    }
+                });
+                if (playerActive && now - playerLastShot > 600 / gameSpeed) { // ⚡ 플레이어 공속 배속 적용
+                    const target = monsters.find(m => Math.abs(playerPos.r-m.r) + Math.abs(playerPos.c-m.c) <= (1.5 + user_int/100) * 2.5);
+                    if (target) { fireProjectile(playerPos.r, playerPos.c, target, '#fbbf24', (30 + user_str/4 + (dLevel-1)*10)); playerLastShot = now; }
                 }
-            });
-            if (playerActive && now - playerLastShot > 600) {
-                const target = monsters.find(m => Math.abs(playerPos.r-m.r) + Math.abs(playerPos.c-m.c) <= (1.5 + user_int/100) * 2.5);
-                if (target) { fireProjectile(playerPos.r, playerPos.c, target, '#fbbf24', (30 + user_str/4 + (dLevel-1)*10)); playerLastShot = now; }
             }
-        }, 150);
+            setTimeout(attackLoop, 150 / gameSpeed);
+        }
+        attackLoop();
     </script>
 </body>
 </html>
