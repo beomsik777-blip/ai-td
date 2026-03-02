@@ -3,215 +3,218 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>QuestBody - Fortress Defense</title>
+    <title>QuestBody - Defense Core</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&display=swap');
-        body { background-color: #020617; color: white; font-family: 'Orbitron', sans-serif; overflow: hidden; height: 100dvh; }
         
-        /* 전장: 중앙 마을 중심 */
+        /* 2. 터치 줌 방지 및 스크롤 차단 */
+        * { touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
+        body { background-color: #020617; color: white; font-family: 'Orbitron', sans-serif; overflow: hidden; height: 100dvh; margin: 0; }
+        
         .battle-arena { 
-            height: 60%; width: 100%; position: relative; 
+            height: 55%; width: 100%; position: relative; 
             background: radial-gradient(circle, #1e293b 0%, #020617 100%);
             overflow: hidden;
+            border-bottom: 2px solid #334155;
         }
 
-        /* 중앙 마을 (Castle) */
         #village-center {
-            position: absolute; top: 50%; left: 50%;
-            transform: translate(-50%, -50%);
-            width: 100px; height: 100px;
-            background-image: url('https://cdn-icons-png.flaticon.com/512/619/619153.png'); /* 성 이미지 */
-            background-size: contain; background-repeat: no-repeat;
-            z-index: 50; filter: drop-shadow(0 0 15px rgba(56, 189, 248, 0.5));
+            position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+            width: 80px; height: 80px;
+            background-image: url('https://cdn-icons-png.flaticon.com/512/619/619153.png');
+            background-size: contain; background-repeat: no-repeat; z-index: 10;
         }
 
-        /* 캐릭터 (마을 수호자) */
+        /* ⚔️ 공격 범위 시각화 */
+        #attack-range {
+            position: absolute; border: 1px dashed rgba(56, 189, 248, 0.4);
+            border-radius: 50%; background: rgba(56, 189, 248, 0.05);
+            pointer-events: none; z-index: 5; transition: all 0.1s;
+        }
+
         #player {
-            position: absolute; top: 50%; left: 50%;
-            transform: translate(-50%, -50%);
-            width: 50px; height: 50px;
+            position: absolute; width: 45px; height: 45px;
             background-size: contain; background-repeat: no-repeat;
-            z-index: 60; transition: all 0.1s;
+            z-index: 20; transition: top 0.1s, left 0.1s;
+            filter: drop-shadow(0 0 5px #38bdf8);
         }
 
-        /* 몬스터 기본 스타일 */
         .monster {
-            position: absolute; width: 40px; height: 40px;
+            position: absolute; width: 35px; height: 35px;
             background-size: contain; background-repeat: no-repeat;
-            z-index: 40; transition: transform 0.2s;
+            z-index: 15;
         }
 
-        /* 투사체 */
-        .effect {
-            position: absolute; pointer-events: none; z-index: 70;
-            background: #38bdf8; border-radius: 50%;
-            box-shadow: 0 0 15px #38bdf8;
-        }
+        /* 컨트롤러 스타일 */
+        .control-pad { display: grid; grid-template-columns: repeat(3, 1fr); gap: 5px; width: 120px; }
+        .ctrl-btn { background: #1e293b; border: 1px solid #334155; border-radius: 8px; height: 40px; display: flex; align-items: center; justify-content: center; font-size: 1.2rem; }
+        .ctrl-btn:active { background: #38bdf8; color: #020617; }
 
-        .skill-btn { background: rgba(30, 41, 59, 0.8); border: 1px solid #38bdf8; border-radius: 12px; padding: 10px; transition: 0.2s; }
-        .skill-btn:active { transform: scale(0.9); }
+        .skill-btn { background: rgba(30, 41, 59, 0.8); border: 1px solid #38bdf8; border-radius: 12px; transition: 0.1s; }
+        .skill-btn:active { transform: scale(0.92); filter: brightness(1.2); }
     </style>
 </head>
 <body class="flex flex-col">
 
-    <header class="p-4 bg-slate-900 flex justify-between items-center z-50">
-        <button onclick="location.href='index.html'" class="text-slate-400 text-xs font-bold">◀ ESCAPE</button>
+    <header class="p-4 bg-slate-900 flex justify-between items-center shrink-0 border-b border-slate-800">
+        <button onclick="location.href='index.html'" class="text-slate-400 text-xs font-bold">◀ BACK</button>
         <div class="text-center">
-            <p id="wave-info" class="text-blue-400 text-[10px] font-bold tracking-widest">WAVE 1</p>
-            <div class="w-32 bg-slate-800 h-2 mt-1 rounded-full overflow-hidden border border-slate-700">
+            <p id="wave-info" class="text-blue-400 text-[10px] font-bold uppercase">Wave 1</p>
+            <div class="w-32 bg-slate-800 h-1.5 mt-1 rounded-full overflow-hidden border border-slate-700">
                 <div id="hp-bar" class="bg-emerald-500 h-full w-full transition-all"></div>
             </div>
         </div>
-        <div class="text-right">
-            <p id="battle-coin" class="text-sm font-bold text-yellow-400">100 G</p>
-        </div>
+        <p id="battle-coin" class="text-sm font-bold text-yellow-400">0 G</p>
     </header>
 
-    <div class="battle-arena" id="arena" onclick="handleArenaClick(event)">
+    <div class="battle-arena" id="arena">
         <div id="village-center"></div>
-        <div id="player"></div>
+        <div id="attack-range"></div> <div id="player"></div>
+    </div>
+
+    <div class="flex-1 bg-slate-900 p-4 flex flex-col justify-between">
+        <div class="flex justify-around text-center mb-2">
+            <div><p class="text-[8px] text-slate-500 uppercase">Attack (STR)</p><p id="p-str" class="font-bold text-orange-500">0</p></div>
+            <div><p class="text-[8px] text-slate-500 uppercase">Mana (INT)</p><p id="p-mana" class="font-bold text-blue-400">0/0</p></div>
+            <div><p class="text-[8px] text-slate-500 uppercase">Range</p><p id="p-range" class="font-bold text-emerald-400">0</p></div>
         </div>
 
-    <div class="flex-1 bg-slate-900 p-4 space-y-4 border-t-4 border-slate-800">
-        <div class="grid grid-cols-2 gap-4 text-center">
-            <div>
-                <p class="text-[8px] text-orange-500 font-bold uppercase">Attack Power (STR)</p>
-                <p id="p-str" class="text-lg font-bold">0</p>
+        <div class="flex justify-between items-center gap-4">
+            <div class="control-pad">
+                <div></div><button class="ctrl-btn" onclick="movePlayer(0, -5)">▲</button><div></div>
+                <button class="ctrl-btn" onclick="movePlayer(-5, 0)">◀</button><button class="ctrl-btn" onclick="movePlayer(0, 5)">▼</button><button class="ctrl-btn" onclick="movePlayer(5, 0)">▶</button>
             </div>
-            <div>
-                <p class="text-[8px] text-blue-500 font-bold uppercase">Mana (INT)</p>
-                <p id="p-mana" class="text-lg font-bold">0 / 0</p>
-            </div>
-        </div>
 
-        <div class="grid grid-cols-2 gap-3">
-            <button onclick="manualAttack()" class="skill-btn border-orange-500 h-16">
-                <span class="text-xl">⚔️</span><br>
-                <span class="text-[8px] font-bold text-orange-400 uppercase">Manual Strike</span>
-            </button>
-            <button id="skill-btn" onclick="useUltimate()" class="skill-btn border-purple-500 h-16">
-                <span class="text-xl">🌀</span><br>
-                <span class="text-[8px] font-bold text-purple-400 uppercase">Aura Blast (Mana 10)</span>
-            </button>
+            <div class="flex-1 grid grid-cols-1 gap-2">
+                <button onclick="manualAttack()" class="skill-btn border-orange-500 h-14 flex flex-col items-center justify-center">
+                    <span class="text-xl">⚔️</span>
+                    <span class="text-[8px] font-bold text-orange-400 uppercase">Strike</span>
+                </button>
+                <button id="skill-btn" onclick="useUltimate()" class="skill-btn border-purple-500 h-12 flex flex-col items-center justify-center">
+                    <span class="text-[8px] font-bold text-purple-400 uppercase">Burst (Mana 10)</span>
+                </button>
+            </div>
         </div>
     </div>
 
     <script>
-        // 기초 데이터 로드
-        let str = parseInt(localStorage.getItem('user_str')) || 70;
+        // 기초 데이터
+        let str = parseInt(localStorage.getItem('user_str')) || 10;
         let int = parseInt(localStorage.getItem('user_int')) || 0;
         let coins = parseInt(localStorage.getItem('user_coin')) || 100;
+        
+        let playerPos = { x: 50, y: 50 }; // % 단위
+        let attackRange = 25 + (int * 0.5); // 지능이 높으면 명령 범위(공격 사거리) 증가
         let manaMax = 10 + int;
         let currentMana = manaMax;
         let villageHp = 100;
         let currentWave = 1;
-        
-        const arena = document.getElementById('arena');
+
         const player = document.getElementById('player');
+        const rangeEl = document.getElementById('attack-range');
+        const arena = document.getElementById('arena');
         const inbody = JSON.parse(localStorage.getItem('user_inbody'));
 
         // 캐릭터 설정
-        if (inbody) {
-            player.style.backgroundImage = inbody.gender === 'woman' ? "url('image/woman.png')" : "url('image/man/man.png')";
-        } else {
-            player.style.backgroundImage = "url('image/nocheck.png')";
+        if (inbody) player.style.backgroundImage = inbody.gender === 'woman' ? "url('image/woman.png')" : "url('image/man/man.png')";
+        else player.style.backgroundImage = "url('image/nocheck.png')";
+
+        function init() {
+            updatePlayerPos();
+            document.getElementById('p-str').innerText = str;
+            document.getElementById('p-range').innerText = Math.floor(attackRange);
+            document.getElementById('battle-coin').innerText = coins + " G";
+            updateManaUI();
         }
 
-        // 초기 UI 업데이트
-        document.getElementById('p-str').innerText = str;
-        document.getElementById('battle-coin').innerText = coins + " G";
-        updateManaUI();
-
-        function updateManaUI() {
-            document.getElementById('p-mana').innerText = `${currentMana} / ${manaMax}`;
-            document.getElementById('skill-btn').style.opacity = currentMana >= 10 ? '1' : '0.4';
+        // 🚀 이동 로직
+        function movePlayer(dx, dy) {
+            playerPos.x = Math.max(5, Math.min(95, playerPos.x + dx));
+            playerPos.y = Math.max(5, Math.min(95, playerPos.y + dy));
+            updatePlayerPos();
         }
 
-        // 몬스터 생성 (동-서-남-북 랜덤/라운드제)
+        function updatePlayerPos() {
+            player.style.left = playerPos.x + '%';
+            player.style.top = playerPos.y + '%';
+            player.style.transform = 'translate(-50%, -50%)';
+            
+            // 범위 표시기 따라다니기
+            rangeEl.style.width = (attackRange * 2) + '%';
+            rangeEl.style.height = (attackRange * 2.5) + '%'; // 화면 비율 보정
+            rangeEl.style.left = playerPos.x + '%';
+            rangeEl.style.top = playerPos.y + '%';
+            rangeEl.style.transform = 'translate(-50%, -50%)';
+        }
+
+        // ⚔️ 범위 공격 로직
+        function manualAttack() {
+            const monsters = Array.from(document.getElementsByClassName('monster'));
+            let hit = false;
+
+            monsters.forEach(m => {
+                const mx = parseFloat(m.style.left);
+                const my = parseFloat(m.style.top);
+                const dist = Math.sqrt(Math.pow(playerPos.x - mx, 2) + Math.pow(playerPos.y - my, 2));
+
+                if (dist <= attackRange) {
+                    m.hp -= (5 + str / 5);
+                    createEffect(m.style.left, m.style.top, '15px', '#f97316');
+                    if (m.hp <= 0) {
+                        clearInterval(m.moveInterval);
+                        m.remove();
+                        rewardCoin(5);
+                    }
+                    hit = true;
+                }
+            });
+
+            if (!hit) createEffect(playerPos.x + '%', playerPos.y + '%', '30px', 'rgba(255,255,255,0.1)');
+        }
+
         function spawnMonster() {
             const monster = document.createElement('div');
             monster.className = 'monster';
-            
-            // 방향 설정: 0:북, 1:동, 2:남, 3:서
-            const directions = [
-                { top: -50, left: 50 },  // 북
-                { top: 50, left: 150 }, // 동
-                { top: 150, left: 50 }, // 남
-                { top: 50, left: -50 }  // 서
-            ];
-            
-            // 라운드마다 방향이 정해지게 하려면 (currentWave % 4) 사용 가능
-            const dir = directions[Math.floor(Math.random() * 4)];
-            monster.style.top = dir.top + '%';
-            monster.style.left = dir.left + '%';
+            const dirs = [{t:-10,l:50}, {t:50,l:110}, {t:110,l:50}, {t:50,l:-10}];
+            const dir = dirs[Math.floor(Math.random() * 4)];
+            monster.style.top = dir.t + '%';
+            monster.style.left = dir.l + '%';
             monster.style.backgroundImage = "url('https://cdn-icons-png.flaticon.com/512/606/606807.png')";
-            
-            monster.hp = 20 + (currentWave * 10);
+            monster.hp = 15 + (currentWave * 5);
             arena.appendChild(monster);
 
-            const moveInterval = setInterval(() => {
-                const mTop = parseFloat(monster.style.top);
-                const mLeft = parseFloat(monster.style.left);
-                
-                // 중앙(50, 50)으로 이동
-                const distY = 50 - mTop;
-                const distX = 50 - mLeft;
-                const angle = Math.atan2(distY, distX);
-                
-                const speed = 0.3 + (currentWave * 0.05);
-                monster.style.top = (mTop + Math.sin(angle) * speed) + '%';
-                monster.style.left = (mLeft + Math.cos(angle) * speed) + '%';
+            monster.moveInterval = setInterval(() => {
+                const mt = parseFloat(monster.style.top);
+                const ml = parseFloat(monster.style.left);
+                const angle = Math.atan2(50 - mt, 50 - ml);
+                const speed = 0.2 + (currentWave * 0.03);
+                monster.style.top = (mt + Math.sin(angle) * speed) + '%';
+                monster.style.left = (ml + Math.cos(angle) * speed) + '%';
 
-                // 중앙 도달 체크
-                if (Math.abs(distX) < 5 && Math.abs(distY) < 5) {
-                    clearInterval(moveInterval);
+                if (Math.abs(50 - mt) < 4 && Math.abs(50 - ml) < 4) {
+                    clearInterval(monster.moveInterval);
                     monster.remove();
                     takeDamage(10);
                 }
             }, 50);
-
-            monster.moveInterval = moveInterval;
         }
 
         function takeDamage(dmg) {
             villageHp -= dmg;
             document.getElementById('hp-bar').style.width = villageHp + '%';
-            if (villageHp <= 0) {
-                alert("마을이 무너졌습니다... 더 강해져서 돌아오세요!");
-                location.href = 'index.html';
-            }
+            if (villageHp <= 0) { alert("Game Over"); location.href='index.html'; }
         }
 
-        // 수동 공격 로직
-        function manualAttack() {
-            const monsters = document.getElementsByClassName('monster');
-            if (monsters.length > 0) {
-                const target = monsters[0]; // 가장 먼저 나온 적 공격
-                createEffect(target.style.left, target.style.top);
-                target.hp -= (str / 2);
-                if (target.hp <= 0) {
-                    clearInterval(target.moveInterval);
-                    target.remove();
-                    rewardCoin(5);
-                }
-            }
-        }
-
-        // 필살기 (지능 비례)
         function useUltimate() {
             if (currentMana >= 10) {
-                currentMana -= 10;
-                updateManaUI();
+                currentMana -= 10; updateManaUI();
                 const monsters = Array.from(document.getElementsByClassName('monster'));
                 monsters.forEach(m => {
-                    createEffect(m.style.left, m.style.top, '80px');
-                    clearInterval(m.moveInterval);
-                    m.remove();
-                    rewardCoin(10);
+                    clearInterval(m.moveInterval); m.remove(); rewardCoin(8);
                 });
                 currentWave++;
-                document.getElementById('wave-info').innerText = `WAVE ${currentWave}`;
+                document.getElementById('wave-info').innerText = `Wave ${currentWave}`;
             }
         }
 
@@ -221,32 +224,23 @@
             localStorage.setItem('user_coin', coins);
         }
 
-        function createEffect(left, top, size = '20px') {
-            const div = document.createElement('div');
-            div.className = 'effect';
-            div.style.left = left;
-            div.style.top = top;
-            div.style.width = size;
-            div.style.height = size;
-            arena.appendChild(div);
-            setTimeout(() => div.remove(), 300);
+        function updateManaUI() {
+            document.getElementById('p-mana').innerText = `${currentMana}/${manaMax}`;
+            document.getElementById('skill-btn').disabled = currentMana < 10;
         }
 
-        // 자동 몬스터 스폰
-        setInterval(() => {
-            if (document.getElementsByClassName('monster').length < 5 + currentWave) {
-                spawnMonster();
-            }
-        }, 2000);
+        function createEffect(l, t, s, c) {
+            const d = document.createElement('div');
+            d.className = 'effect';
+            d.style.left = l; d.style.top = t; d.style.width = s; d.style.height = s; d.style.background = c;
+            arena.appendChild(d);
+            setTimeout(() => d.remove(), 200);
+        }
 
-        // 마나 자동 회복 (지능이 높을수록 빠름)
-        setInterval(() => {
-            if (currentMana < manaMax) {
-                currentMana++;
-                updateManaUI();
-            }
-        }, 3000 - Math.min(int * 10, 2000));
+        setInterval(() => { if (document.getElementsByClassName('monster').length < 3 + currentWave) spawnMonster(); }, 2500);
+        setInterval(() => { if (currentMana < manaMax) { currentMana++; updateManaUI(); } }, 4000);
 
+        init();
     </script>
 </body>
 </html>
