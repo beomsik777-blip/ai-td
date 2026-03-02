@@ -1,1 +1,179 @@
+<!DOCTYPE html>
+<html lang="ko" class="notranslate" translate="no">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>QuestBody - Defense</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&display=swap');
+        body { background-color: #020617; color: white; font-family: 'Orbitron', sans-serif; overflow: hidden; height: 100dvh; }
+        
+        /* 전장 배경 */
+        .battlefield { 
+            height: 60%; width: 100%; position: relative; 
+            background: linear-gradient(to bottom, #0f172a 0%, #1e293b 100%);
+            border-bottom: 4px solid #334155;
+            overflow: hidden;
+        }
 
+        /* 캐릭터 & 몬스터 */
+        #player { position: absolute; bottom: 20px; left: 20px; width: 80px; height: 80px; background-size: contain; background-repeat: no-repeat; z-index: 10; transition: transform 0.1s; }
+        .monster { position: absolute; bottom: 20px; right: -60px; width: 60px; height: 60px; background-size: contain; background-repeat: no-repeat; transition: left 0.05s linear; }
+        
+        /* 투사체 */
+        .bullet { position: absolute; bottom: 50px; background: #38bdf8; width: 15px; height: 4px; border-radius: 2px; box-shadow: 0 0 10px #38bdf8; }
+
+        /* UI 버튼 */
+        .skill-btn { background: rgba(30, 41, 59, 0.8); border: 1px solid #38bdf8; border-radius: 12px; padding: 10px; text-align: center; active:scale-95 transition: all 0.2s; }
+        .skill-btn:disabled { opacity: 0.3; border-color: #475569; }
+    </style>
+</head>
+<body class="flex flex-col">
+
+    <header class="p-4 bg-slate-900 flex justify-between items-center shrink-0">
+        <button onclick="location.href='index.html'" class="text-slate-400 text-xs font-bold">◀ ESCAPE</button>
+        <div class="text-center">
+            <p class="text-[8px] text-slate-500 uppercase">Village HP</p>
+            <div class="w-32 bg-slate-800 h-2 rounded-full overflow-hidden border border-slate-700">
+                <div id="hp-bar" class="bg-emerald-500 h-full w-full transition-all"></div>
+            </div>
+        </div>
+        <div class="text-right">
+            <p class="text-[8px] text-yellow-400 uppercase font-bold">Coin</p>
+            <p id="battle-coin" class="text-xs font-bold text-yellow-400">0</p>
+        </div>
+    </header>
+
+    <div class="battlefield" id="stage">
+        <div id="player"></div>
+        </div>
+
+    <div class="flex-1 bg-slate-900 p-4 space-y-4">
+        <div class="flex justify-between items-center px-2">
+            <div>
+                <span class="text-[10px] text-orange-400 font-bold uppercase">Attack (STR)</span>
+                <p id="p-str" class="text-lg font-bold">0</p>
+            </div>
+            <div class="text-right">
+                <span class="text-[10px] text-blue-400 font-bold uppercase">Mana (INT)</span>
+                <p id="p-mana" class="text-lg font-bold">0 / 0</p>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-2 gap-3">
+            <button onclick="playerAttack()" class="skill-btn border-orange-500 h-20">
+                <span class="text-2xl">⚔️</span><br>
+                <span class="text-[10px] font-bold text-orange-400 uppercase">Basic Attack</span>
+            </button>
+            <button id="skill-btn" onclick="useSkill()" class="skill-btn border-purple-500 h-20">
+                <span class="text-2xl">🔥</span><br>
+                <span class="text-[10px] font-bold text-purple-400 uppercase">Burst Skill (Mana 5)</span>
+            </button>
+        </div>
+    </div>
+
+    <script>
+        // 데이터 로드
+        let str = parseInt(localStorage.getItem('user_str')) || 10;
+        let int = parseInt(localStorage.getItem('user_int')) || 0;
+        let mana = 10 + int;
+        let currentMana = mana;
+        let villageHp = 100;
+        let coinEarned = 0;
+        
+        const inbody = JSON.parse(localStorage.getItem('user_inbody'));
+        const player = document.getElementById('player');
+        const hpBar = document.getElementById('village-hp');
+
+        // 캐릭터 이미지 설정
+        if (inbody) {
+            const charImg = inbody.gender === 'woman' ? 'image/woman.png' : 'image/man/man.png';
+            player.style.backgroundImage = `url('${charImg}')`;
+        } else {
+            player.style.backgroundImage = "url('image/nocheck.png')";
+        }
+
+        document.getElementById('p-str').innerText = str;
+        updateManaUI();
+
+        function updateManaUI() {
+            document.getElementById('p-mana').innerText = `${currentMana} / ${mana}`;
+            document.getElementById('skill-btn').disabled = currentMana < 5;
+        }
+
+        // 몬스터 소환 로직
+        function spawnMonster() {
+            const stage = document.getElementById('stage');
+            const monster = document.createElement('div');
+            monster.className = 'monster';
+            monster.style.backgroundImage = "url('https://cdn-icons-png.flaticon.com/512/606/606807.png')"; // 임시 슬라임 이미지
+            monster.style.left = '100%';
+            monster.hp = 20 + (str * 0.5); // 마스터 근력에 비례해 강해짐
+            stage.appendChild(monster);
+
+            let moveInterval = setInterval(() => {
+                let currentLeft = parseFloat(monster.style.left);
+                if (currentLeft <= 10) { // 마을 도착
+                    clearInterval(moveInterval);
+                    monster.remove();
+                    takeDamage(10);
+                } else {
+                    monster.style.left = (currentLeft - 0.5) + '%';
+                }
+            }, 50);
+            
+            monster.moveInterval = moveInterval;
+        }
+
+        function takeDamage(amt) {
+            villageHp -= amt;
+            document.getElementById('hp-bar').style.width = villageHp + '%';
+            if (villageHp <= 0) {
+                alert("마을이 함락되었습니다! 수련을 더 쌓으세요.");
+                location.href = 'index.html';
+            }
+        }
+
+        // 공격 로직
+        function playerAttack() {
+            player.style.transform = 'scale(1.2)';
+            setTimeout(() => player.style.transform = 'scale(1)', 100);
+
+            const monsters = document.getElementsByClassName('monster');
+            if (monsters.length > 0) {
+                let target = monsters[0];
+                target.hp -= (str / 2);
+                if (target.hp <= 0) {
+                    clearInterval(target.moveInterval);
+                    target.remove();
+                    coinEarned += 5;
+                    document.getElementById('battle-coin').innerText = coinEarned;
+                    // 코인 저장
+                    let totalCoin = parseInt(localStorage.getItem('user_coin')) || 100;
+                    localStorage.setItem('user_coin', totalCoin + 5);
+                }
+            }
+        }
+
+        function useSkill() {
+            if (currentMana >= 5) {
+                currentMana -= 5;
+                updateManaUI();
+                const monsters = document.querySelectorAll('.monster');
+                monsters.forEach(m => {
+                    clearInterval(m.moveInterval);
+                    m.remove();
+                    coinEarned += 10;
+                });
+                document.getElementById('battle-coin').innerText = coinEarned;
+                alert("전체 공격 발동! 마나가 지능(INT)만큼 회복됩니다.");
+            }
+        }
+
+        // 게임 루프: 3초마다 몬스터 소환
+        setInterval(spawnMonster, 3000);
+
+    </script>
+</body>
+</html>
