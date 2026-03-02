@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="ko">
+<html lang="ko" class="notranslate" translate="no">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
@@ -9,65 +9,87 @@
         @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&display=swap');
         body { background-color: #0f172a; color: white; font-family: 'Orbitron', sans-serif; overflow-x: hidden; }
         .input-card { background: rgba(30, 41, 59, 0.7); border: 1px solid #334155; backdrop-filter: blur(10px); }
-        .cyber-input { background: #0f172a; border: 1px solid #475569; color: #38bdf8; text-align: center; }
+        
+        /* 텍스트 틀어짐 방지를 위한 입력창 고정 스타일 */
+        .cyber-input { 
+            background: #0f172a; 
+            border: 1px solid #475569; 
+            color: #38bdf8; 
+            text-align: center;
+            height: 48px; /* 높이 고정 */
+            line-height: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
         .cyber-input:focus { border-color: #38bdf8; outline: none; box-shadow: 0 0 10px rgba(56, 189, 248, 0.3); }
+        
+        /* 라벨 스타일 통일 */
+        .input-label {
+            font-size: 10px;
+            text-transform: uppercase;
+            margin-bottom: 4px;
+            display: block;
+            letter-spacing: 0.05em;
+        }
     </style>
 </head>
 <body class="p-6">
-    <header class="flex justify-between items-center mb-8">
-        <button onclick="location.href='index.html'" class="text-slate-400 text-xs">◀ BACK</button>
-        <h1 class="text-lg font-bold text-blue-400 tracking-widest uppercase">Body Analysis</h1>
-        <div class="w-8"></div>
+    <header class="flex justify-between items-center mb-8 shrink-0">
+        <button onclick="location.href='index.html'" class="text-slate-400 text-xs font-bold">◀ BACK</button>
+        <h1 class="text-sm font-bold text-blue-400 tracking-widest uppercase text-center">Body Analysis<br><span class="text-[10px] text-slate-500">인바디 분석</span></h1>
+        <div class="w-10"></div>
     </header>
 
     <div class="input-card rounded-2xl p-6 space-y-6 shadow-2xl">
         <div class="grid grid-cols-2 gap-4">
-            <div>
-                <label class="text-[10px] text-slate-500 uppercase block mb-1">Gender</label>
-                <select id="gender" class="cyber-input w-full p-3 rounded-lg text-sm">
-                    <option value="man">MALE</option>
-                    <option value="woman">FEMALE</option>
+            <div class="flex flex-col">
+                <label class="input-label text-slate-500">Gender <span class="text-[8px] opacity-70">(성별)</span></label>
+                <select id="gender" class="cyber-input w-full rounded-lg text-xs">
+                    <option value="man">MALE (남성)</option>
+                    <option value="woman">FEMALE (여성)</option>
                 </select>
             </div>
-            <div>
-                <label class="text-[10px] text-slate-500 uppercase block mb-1">Height (cm)</label>
-                <input type="number" id="height" step="0.1" value="168.0" class="cyber-input w-full p-3 rounded-lg text-sm">
+            <div class="flex flex-col">
+                <label class="input-label text-slate-500">Height <span class="text-[8px] opacity-70">(키/cm)</span></label>
+                <input type="number" id="height" step="0.1" value="168.0" class="cyber-input w-full rounded-lg text-sm">
             </div>
         </div>
 
-        <div class="space-y-4">
-            <div>
-                <label class="text-[10px] text-slate-500 uppercase block mb-1">Weight (kg)</label>
-                <input type="number" id="weight" step="0.1" value="68.1" class="cyber-input w-full p-3 rounded-lg text-sm font-bold text-white">
+        <div class="flex flex-col">
+            <label class="input-label text-slate-400">Weight <span class="text-[8px] opacity-70">(체중/kg)</span></label>
+            <input type="number" id="weight" step="0.1" value="68.1" class="cyber-input w-full rounded-lg text-lg font-bold text-white border-slate-500">
+        </div>
+
+        <div class="grid grid-cols-2 gap-4">
+            <div class="flex flex-col">
+                <label class="input-label text-orange-500">Skeletal Muscle <span class="text-[8px] opacity-70">(골격근량)</span></label>
+                <input type="number" id="muscle" step="0.1" value="28.3" class="cyber-input w-full rounded-lg text-sm">
             </div>
-            <div class="grid grid-cols-2 gap-4">
-                <div>
-                    <label class="text-[10px] text-orange-500 uppercase block mb-1">Skeletal Muscle (kg)</label>
-                    <input type="number" id="muscle" step="0.1" value="28.3" class="cyber-input w-full p-3 rounded-lg text-sm">
-                </div>
-                <div>
-                    <label class="text-[10px] text-blue-500 uppercase block mb-1">Body Fat (kg)</label>
-                    <input type="number" id="fat-mass" step="0.1" value="17.5" class="cyber-input w-full p-3 rounded-lg text-sm">
-                </div>
-            </div>
-            <div class="grid grid-cols-2 gap-4">
-                <div>
-                    <label class="text-[10px] text-slate-500 uppercase block mb-1">BMI</label>
-                    <input type="number" id="bmi" step="0.1" value="24.1" class="cyber-input w-full p-3 rounded-lg text-sm">
-                </div>
-                <div>
-                    <label class="text-[10px] text-slate-500 uppercase block mb-1">Fat Percentage (%)</label>
-                    <input type="number" id="fat-percent" step="0.1" value="25.7" class="cyber-input w-full p-3 rounded-lg text-sm">
-                </div>
-            </div>
-            <div>
-                <label class="text-[10px] text-purple-400 uppercase block mb-1">Basal Metabolic Rate (kcal)</label>
-                <input type="number" id="bmr" value="1462" class="cyber-input w-full p-3 rounded-lg text-sm">
+            <div class="flex flex-col">
+                <label class="input-label text-blue-500">Body Fat <span class="text-[8px] opacity-70">(체지방량)</span></label>
+                <input type="number" id="fat-mass" step="0.1" value="17.5" class="cyber-input w-full rounded-lg text-sm">
             </div>
         </div>
 
-        <button onclick="saveInbody()" class="w-full bg-blue-600 hover:bg-blue-500 text-white font-bold py-4 rounded-xl transition-all border-b-4 border-blue-800 active:border-b-0 active:translate-y-1 uppercase tracking-widest mt-4">
-            Sync Data (저장)
+        <div class="grid grid-cols-2 gap-4">
+            <div class="flex flex-col">
+                <label class="input-label text-emerald-500">BMI <span class="text-[8px] opacity-70">(체질량지수)</span></label>
+                <input type="number" id="bmi" step="0.1" value="24.1" class="cyber-input w-full rounded-lg text-sm">
+            </div>
+            <div class="flex flex-col">
+                <label class="input-label text-rose-500">Fat % <span class="text-[8px] opacity-70">(체지방률)</span></label>
+                <input type="number" id="fat-percent" step="0.1" value="25.7" class="cyber-input w-full rounded-lg text-sm">
+            </div>
+        </div>
+
+        <div class="flex flex-col">
+            <label class="input-label text-purple-400">Basal Metabolism <span class="text-[8px] opacity-70">(기초대사량/kcal)</span></label>
+            <input type="number" id="bmr" value="1462" class="cyber-input w-full rounded-lg text-sm">
+        </div>
+
+        <button onclick="saveInbody()" class="w-full bg-blue-600 hover:bg-blue-500 text-white font-bold py-4 rounded-xl transition-all border-b-4 border-blue-800 active:border-b-0 active:translate-y-1 uppercase tracking-widest mt-4 text-xs">
+            Sync Data (저장하기)
         </button>
     </div>
 
@@ -85,17 +107,13 @@
                 syncDate: new Date().toLocaleDateString()
             };
 
-            // 로컬 스토리지에 저장
             localStorage.setItem('user_inbody', JSON.stringify(data));
-            
-            // 메인 화면에서 사용하는 몸무게 값 별도 업데이트
             localStorage.setItem('user_weight', data.weight);
 
-            alert('BODY DATA SYNCHRONIZED!');
+            alert('BODY DATA SYNCHRONIZED!\n인바디 데이터 동기화 완료!');
             location.href = 'index.html';
         }
 
-        // 페이지 로드 시 기존 데이터 불러오기
         window.onload = function() {
             const saved = JSON.parse(localStorage.getItem('user_inbody'));
             if(saved) {
