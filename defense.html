@@ -3,244 +3,264 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>QuestBody - Defense Core</title>
+    <title>QuestBody - Strategic Defense</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&display=swap');
-        
-        /* 2. 터치 줌 방지 및 스크롤 차단 */
-        * { touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
+        * { touch-action: manipulation; -webkit-tap-highlight-color: transparent; outline: none; }
         body { background-color: #020617; color: white; font-family: 'Orbitron', sans-serif; overflow: hidden; height: 100dvh; margin: 0; }
         
-        .battle-arena { 
-            height: 55%; width: 100%; position: relative; 
-            background: radial-gradient(circle, #1e293b 0%, #020617 100%);
-            overflow: hidden;
-            border-bottom: 2px solid #334155;
+        /* 🗺️ 격자 맵 스타일 */
+        .grid-map { 
+            display: grid; grid-template-columns: repeat(10, 1fr); grid-template-rows: repeat(10, 1fr);
+            width: 100vw; height: 100vw; max-width: 500px; max-height: 500px;
+            background: #0f172a; border: 2px solid #334155; position: relative; margin: auto;
         }
+        .grid-cell { border: 0.5px solid rgba(56, 189, 248, 0.1); display: flex; align-items: center; justify-content: center; position: relative; cursor: pointer; }
+        .grid-cell.active { background: rgba(56, 189, 248, 0.05); }
 
-        #village-center {
-            position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
-            width: 80px; height: 80px;
-            background-image: url('https://cdn-icons-png.flaticon.com/512/619/619153.png');
-            background-size: contain; background-repeat: no-repeat; z-index: 10;
-        }
+        /* 🏰 중앙 기지 */
+        #base { grid-column: 5 / 7; grid-row: 5 / 7; background: #1e293b; border: 2px solid #38bdf8; z-index: 10; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 1.5rem; box-shadow: 0 0 20px #38bdf8; }
 
-        /* ⚔️ 공격 범위 시각화 */
-        #attack-range {
-            position: absolute; border: 1px dashed rgba(56, 189, 248, 0.4);
-            border-radius: 50%; background: rgba(56, 189, 248, 0.05);
-            pointer-events: none; z-index: 5; transition: all 0.1s;
-        }
+        /* 🗼 타워 & 몬스터 */
+        .tower { font-size: 1.2rem; z-index: 20; position: absolute; }
+        .monster { position: absolute; width: 24px; height: 24px; z-index: 30; transition: all 0.2s linear; display: flex; align-items: center; justify-content: center; }
+        .boss { width: 40px; height: 40px; font-size: 1.5rem; z-index: 31; }
 
-        #player {
-            position: absolute; width: 45px; height: 45px;
-            background-size: contain; background-repeat: no-repeat;
-            z-index: 20; transition: top 0.1s, left 0.1s;
-            filter: drop-shadow(0 0 5px #38bdf8);
-        }
-
-        .monster {
-            position: absolute; width: 35px; height: 35px;
-            background-size: contain; background-repeat: no-repeat;
-            z-index: 15;
-        }
-
-        /* 컨트롤러 스타일 */
-        .control-pad { display: grid; grid-template-columns: repeat(3, 1fr); gap: 5px; width: 120px; }
-        .ctrl-btn { background: #1e293b; border: 1px solid #334155; border-radius: 8px; height: 40px; display: flex; align-items: center; justify-content: center; font-size: 1.2rem; }
-        .ctrl-btn:active { background: #38bdf8; color: #020617; }
-
-        .skill-btn { background: rgba(30, 41, 59, 0.8); border: 1px solid #38bdf8; border-radius: 12px; transition: 0.1s; }
-        .skill-btn:active { transform: scale(0.92); filter: brightness(1.2); }
+        /* 💰 하단 UI 박스 */
+        .ui-panel { background: rgba(15, 23, 42, 0.95); border-top: 2px solid #334155; padding: 15px; }
+        .tower-btn { background: #1e293b; border: 1px solid #475569; border-radius: 8px; padding: 5px; text-align: center; }
+        .tower-btn.selected { border-color: #38bdf8; box-shadow: 0 0 10px #38bdf8; background: #0f172a; }
     </style>
 </head>
 <body class="flex flex-col">
 
-    <header class="p-4 bg-slate-900 flex justify-between items-center shrink-0 border-b border-slate-800">
-        <button onclick="location.href='index.html'" class="text-slate-400 text-xs font-bold">◀ BACK</button>
+    <header class="p-3 bg-slate-900 flex justify-between items-center border-b border-slate-700">
+        <button onclick="location.href='index.html'" class="text-slate-400 text-[10px] font-bold">◀ EXIT</button>
         <div class="text-center">
-            <p id="wave-info" class="text-blue-400 text-[10px] font-bold uppercase">Wave 1</p>
-            <div class="w-32 bg-slate-800 h-1.5 mt-1 rounded-full overflow-hidden border border-slate-700">
+            <span id="round-display" class="text-blue-400 text-xs font-bold">ROUND 1/10</span>
+            <div class="w-24 bg-slate-800 h-1 mt-1 rounded-full overflow-hidden border border-slate-700">
                 <div id="hp-bar" class="bg-emerald-500 h-full w-full transition-all"></div>
             </div>
         </div>
-        <p id="battle-coin" class="text-sm font-bold text-yellow-400">0 G</p>
+        <div class="text-right">
+            <p class="text-[8px] text-yellow-400 font-bold">D-COIN</p>
+            <p id="d-coin" class="text-xs font-bold text-yellow-400">150</p>
+        </div>
     </header>
 
-    <div class="battle-arena" id="arena">
-        <div id="village-center"></div>
-        <div id="attack-range"></div> <div id="player"></div>
+    <div class="flex-1 flex items-center justify-center bg-black overflow-hidden">
+        <div id="map" class="grid-map">
+            <div id="base">🏰</div>
+            </div>
     </div>
 
-    <div class="flex-1 bg-slate-900 p-4 flex flex-col justify-between">
-        <div class="flex justify-around text-center mb-2">
-            <div><p class="text-[8px] text-slate-500 uppercase">Attack (STR)</p><p id="p-str" class="font-bold text-orange-500">0</p></div>
-            <div><p class="text-[8px] text-slate-500 uppercase">Mana (INT)</p><p id="p-mana" class="font-bold text-blue-400">0/0</p></div>
-            <div><p class="text-[8px] text-slate-500 uppercase">Range</p><p id="p-range" class="font-bold text-emerald-400">0</p></div>
+    <div class="ui-panel shrink-0">
+        <div class="grid grid-cols-4 gap-2 mb-4">
+            <button onclick="selectTower('arrow', 50)" id="btn-arrow" class="tower-btn">
+                <span class="text-lg">🏹</span><p class="text-[7px] mt-1">Arrow (50)</p>
+            </button>
+            <button onclick="selectTower('magic', 80)" id="btn-magic" class="tower-btn">
+                <span class="text-lg">⚡</span><p class="text-[7px] mt-1">Magic (80)</p>
+            </button>
+            <button onclick="selectTower('cannon', 120)" id="btn-cannon" class="tower-btn">
+                <span class="text-lg">💣</span><p class="text-[7px] mt-1">Cannon (120)</p>
+            </button>
+            <button onclick="selectTower('slow', 100)" id="btn-slow" class="tower-btn">
+                <span class="text-lg">❄️</span><p class="text-[7px] mt-1">Slow (100)</p>
+            </button>
         </div>
-
-        <div class="flex justify-between items-center gap-4">
-            <div class="control-pad">
-                <div></div><button class="ctrl-btn" onclick="movePlayer(0, -5)">▲</button><div></div>
-                <button class="ctrl-btn" onclick="movePlayer(-5, 0)">◀</button><button class="ctrl-btn" onclick="movePlayer(0, 5)">▼</button><button class="ctrl-btn" onclick="movePlayer(5, 0)">▶</button>
-            </div>
-
-            <div class="flex-1 grid grid-cols-1 gap-2">
-                <button onclick="manualAttack()" class="skill-btn border-orange-500 h-14 flex flex-col items-center justify-center">
-                    <span class="text-xl">⚔️</span>
-                    <span class="text-[8px] font-bold text-orange-400 uppercase">Strike</span>
-                </button>
-                <button id="skill-btn" onclick="useUltimate()" class="skill-btn border-purple-500 h-12 flex flex-col items-center justify-center">
-                    <span class="text-[8px] font-bold text-purple-400 uppercase">Burst (Mana 10)</span>
-                </button>
-            </div>
+        
+        <div class="flex justify-between items-center text-[9px] text-slate-400">
+            <p>STR Buff: <span id="str-bonus" class="text-orange-400">+0%</span></p>
+            <button onclick="startWave()" id="start-btn" class="px-6 py-2 bg-blue-600 text-white rounded font-bold text-xs active:scale-95">START ROUND</button>
+            <p>INT Buff: <span id="int-bonus" class="text-blue-400">+0%</span></p>
         </div>
     </div>
 
     <script>
         // 기초 데이터
-        let str = parseInt(localStorage.getItem('user_str')) || 10;
-        let int = parseInt(localStorage.getItem('user_int')) || 0;
-        let coins = parseInt(localStorage.getItem('user_coin')) || 100;
-        
-        let playerPos = { x: 50, y: 50 }; // % 단위
-        let attackRange = 25 + (int * 0.5); // 지능이 높으면 명령 범위(공격 사거리) 증가
-        let manaMax = 10 + int;
-        let currentMana = manaMax;
+        let user_str = parseInt(localStorage.getItem('user_str')) || 0;
+        let user_int = parseInt(localStorage.getItem('user_int')) || 0;
+        let dCoin = 150;
         let villageHp = 100;
-        let currentWave = 1;
+        let currentRound = 1;
+        let selectedTowerType = null;
+        let selectedTowerCost = 0;
+        let isWaveActive = false;
 
-        const player = document.getElementById('player');
-        const rangeEl = document.getElementById('attack-range');
-        const arena = document.getElementById('arena');
-        const inbody = JSON.parse(localStorage.getItem('user_inbody'));
+        const map = document.getElementById('map');
+        const towers = [];
+        const monsters = [];
 
-        // 캐릭터 설정
-        if (inbody) player.style.backgroundImage = inbody.gender === 'woman' ? "url('image/woman.png')" : "url('image/man/man.png')";
-        else player.style.backgroundImage = "url('image/nocheck.png')";
-
-        function init() {
-            updatePlayerPos();
-            document.getElementById('p-str').innerText = str;
-            document.getElementById('p-range').innerText = Math.floor(attackRange);
-            document.getElementById('battle-coin').innerText = coins + " G";
-            updateManaUI();
-        }
-
-        // 🚀 이동 로직
-        function movePlayer(dx, dy) {
-            playerPos.x = Math.max(5, Math.min(95, playerPos.x + dx));
-            playerPos.y = Math.max(5, Math.min(95, playerPos.y + dy));
-            updatePlayerPos();
-        }
-
-        function updatePlayerPos() {
-            player.style.left = playerPos.x + '%';
-            player.style.top = playerPos.y + '%';
-            player.style.transform = 'translate(-50%, -50%)';
-            
-            // 범위 표시기 따라다니기
-            rangeEl.style.width = (attackRange * 2) + '%';
-            rangeEl.style.height = (attackRange * 2.5) + '%'; // 화면 비율 보정
-            rangeEl.style.left = playerPos.x + '%';
-            rangeEl.style.top = playerPos.y + '%';
-            rangeEl.style.transform = 'translate(-50%, -50%)';
-        }
-
-        // ⚔️ 범위 공격 로직
-        function manualAttack() {
-            const monsters = Array.from(document.getElementsByClassName('monster'));
-            let hit = false;
-
-            monsters.forEach(m => {
-                const mx = parseFloat(m.style.left);
-                const my = parseFloat(m.style.top);
-                const dist = Math.sqrt(Math.pow(playerPos.x - mx, 2) + Math.pow(playerPos.y - my, 2));
-
-                if (dist <= attackRange) {
-                    m.hp -= (5 + str / 5);
-                    createEffect(m.style.left, m.style.top, '15px', '#f97316');
-                    if (m.hp <= 0) {
-                        clearInterval(m.moveInterval);
-                        m.remove();
-                        rewardCoin(5);
-                    }
-                    hit = true;
+        // 1. 맵 격자 생성 (10x10)
+        function createGrid() {
+            for (let i = 0; i < 100; i++) {
+                const cell = document.createElement('div');
+                cell.className = 'grid-cell';
+                cell.dataset.index = i;
+                const r = Math.floor(i / 10);
+                const c = i % 10;
+                
+                // 기지 영역 제외 (4,4 ~ 5,5)
+                if ((r >= 4 && r <= 5) && (c >= 4 && c <= 5)) {
+                    cell.classList.add('pointer-events-none');
+                } else {
+                    cell.onclick = () => placeTower(cell, r, c);
                 }
-            });
-
-            if (!hit) createEffect(playerPos.x + '%', playerPos.y + '%', '30px', 'rgba(255,255,255,0.1)');
-        }
-
-        function spawnMonster() {
-            const monster = document.createElement('div');
-            monster.className = 'monster';
-            const dirs = [{t:-10,l:50}, {t:50,l:110}, {t:110,l:50}, {t:50,l:-10}];
-            const dir = dirs[Math.floor(Math.random() * 4)];
-            monster.style.top = dir.t + '%';
-            monster.style.left = dir.l + '%';
-            monster.style.backgroundImage = "url('https://cdn-icons-png.flaticon.com/512/606/606807.png')";
-            monster.hp = 15 + (currentWave * 5);
-            arena.appendChild(monster);
-
-            monster.moveInterval = setInterval(() => {
-                const mt = parseFloat(monster.style.top);
-                const ml = parseFloat(monster.style.left);
-                const angle = Math.atan2(50 - mt, 50 - ml);
-                const speed = 0.2 + (currentWave * 0.03);
-                monster.style.top = (mt + Math.sin(angle) * speed) + '%';
-                monster.style.left = (ml + Math.cos(angle) * speed) + '%';
-
-                if (Math.abs(50 - mt) < 4 && Math.abs(50 - ml) < 4) {
-                    clearInterval(monster.moveInterval);
-                    monster.remove();
-                    takeDamage(10);
-                }
-            }, 50);
-        }
-
-        function takeDamage(dmg) {
-            villageHp -= dmg;
-            document.getElementById('hp-bar').style.width = villageHp + '%';
-            if (villageHp <= 0) { alert("Game Over"); location.href='index.html'; }
-        }
-
-        function useUltimate() {
-            if (currentMana >= 10) {
-                currentMana -= 10; updateManaUI();
-                const monsters = Array.from(document.getElementsByClassName('monster'));
-                monsters.forEach(m => {
-                    clearInterval(m.moveInterval); m.remove(); rewardCoin(8);
-                });
-                currentWave++;
-                document.getElementById('wave-info').innerText = `Wave ${currentWave}`;
+                map.appendChild(cell);
             }
         }
 
-        function rewardCoin(amt) {
-            coins += amt;
-            document.getElementById('battle-coin').innerText = coins + " G";
-            localStorage.setItem('user_coin', coins);
+        // 2. 타워 선택
+        function selectTower(type, cost) {
+            document.querySelectorAll('.tower-btn').forEach(b => b.classList.remove('selected'));
+            if (selectedTowerType === type) {
+                selectedTowerType = null;
+            } else {
+                selectedTowerType = type;
+                selectedTowerCost = cost;
+                document.getElementById('btn-' + type).classList.add('selected');
+            }
         }
 
-        function updateManaUI() {
-            document.getElementById('p-mana').innerText = `${currentMana}/${manaMax}`;
-            document.getElementById('skill-btn').disabled = currentMana < 10;
+        // 3. 타워 배치
+        function placeTower(cell, r, c) {
+            if (!selectedTowerType || cell.innerHTML !== "" || dCoin < selectedTowerCost) return;
+
+            dCoin -= selectedTowerCost;
+            document.getElementById('d-coin').innerText = dCoin;
+            
+            const towerIcons = { arrow: '🏹', magic: '⚡', cannon: '💣', slow: '❄️' };
+            cell.innerHTML = `<span class="tower">${towerIcons[selectedTowerType]}</span>`;
+            
+            towers.push({
+                r, c,
+                type: selectedTowerType,
+                range: selectedTowerType === 'cannon' ? 3 : 2,
+                damage: (selectedTowerType === 'arrow' ? 10 : 20) * (1 + user_str / 100),
+                cooldown: selectedTowerType === 'magic' ? 500 : 1000,
+                lastShot: 0
+            });
+            
+            selectedTowerType = null;
+            document.querySelectorAll('.tower-btn').forEach(b => b.classList.remove('selected'));
         }
 
-        function createEffect(l, t, s, c) {
-            const d = document.createElement('div');
-            d.className = 'effect';
-            d.style.left = l; d.style.top = t; d.style.width = s; d.style.height = s; d.style.background = c;
-            arena.appendChild(d);
-            setTimeout(() => d.remove(), 200);
+        // 4. 웨이브 시작
+        function startWave() {
+            if (isWaveActive) return;
+            isWaveActive = true;
+            document.getElementById('start-btn').disabled = true;
+            document.getElementById('start-btn').innerText = "DEFENDING...";
+
+            let spawnCount = currentRound * 5;
+            if (currentRound === 5 || currentRound === 10) spawnCount = 1; // 보스전
+
+            const spawnInterval = setInterval(() => {
+                if (spawnCount <= 0) {
+                    clearInterval(spawnInterval);
+                    checkWaveEnd();
+                    return;
+                }
+                spawnMonster(currentRound === 5 || currentRound === 10);
+                spawnCount--;
+            }, 1000);
         }
 
-        setInterval(() => { if (document.getElementsByClassName('monster').length < 3 + currentWave) spawnMonster(); }, 2500);
-        setInterval(() => { if (currentMana < manaMax) { currentMana++; updateManaUI(); } }, 4000);
+        function spawnMonster(isBoss) {
+            const m = document.createElement('div');
+            m.className = `monster ${isBoss ? 'boss' : ''}`;
+            const sides = [
+                { r: 0, c: 5 }, // 북
+                { r: 9, c: 5 }, // 남
+                { r: 5, c: 0 }, // 서
+                { r: 5, c: 9 }  // 동
+            ];
+            const start = sides[Math.floor(Math.random() * 4)];
+            m.r = start.r; m.c = start.c;
+            m.hp = (isBoss ? 500 : 30) * (1 + currentRound * 0.2);
+            m.innerHTML = isBoss ? '👹' : '👾';
+            map.appendChild(m);
+            monsters.push(m);
+            updateMonsterPos(m);
+        }
 
-        init();
+        function updateMonsterPos(m) {
+            m.style.top = (m.r * 10) + '%';
+            m.style.left = (m.c * 10) + '%';
+        }
+
+        // 5. 게임 엔진 (100ms 마다 실행)
+        setInterval(() => {
+            if (!isWaveActive) return;
+
+            // 타워 공격
+            towers.forEach(t => {
+                const now = Date.now();
+                if (now - t.lastShot < t.cooldown) return;
+
+                const target = monsters.find(m => {
+                    const dist = Math.abs(t.r - m.r) + Math.abs(t.c - m.c);
+                    return dist <= t.range;
+                });
+
+                if (target) {
+                    target.hp -= t.damage;
+                    t.lastShot = now;
+                    if (target.hp <= 0) {
+                        target.remove();
+                        monsters.splice(monsters.indexOf(target), 1);
+                        dCoin += 10;
+                        document.getElementById('d-coin').innerText = dCoin;
+                    }
+                }
+            });
+
+            // 몬스터 이동
+            monsters.forEach(m => {
+                if (m.r < 4.5) m.r += 0.1;
+                else if (m.r > 5.5) m.r -= 0.1;
+                if (m.c < 4.5) m.c += 0.1;
+                else if (m.c > 5.5) m.c -= 0.1;
+
+                updateMonsterPos(m);
+
+                // 기지 충돌
+                if (Math.abs(m.r - 5) < 0.5 && Math.abs(m.c - 5) < 0.5) {
+                    villageHp -= (m.classList.contains('boss') ? 50 : 10);
+                    document.getElementById('hp-bar').style.width = villageHp + '%';
+                    m.remove();
+                    monsters.splice(monsters.indexOf(m), 1);
+                    if (villageHp <= 0) {
+                        alert("마을이 함락되었습니다!");
+                        location.reload();
+                    }
+                }
+            });
+
+            if (monsters.length === 0 && isWaveActive) {
+                checkWaveEnd();
+            }
+        }, 100);
+
+        function checkWaveEnd() {
+            if (monsters.length === 0) {
+                isWaveActive = false;
+                document.getElementById('start-btn').disabled = false;
+                document.getElementById('start-btn').innerText = "NEXT ROUND";
+                currentRound++;
+                if (currentRound > 10) {
+                    alert("축하합니다! 모든 웨이브를 방어했습니다!");
+                    location.href = 'index.html';
+                }
+                document.getElementById('round-display').innerText = `ROUND ${currentRound}/10`;
+            }
+        }
+
+        createGrid();
+        document.getElementById('str-bonus').innerText = `+${user_str}%`;
+        document.getElementById('int-bonus').innerText = `+${user_int}%`;
     </script>
 </body>
 </html>
