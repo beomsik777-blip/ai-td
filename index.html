@@ -3,113 +3,106 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>QuestBody - Main Hub</title>
+    <title>QuestBody - Master Hub</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&display=swap');
-        body { background-color: #0f172a; color: white; font-family: 'Orbitron', sans-serif; }
+        body { background-color: #0f172a; color: white; font-family: 'Orbitron', sans-serif; margin: 0; padding: 0; height: 100dvh; width: 100vw; display: flex; flex-direction: column; overflow: hidden; }
+        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+        
         .pixel-border { border: 4px solid #334155; }
-        .neon-glow { box-shadow: 0 0 20px rgba(56, 189, 248, 0.4), inset 0 0 10px rgba(56, 189, 248, 0.2); }
+        .neon-glow { box-shadow: 0 0 15px rgba(56, 189, 248, 0.3), inset 0 0 5px rgba(56, 189, 248, 0.1); }
         .status-bar { transition: width 1s cubic-bezier(0.34, 1.56, 0.64, 1); }
 
-        #character-sprite {
-            background-size: contain; background-repeat: no-repeat; background-position: center bottom;
-            background-color: transparent; filter: drop-shadow(0 0 10px rgba(56, 189, 248, 0.8));
-            transition: background-image 0.5s ease-in-out;
-        }
-        
         .main-container { height: calc(100dvh - 160px); overflow-y: auto; -webkit-overflow-scrolling: touch; scrollbar-width: none; }
         .main-container::-webkit-scrollbar { display: none; }
 
-        .chart-container {
-            background: rgba(30, 41, 59, 0.4); border: 1px solid rgba(56, 189, 248, 0.2);
-            border-radius: 20px; width: 100%; max-width: 300px; height: 240px; margin-top: 1rem; padding: 10px;
+        /* 📊 차트 영역 시각 최적화 */
+        .chart-section {
+            background: rgba(30, 41, 59, 0.3); border: 1px solid rgba(56, 189, 248, 0.15);
+            border-radius: 24px; width: 100%; max-width: 320px; padding: 20px;
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
         }
+        .chart-container { width: 100%; height: 200px; position: relative; }
 
-        .stat-card { background: rgba(30, 41, 59, 0.6); border: 1px solid #334155; border-radius: 8px; padding: 8px; text-align: center; backdrop-filter: blur(4px); }
+        /* 🟢 수치 카드 색상 포인트 */
+        .stat-card { background: rgba(15, 23, 42, 0.8); border-radius: 12px; padding: 10px; text-align: center; border: 1px solid #1e293b; transition: all 0.2s; }
+        .stat-card.muscle { border-color: rgba(249, 115, 22, 0.3); box-shadow: 0 0 10px rgba(249, 115, 22, 0.1); }
+        .stat-card.fat { border-color: rgba(59, 130, 246, 0.3); box-shadow: 0 0 10px rgba(59, 130, 246, 0.1); }
+        .stat-card.bmi { border-color: rgba(16, 185, 129, 0.3); box-shadow: 0 0 10px rgba(16, 185, 129, 0.1); }
         
         .sync-btn-new {
-            background: linear-gradient(90deg, #1e293b, #0f172a); border: 2px solid #38bdf8;
-            box-shadow: 0 0 15px rgba(56, 189, 248, 0.3); transition: all 0.2s;
+            background: linear-gradient(90deg, #1e293b, #0f172a); border: 1px solid #38bdf8;
+            box-shadow: 0 0 10px rgba(56, 189, 248, 0.2); transition: all 0.2s;
         }
 
         /* 🌊 수분 시스템 스타일 */
         .water-wave {
-            position: relative; width: 100%; height: 140px; background: #020617; 
+            position: relative; width: 100%; height: 130px; background: #020617; 
             border-radius: 12px; overflow: hidden; border: 1px solid #1e293b;
         }
         .water-fill {
             position: absolute; bottom: 0; width: 100%;
             background: linear-gradient(to top, #0ea5e9, #38bdf8);
             transition: height 1.5s cubic-bezier(0.4, 0, 0.2, 1);
-            box-shadow: 0 0 20px rgba(14, 165, 233, 0.5);
+            box-shadow: 0 0 20px rgba(14, 165, 233, 0.4);
         }
         .water-fill::after {
-            content: ""; position: absolute; top: 0; left: 0; width: 200%; height: 20px;
-            background: rgba(255, 255, 255, 0.1); border-radius: 50%;
-            animation: wave 3s infinite linear;
+            content: ""; position: absolute; top: 0; left: 0; width: 200%; height: 15px;
+            background: rgba(255, 255, 255, 0.08); border-radius: 50%;
+            animation: wave 4s infinite linear;
         }
         @keyframes wave { from { transform: translateX(0); } to { transform: translateX(-50%); } }
     </style>
 </head>
 <body class="flex flex-col h-screen overflow-hidden">
 
-    <audio id="main-bgm" loop><source src="music/loginbgm.mp3" type="audio/mpeg"></audio>
+    <audio id="main-bgm" loop preload="auto"><source src="music/loginbgm.mp3" type="audio/mpeg"></audio>
 
     <header class="p-4 bg-slate-900 border-b-2 border-slate-700 flex justify-between items-center z-20 shrink-0">
         <div class="flex flex-col">
-            <span class="text-[10px] text-slate-400 tracking-widest uppercase">Village HP</span>
-            <div class="w-24 bg-slate-800 h-1.5 mt-1 rounded-full overflow-hidden border border-slate-700">
-                <div id="village-hp" class="bg-emerald-500 h-full w-full"></div>
+            <span class="text-[9px] text-slate-500 tracking-widest uppercase">Village HP</span>
+            <div class="w-20 bg-slate-800 h-1 mt-1 rounded-full overflow-hidden border border-slate-700">
+                <div id="village-hp" class="bg-emerald-500 h-full w-full status-bar"></div>
             </div>
         </div>
         <div class="flex gap-2 text-right items-center">
             <div>
-                <span class="text-[10px] text-slate-400 uppercase">Coin</span>
-                <p id="user-coin" class="font-bold text-yellow-400 text-sm">100</p>
+                <span class="text-[9px] text-slate-500 uppercase">Coin</span>
+                <p id="user-coin" class="font-bold text-yellow-400 text-xs">100</p>
             </div>
             <div class="border-l border-slate-700 pl-2">
-                <span class="text-[10px] text-slate-400 uppercase">Mana Pool</span>
-                <p id="user-mana" class="font-bold text-blue-400 text-sm">10 / 10</p>
+                <span class="text-[9px] text-slate-500 uppercase">Mana</span>
+                <p id="user-mana" class="font-bold text-blue-400 text-xs">10 / 10</p>
             </div>
-            <button onclick="resetCharacter()" class="p-2 bg-red-900/30 rounded-lg border border-red-900/50 text-red-500 active:scale-95 ml-1">🔄</button>
+            <button onclick="resetCharacter()" class="p-1.5 bg-red-900/20 rounded border border-red-900/40 text-red-500 active:scale-95 ml-1 text-[10px]">🔄</button>
         </div>
     </header>
 
-    <main class="main-container relative flex flex-col items-center p-6 space-y-8">
+    <main class="main-container relative flex flex-col items-center p-5 space-y-7">
         <div class="absolute inset-0 bg-[linear-gradient(to_right,#1e293b_1px,transparent_1px),linear-gradient(to_bottom,#1e293b_1px,transparent_1px)] bg-[size:40px_40px] [mask-image:radial-gradient(ellipse_60%_50%_at_50%_50%,#000_70%,transparent_100%)] pointer-events-none"></div>
 
-        <div class="relative z-10 w-72 flex flex-col items-center">
-            <div id="character-sprite" class="w-64 h-64 bg-slate-800/20 rounded-xl pixel-border neon-glow flex items-center justify-center overflow-hidden"></div>
-            <div class="mt-4 text-center">
-                <span id="user-lv" class="bg-blue-600 text-[10px] px-2 py-0.5 rounded-full font-bold uppercase">Lv. 1</span>
-                <h2 class="text-xl font-bold mt-1 tracking-wider text-white uppercase">Future Chaser</h2>
-                <p id="user-weight" class="text-[10px] text-blue-400 font-bold mt-1 uppercase">Weight: -- kg</p>
-            </div>
-        </div>
-
-        <div class="w-full max-w-xs z-10 space-y-4">
-            <div onclick="goToPage('inbody.html')" class="sync-btn-new p-3 rounded-lg flex items-center gap-3 cursor-pointer">
-                <div class="w-8 h-8 bg-blue-500/20 rounded-full border border-blue-400 flex items-center justify-center text-lg">🧬</div>
-                <div>
-                    <p id="sync-status" class="text-[9px] text-blue-400 font-bold tracking-tighter uppercase">InBody Sync</p>
-                    <p class="text-[10px] leading-tight text-slate-300">신체 분석 데이터 동기화</p>
+        <div class="chart-section z-10 space-y-5">
+            <div class="flex justify-between items-center w-full">
+                <h3 class="text-xs font-bold text-blue-400 tracking-widest uppercase">Body Analysis</h3>
+                <div onclick="goToPage('inbody.html')" class="sync-btn-new p-1.5 px-3 rounded-full flex items-center gap-2 cursor-pointer text-[9px] text-emerald-400 font-bold uppercase">
+                    Sync ✓
                 </div>
             </div>
-
-            <div class="chart-container mx-auto">
+            
+            <div class="chart-container">
                 <canvas id="bodyChart"></canvas>
             </div>
 
-            <div class="grid grid-cols-3 gap-2">
-                <div class="stat-card"><p class="text-[7px] text-orange-400 uppercase font-bold">Muscle</p><p id="stat-muscle" class="text-[11px] font-bold">--</p></div>
-                <div class="stat-card"><p class="text-[7px] text-blue-400 uppercase font-bold">Fat</p><p id="stat-fat" class="text-[11px] font-bold">--</p></div>
-                <div class="stat-card"><p class="text-[7px] text-emerald-400 uppercase font-bold">BMI</p><p id="stat-bmi" class="text-[11px] font-bold">--</p></div>
+            <div class="grid grid-cols-3 gap-2 w-full">
+                <div class="stat-card muscle"><p class="text-[7px] text-orange-400 uppercase font-bold">Muscle</p><p id="stat-muscle" class="text-xs font-bold">--</p></div>
+                <div class="stat-card fat"><p class="text-[7px] text-blue-400 uppercase font-bold">Fat</p><p id="stat-fat" class="text-xs font-bold">--</p></div>
+                <div class="stat-card bmi"><p class="text-[7px] text-emerald-400 uppercase font-bold">BMI</p><p id="stat-bmi" class="text-xs font-bold">--</p></div>
             </div>
         </div>
 
-        <div class="w-full max-w-xs bg-slate-900/80 p-5 rounded-2xl border border-slate-700 neon-glow z-10 space-y-4">
+        <div class="w-full max-w-xs bg-slate-900/70 p-5 rounded-2xl border border-slate-800 neon-glow z-10 space-y-4">
             <div class="flex justify-between items-center">
                 <h3 class="text-blue-400 font-bold text-xs tracking-widest">HYDRATION</h3>
                 <span class="text-[8px] text-slate-500 animate-pulse">EVAPORATING...</span>
@@ -119,40 +112,40 @@
                 <div id="water-fill" class="water-fill" style="height: 0%;"></div>
                 <div class="absolute inset-0 flex flex-col items-center justify-center font-bold">
                     <span id="current-water" class="text-2xl">0</span>
-                    <span class="text-[10px] text-slate-400 uppercase">/ 2000 ml</span>
+                    <span class="text-[10px] text-slate-500 uppercase">/ 2000 ml</span>
                 </div>
             </div>
 
             <div class="grid grid-cols-3 gap-2">
                 <button onclick="drinkWater(200)" class="bg-slate-800 border border-blue-500/20 py-2 rounded-lg text-[9px] active:scale-95 transition-all">🥛 200ml</button>
                 <button onclick="drinkWater(350)" class="bg-slate-800 border border-blue-500/20 py-2 rounded-lg text-[9px] active:scale-95 transition-all">🥤 350ml</button>
-                <button onclick="drinkWater(500)" class="bg-slate-800 border border-blue-500/20 py-2 rounded-lg text-[9px] active:scale-95 transition-all">🧴 500ml</button>
+                <button onclick="drinkWater(500)" class="bg-slate-800 border border-blue-500/20 py-2 rounded-lg text-[9px] active:scale-95 transition-all">Bottle</button>
             </div>
 
             <div class="pt-2 border-t border-slate-800">
-                <p class="text-[8px] text-slate-500 uppercase mb-2">Recent 3 Days</p>
+                <p class="text-[8px] text-slate-600 uppercase mb-2">Daily Intake Record (Not Decreasing)</p>
                 <div id="hydration-history" class="space-y-1.5">
                     </div>
             </div>
         </div>
 
         <div class="w-full max-w-xs space-y-3 z-10 pb-10">
-            <div class="bg-slate-900/60 p-3 rounded border border-slate-700">
+            <div class="bg-slate-900/50 p-3 rounded border border-slate-800">
                 <div class="flex justify-between text-[10px] mb-1"><span class="text-orange-400 font-bold uppercase">Str (Gym)</span><span id="str-val">0</span></div>
-                <div class="w-full bg-slate-800 h-1.5 rounded-full overflow-hidden"><div id="str-bar" class="status-bar bg-orange-500 h-full w-[0%]"></div></div>
+                <div class="w-full bg-slate-800 h-1 rounded-full overflow-hidden"><div id="str-bar" class="status-bar bg-orange-500 h-full w-[0%]"></div></div>
             </div>
-            <div class="bg-slate-900/60 p-3 rounded border border-slate-700">
+            <div class="bg-slate-900/50 p-3 rounded border border-slate-800">
                 <div class="flex justify-between text-[10px] mb-1"><span class="text-purple-400 font-bold uppercase">Int (Brain)</span><span id="int-val">0</span></div>
-                <div class="w-full bg-slate-800 h-1.5 rounded-full overflow-hidden"><div id="int-bar" class="status-bar bg-purple-500 h-full w-[0%]"></div></div>
+                <div class="w-full bg-slate-800 h-1 rounded-full overflow-hidden"><div id="int-bar" class="status-bar bg-purple-500 h-full w-[0%]"></div></div>
             </div>
         </div>
     </main>
 
     <nav class="bg-slate-950 border-t border-slate-800 grid grid-cols-4 h-20 z-20 shrink-0">
-        <button onclick="goToPage('gym.html')" class="flex flex-col items-center justify-center text-slate-400"><span class="text-2xl">🏋️</span><span class="text-[9px] font-bold mt-1 uppercase">Gym</span></button>
-        <button onclick="goToPage('brain.html')" class="flex flex-col items-center justify-center text-slate-400"><span class="text-2xl">🧩</span><span class="text-[9px] font-bold mt-1 uppercase">Brain</span></button>
-        <button onclick="goToPage('defense.html')" class="flex flex-col items-center justify-center text-slate-400"><span class="text-2xl">🛡️</span><span class="text-[9px] font-bold mt-1 uppercase">Defense</span></button>
-        <button onclick="goToPage('shop.html')" class="flex flex-col items-center justify-center text-slate-400"><span class="text-2xl">🏪</span><span class="text-[9px] font-bold mt-1 uppercase">Shop</span></button>
+        <button onclick="goToPage('gym.html')" class="flex flex-col items-center justify-center text-slate-400"><span class="text-2xl">🏋️</span><span class="text-[8px] font-bold mt-1 uppercase">Gym</span></button>
+        <button onclick="goToPage('brain.html')" class="flex flex-col items-center justify-center text-slate-400"><span class="text-2xl">🧩</span><span class="text-[8px] font-bold mt-1 uppercase">Brain</span></button>
+        <button onclick="goToPage('defense.html')" class="flex flex-col items-center justify-center text-slate-400"><span class="text-2xl">🛡️</span><span class="text-[8px] font-bold mt-1 uppercase">Defense</span></button>
+        <button onclick="goToPage('shop.html')" class="flex flex-col items-center justify-center text-slate-400"><span class="text-2xl">🏪</span><span class="text-[8px] font-bold mt-1 uppercase">Shop</span></button>
     </nav>
 
     <script>
@@ -165,35 +158,53 @@
         window.onload = () => {
             if (sessionStorage.getItem('isLoggedIn') !== 'true') location.href = 'login.html';
             updateUI();
-            evaporateWater();
-            setInterval(evaporateWater, 1000 * 60 * 10); // 10분마다 수분 체크
+            checkAndResetDailyWater(); // 날짜 바뀌면 기록 리셋
+            evaporateWater(); // 증발 시뮬레이션
+            setInterval(evaporateWater, 1000 * 60 * 15); // 15분마다 수분 증발 체크
         };
 
         // 🌊 수분 관리 로직
-        let hydData = JSON.parse(localStorage.getItem('user_hydration')) || { current: 0, history: [], lastUpdate: Date.now() };
+        let hydData = JSON.parse(localStorage.getItem('user_hydration')) || { current: 0, history: [], lastUpdate: Date.now(), dailyIntake: 0, lastDrinkDate: new Date().toLocaleDateString() };
+
+        // 📅 하루 섭취량 리셋 로직 (줄어들지 않음)
+        function checkAndResetDailyWater() {
+            const today = new Date().toLocaleDateString();
+            if (hydData.lastDrinkDate !== today) {
+                // 어제 기록을 이력으로 넘김 (최근 3일 유지)
+                hydData.history.push({ date: hydData.lastDrinkDate, amount: hydData.dailyIntake });
+                if (hydData.history.length > 3) hydData.history.shift();
+
+                // 오늘 섭취량 초기화
+                hydData.dailyIntake = 0;
+                hydData.lastDrinkDate = today;
+                saveHydData();
+            }
+        }
 
         function drinkWater(ml) {
-            const today = new Date().toLocaleDateString();
+            checkAndResetDailyWater(); // 마시기 전에 날짜 체크
+
+            // 1. 실시간 게이지 (증발함)
             hydData.current = Math.min(2000, hydData.current + ml);
             hydData.lastUpdate = Date.now();
 
-            let dayRecord = hydData.history.find(h => h.date === today);
-            if (dayRecord) dayRecord.amount = Math.min(2000, dayRecord.amount + ml);
-            else {
-                hydData.history.push({ date: today, amount: ml });
-                if (hydData.history.length > 3) hydData.history.shift();
-            }
+            // 2. 하루 섭취 기록 (절대 안 줄어듬)
+            hydData.dailyIntake = Math.min(3000, hydData.dailyIntake + ml); // 섭취량은 최대 3L까지 기록
+            
             saveHydData();
+            updateHydUI();
         }
 
+        // 💨 체내 수분 증발 시뮬레이션 (게이지에만 영향)
         function evaporateWater() {
             const now = Date.now();
             const elapsedHours = (now - hydData.lastUpdate) / (1000 * 60 * 60);
-            const loss = Math.floor(elapsedHours * 40); // 시간당 40ml 증발
-            if (loss > 0) {
+            const loss = Math.floor(elapsedHours * 35); // 시간당 35ml 증발
+            if (loss > 0 && hydData.current > 0) {
                 hydData.current = Math.max(0, hydData.current - loss);
                 hydData.lastUpdate = now;
-                saveHydData();
+                localStorage.setItem('user_hydration', JSON.stringify(hydData)); // 무음 저장
+                updateWaterBarOnly();
             }
         }
 
@@ -202,21 +213,35 @@
             updateHydUI();
         }
 
-        function updateHydUI() {
+        function updateWaterBarOnly() {
             const percentage = (hydData.current / 2000) * 100;
             document.getElementById('water-fill').style.height = percentage + '%';
             document.getElementById('current-water').innerText = Math.floor(hydData.current);
+        }
 
+        function updateHydUI() {
+            updateWaterBarOnly(); // 게이지 업데이트
+
+            // 하단 기록창 업데이트 (줄어들지 않는 누적량 표시)
             const histDiv = document.getElementById('hydration-history');
             histDiv.innerHTML = "";
+
+            // 오늘 누적량 먼저 표시
+            const todayItem = document.createElement('div');
+            todayItem.className = "flex justify-between p-2 bg-slate-800/60 rounded border-l-2 border-emerald-500 text-[10px]";
+            todayItem.innerHTML = `<span class="text-emerald-400 font-bold">Today (Total)</span><span class="text-emerald-400 font-bold">${hydData.dailyIntake}ml</span>`;
+            histDiv.appendChild(todayItem);
+
+            // 최근 이력 표시
             [...hydData.history].reverse().forEach(h => {
                 const item = document.createElement('div');
-                item.className = "flex justify-between p-2 bg-slate-800/40 rounded border-l-2 border-blue-500 text-[10px]";
-                item.innerHTML = `<span>${h.date}</span><span class="text-blue-400 font-bold">${h.amount}ml</span>`;
+                item.className = "flex justify-between p-2 bg-slate-800/40 rounded border-l-2 border-slate-700 text-[10px] text-slate-500";
+                item.innerHTML = `<span>${h.date}</span><span>${h.amount}ml</span>`;
                 histDiv.appendChild(item);
             });
         }
 
+        // 🖥️ UI 업데이트 전체
         function updateUI() {
             const sInt = parseInt(localStorage.getItem('user_int')) || 0;
             const sStr = parseInt(localStorage.getItem('user_str')) || 0;
@@ -231,23 +256,16 @@
             document.getElementById('user-lv').innerText = `LV. ${Math.floor((sStr + sInt) / 10) + 1}`;
 
             const inbody = JSON.parse(localStorage.getItem('user_inbody'));
-            const sprite = document.getElementById('character-sprite');
-            
             if (inbody) {
-                sprite.style.backgroundImage = inbody.gender === 'woman' ? "url('image/woman.png')" : "url('image/man/man.png')";
-                document.getElementById('user-weight').innerText = `Weight: ${inbody.weight} kg`;
                 document.getElementById('stat-muscle').innerText = `${inbody.muscle}kg`;
                 document.getElementById('stat-fat').innerText = `${inbody.fatMass}kg`;
                 document.getElementById('stat-bmi').innerText = inbody.bmi;
-                document.getElementById('sync-status').innerText = "BODY DATA SYNCED ✓";
-                document.getElementById('sync-status').classList.replace('text-blue-400', 'text-emerald-400');
                 renderRadarChart(inbody);
-            } else {
-                sprite.style.backgroundImage = "url('image/nocheck.png')";
             }
             updateHydUI();
         }
 
+        // 📊 인바디 차트 쏠림 수정 및 시각화
         function renderRadarChart(data) {
             const ctx = document.getElementById('bodyChart').getContext('2d');
             if (bodyChart) bodyChart.destroy();
@@ -257,12 +275,16 @@
                     labels: ['근육', '지방', 'BMI', '지방%', '대사량'],
                     datasets: [{
                         data: [(data.muscle/45)*100, (data.fatMass/30)*100, (data.bmi/35)*100, (data.fatPercent/40)*100, (data.bmr/2000)*100],
-                        backgroundColor: 'rgba(56, 189, 248, 0.2)', borderColor: '#38bdf8', borderWidth: 2, pointRadius: 0
+                        backgroundColor: 'rgba(56, 189, 248, 0.15)', borderColor: '#38bdf8', borderWidth: 1.5, pointRadius: 0
                     }]
                 },
                 options: {
-                    scales: { r: { angleLines: { display: false }, grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { display: false }, suggestedMin: 0, suggestedMax: 100, pointLabels: { color: '#64748b', font: { size: 8 } } } },
-                    plugins: { legend: { display: false } }
+                    responsive: true, maintainAspectRatio: false,
+                    // 중앙 배치를 위한 정교한 앵글 및 그리드 설정
+                    scales: { r: { angleLines: { color: 'rgba(255,255,255,0.08)' }, grid: { color: 'rgba(255,255,255,0.08)' }, ticks: { display: false }, suggestedMin: 0, suggestedMax: 100, pointLabels: { color: '#64748b', font: { size: 8 } } } },
+                    plugins: { legend: { display: false } },
+                    // 중앙 정렬을 위한 여백 조정
+                    layout: { padding: { top: 10, bottom: 10, left: 10, right: 10 } }
                 }
             });
         }
