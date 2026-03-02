@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>QuestBody - North Defense</title>
+    <title>QuestBody - Tactical North Defense</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&display=swap');
@@ -16,39 +16,39 @@
             background: #0f172a; border: 2px solid #334155; position: relative; margin: 5px auto;
         }
         .grid-cell { border: 0.1px solid rgba(56, 189, 248, 0.05); transition: background 0.3s; }
-        .path-tile { background: rgba(56, 189, 248, 0.1) !important; }
+        .path-tile { background: rgba(56, 189, 248, 0.12) !important; }
 
-        /* 🏰 하단 중앙 마을 성벽 */
+        /* 🏰 하단 마을 고정 구역 */
         #base { 
             position: absolute; bottom: 0; left: 25%; width: 50%; height: 10%; 
-            background: #1e293b; border: 3px solid #38bdf8; z-index: 10; border-radius: 8px 8px 0 0;
-            display: flex; align-items: center; justify-content: center; font-size: 1rem; 
-            box-shadow: 0 -5px 20px rgba(56, 189, 248, 0.4);
+            background: #1e293b; border: 3px solid #38bdf8; z-index: 10; border-radius: 10px 10px 0 0;
+            display: flex; align-items: center; justify-content: center; font-size: 0.8rem; 
+            box-shadow: 0 -5px 25px rgba(56, 189, 248, 0.5); font-weight: bold;
         }
 
         #player { 
             position: absolute; width: 5%; height: 5%; z-index: 100; 
             background-size: contain; background-repeat: no-repeat; background-position: center;
-            transition: all 0.3s ease-out; cursor: pointer;
+            transition: all 0.2s ease-out; cursor: pointer;
         }
         #player.active { filter: drop-shadow(0 0 10px #38bdf8); outline: 2px solid #38bdf8; border-radius: 50%; }
 
         .range-circle { position: absolute; border: 1px dashed rgba(56, 189, 248, 0.3); border-radius: 50%; background: rgba(56, 189, 248, 0.03); pointer-events: none; z-index: 5; transform: translate(-50%, -50%); display: none; }
 
-        .monster { position: absolute; width: 5%; height: 5%; z-index: 30; display: flex; flex-direction: column; align-items: center; justify-content: center; transition: all 0.8s linear; visibility: hidden; }
+        .monster { position: absolute; width: 5%; height: 5%; z-index: 30; display: flex; flex-direction: column; align-items: center; justify-content: center; transition: all 0.75s linear; visibility: hidden; }
         .hp-bg { width: 80%; height: 3px; background: #450a0a; position: absolute; top: -5px; border-radius: 2px; }
-        .hp-fill { height: 100%; background: #22c55e; width: 100%; }
+        .hp-fill { height: 100%; background: #22c55e; width: 100%; transition: width 0.2s; }
 
-        .tower { position: absolute; width: 5%; height: 5%; z-index: 40; display: flex; align-items: center; justify-content: center; background: rgba(56, 189, 248, 0.2); border-radius: 4px; border: 1px solid #38bdf844; }
+        .tower { position: absolute; width: 5%; height: 5%; z-index: 40; display: flex; align-items: center; justify-content: center; background: rgba(56, 189, 248, 0.2); border-radius: 4px; border: 1px solid #38bdf866; box-shadow: 0 0 10px rgba(56, 189, 248, 0.15); }
         #preview-tower { position: absolute; width: 5%; height: 5%; z-index: 45; display: none; filter: opacity(0.6); pointer-events: none; }
 
         .projectile { position: absolute; width: 6px; height: 6px; border-radius: 50%; z-index: 80; pointer-events: none; }
-        .dmg-text { position: absolute; font-weight: bold; color: #fbbf24; font-size: 10px; z-index: 110; animation: up-fade 0.4s forwards; }
+        .dmg-text { position: absolute; font-weight: bold; color: #fbbf24; font-size: 10px; z-index: 110; animation: up-fade 0.5s forwards; }
         @keyframes up-fade { from { transform: translateY(0); opacity: 1; } to { transform: translateY(-15px); opacity: 0; } }
 
         .ui-panel { background: #0f172a; border-top: 2px solid #334155; padding: 10px; }
         .tower-btn { background: #1e293b; border: 1px solid #475569; border-radius: 8px; padding: 6px; text-align: center; }
-        .tower-btn.selected { border-color: #38bdf8; color: #38bdf8; }
+        .tower-btn.selected { border-color: #38bdf8; color: #38bdf8; background: #0f172a; }
         .ctrl-btn { background: #1e293b; color: white; width: 45px; height: 40px; border-radius: 8px; font-size: 1.2rem; display: flex; align-items: center; justify-content: center; }
     </style>
 </head>
@@ -61,7 +61,7 @@
     <header class="p-3 bg-slate-900 flex justify-between items-center border-b border-slate-700">
         <button onclick="location.href='index.html'" class="text-slate-400 text-[10px] font-bold uppercase">◀ Exit</button>
         <div class="text-center flex-1 mx-4">
-            <span id="round-display" class="text-blue-400 text-[9px] font-bold uppercase tracking-widest">Round 1</span>
+            <span id="round-display" class="text-blue-400 text-[10px] font-bold uppercase tracking-widest">Round 1</span>
             <div class="w-full bg-slate-800 h-1 mt-1 rounded-full overflow-hidden border border-slate-700">
                 <div id="hp-bar" class="bg-emerald-500 h-full w-full"></div>
             </div>
@@ -71,7 +71,7 @@
 
     <div class="flex-1 flex flex-col items-center justify-center bg-black relative">
         <div id="map" class="grid-map" onclick="handleMapClick(event)">
-            <div id="base">🏰 VILLAGE</div>
+            <div id="base">🛡️ VILLAGE</div>
             <div id="p-range-circle" class="range-circle" style="border-color: #fbbf24;"></div>
             <div id="preview-range" class="range-circle" style="border-color: #38bdf8;"></div>
             <div id="preview-tower"></div>
@@ -95,10 +95,10 @@
                 <button class="ctrl-btn" onclick="movePlayer(0, 1)">▶</button>
             </div>
             
-            <button onclick="startWave()" id="start-btn" class="px-8 py-4 bg-blue-600 rounded-lg font-bold text-xs shadow-lg">START WAVE</button>
+            <button onclick="startWave()" id="start-btn" class="px-8 py-4 bg-blue-600 rounded-lg font-bold text-xs shadow-lg active:scale-95">START WAVE</button>
 
             <div class="text-right">
-                <p class="text-[7px] text-slate-500 uppercase">Auto Defense</p>
+                <p class="text-[7px] text-slate-500 uppercase">Master Stat</p>
                 <p class="text-[10px] text-orange-400 font-bold tracking-tighter">STR <span id="s-val">0</span></p>
             </div>
         </div>
@@ -141,7 +141,7 @@
         function updatePlayerUI() {
             player.style.top = (playerPos.r * 5) + '%';
             player.style.left = (playerPos.c * 5) + '%';
-            const rangeVal = 2 + (user_int / 100); 
+            const rangeVal = 1.8 + (user_int / 100); 
             pRange.style.width = (rangeVal * 10 * 2) + '%';
             pRange.style.height = (rangeVal * 10 * 2) + '%';
             pRange.style.top = ((playerPos.r + 0.5) * 5) + '%';
@@ -151,9 +151,8 @@
         function movePlayer(dr, dc) {
             if (!playerActive) return;
             const nr = playerPos.r + dr, nc = playerPos.c + dc;
-            // 기지 영역(하단 18,19행 중앙) 및 맵 경계 체크
             if (nr >= 0 && nr < 20 && nc >= 0 && nc < 20 && !towers.some(t => t.r === nr && t.c === nc)) {
-                if (!(nr >= 18 && nc >= 5 && nc <= 14)) { // 성벽 안으로는 못 들어감
+                if (!(nr >= 18 && nc >= 5 && nc <= 14)) { 
                     playerPos.r = nr; playerPos.c = nc;
                     updatePlayerUI();
                 }
@@ -174,7 +173,6 @@
             const rect = map.getBoundingClientRect();
             const c = Math.floor(((e.clientX - rect.left) / rect.width) * 20);
             const r = Math.floor(((e.clientY - rect.top) / rect.height) * 20);
-            // 설치 금지구역: 성벽(r>=18 & c 5~14) 및 이미 설치된 곳
             if (towers.some(t => t.r === r && t.c === c) || (r >= 18 && c >= 5 && c <= 14)) return;
             
             pendingBuild = { r, c, ...selectedType };
@@ -182,7 +180,7 @@
             previewTower.innerHTML = pendingBuild.type === 'arrow' ? '🏹' : pendingBuild.type === 'magic' ? '⚡' : '💣';
             previewTower.style.top = (r * 5) + '%'; previewTower.style.left = (c * 5) + '%';
             previewRange.style.display = 'block';
-            const tr = pendingBuild.type === 'magic' ? 4 : 6;
+            const tr = pendingBuild.type === 'magic' ? 3.5 : 5;
             previewRange.style.width = (tr * 10) + '%'; previewRange.style.height = (tr * 10) + '%';
             previewRange.style.top = ((r + 0.5) * 5) + '%'; previewRange.style.left = ((c + 0.5) * 5) + '%';
             document.getElementById('confirm-btn').classList.remove('hidden');
@@ -195,7 +193,7 @@
             el.className = 'tower'; el.innerHTML = previewTower.innerHTML;
             el.style.top = (pendingBuild.r * 5) + '%'; el.style.left = (pendingBuild.c * 5) + '%';
             map.appendChild(el);
-            towers.push({ ...pendingBuild, lastShot: 0, cooldown: pendingBuild.type === 'magic' ? 700 : 1300, range: (pendingBuild.type === 'magic' ? 4 : 6)/2 });
+            towers.push({ ...pendingBuild, lastShot: 0, cooldown: pendingBuild.type === 'magic' ? 700 : 1300, range: (pendingBuild.type === 'magic' ? 3.5 : 5)/2 });
             cancelBuild();
             updateVisualPath();
         }
@@ -206,29 +204,40 @@
             document.querySelectorAll('.tower-btn').forEach(b => b.classList.remove('selected'));
         }
 
-        // 🛣️ 고정 하향 경로 시각화
+        // 🛣️ 실시간 경로 업데이트 (최단 거리 타일 표시)
         function updateVisualPath() {
             document.querySelectorAll('.grid-cell').forEach(c => c.classList.remove('path-tile'));
+            let curR = 0, curC = 10;
             const targetR = 18, targetC = 10;
-            // 미리보기용: 위쪽 라인 3군데서 오는 경로 표시
-            [5, 10, 15].forEach(startC => {
-                let curR = 0, curC = startC;
-                for(let i=0; i<40; i++) {
-                    const cell = document.getElementById(`cell-${curR}-${curC}`);
-                    if(cell) cell.classList.add('path-tile');
-                    if (curR >= targetR) break;
-                    let dr = targetR - curR, dc = targetC - curC;
-                    if (Math.abs(dr) > Math.abs(dc)) curR++;
-                    else curC += (dc > 0 ? 1 : -1);
-                    if (towers.some(t => t.r === curR && t.c === curC)) curC++; // 간단한 회피 시각화
+
+            for(let i=0; i<50; i++) {
+                const cell = document.getElementById(`cell-${curR}-${curC}`);
+                if(cell) cell.classList.add('path-tile');
+                if (curR >= targetR) break;
+
+                let dr = targetR - curR, dc = targetC - curC;
+                let nextR = curR + 1, nextC = curC;
+
+                // 타워가 있으면 좌우로 우회
+                if (towers.some(t => t.r === nextR && t.c === nextC)) {
+                    if (dc >= 0) { 
+                        if (!towers.some(t => t.r === curR && t.c === curC+1)) nextC++; 
+                        else nextC--;
+                    } else {
+                        if (!towers.some(t => t.r === curR && t.c === curC-1)) nextC--;
+                        else nextC++;
+                    }
+                    nextR = curR; 
                 }
-            });
+                curR = nextR; curC = nextC;
+            }
         }
 
         function startWave() {
-            if (isWaveActive) return;
+            if (isWaveActive) return; // 중복 실행 방지
             isWaveActive = true;
-            document.getElementById('start-btn').style.display = 'none';
+            document.getElementById('start-btn').classList.add('opacity-50', 'pointer-events-none');
+            
             const isBoss = currentRound % 5 === 0;
             let count = isBoss ? 1 : 5 + currentRound;
             const interval = setInterval(() => {
@@ -244,8 +253,8 @@
             const hpFill = document.createElement('div'); hpFill.className = 'hp-fill';
             hpCont.appendChild(hpFill); m.appendChild(hpCont);
             
-            m.r = 0; m.c = Math.floor(Math.random() * 10) + 5; // 상단 중앙 부근에서 랜덤 스폰
-            m.maxHp = (isBoss ? 1500 : 150) + (currentRound * 60);
+            m.r = 0; m.c = 10; // 북쪽 정중앙 고정
+            m.maxHp = (isBoss ? 2000 : 200) + (currentRound * 80);
             m.hp = m.maxHp;
             m.style.top = (m.r * 5) + '%'; m.style.left = (m.c * 5) + '%';
             m.style.visibility = 'visible';
@@ -267,39 +276,44 @@
                 p.remove();
                 if (monsters.includes(target)) {
                     target.hp -= dmg;
-                    const t = document.createElement('div'); t.className = 'dmg-text'; t.innerText = `-${Math.floor(dmg)}`;
-                    t.style.top = (target.r*5)+'%'; t.style.left = (target.c*5)+'%'; map.appendChild(t); setTimeout(() => t.remove(), 400);
                     const fill = target.querySelector('.hp-fill');
                     if (fill) fill.style.width = Math.max(0, (target.hp/target.maxHp*100)) + '%';
                 }
             };
         }
 
-        // ⚙️ 이동 엔진 (0.8초 고정)
+        // ⚙️ 몬스터 이동 엔진 (0.8초 고정 / 길찾기 로직)
         setInterval(() => {
             if (!isWaveActive && monsters.length === 0) return;
             monsters.forEach((m, idx) => {
                 let dr = 18 - m.r, dc = 10 - m.c;
                 let nr = m.r, nc = m.c;
 
-                if (Math.abs(dr) > Math.abs(dc)) nr++;
-                else if (dc !== 0) nc += (dc > 0 ? 1 : -1);
+                // 기본적으로 아래로 전진
+                if (Math.abs(dr) > 0) nr++;
 
+                // 타워 충돌 시 회피 로직
                 if (towers.some(t => t.r === nr && t.c === nc)) {
-                    if (nr !== m.r) { nr = m.r; nc += (dc >= 0 ? 1 : -1); }
-                    else { nc = m.c; nr++; }
+                    nr = m.r; // 아래로 못가면 현재 행 유지
+                    if (dc >= 0) nc++; // 타겟이 오른쪽에 있으면 오른쪽으로
+                    else nc--; // 타겟이 왼쪽에 있으면 왼쪽으로
+                    
+                    // 만약 옆도 막혀있다면? 반대쪽으로 회피
+                    if (towers.some(t => t.r === nr && t.c === nc)) {
+                        nc = m.c + (dc >= 0 ? -1 : 1);
+                    }
                 }
 
                 m.r = nr; m.c = nc;
                 m.style.top = (m.r * 5) + '%'; m.style.left = (m.c * 5) + '%';
 
-                if (m.r >= 18) { // 성벽 도달
+                if (m.r >= 18) {
                     villageHp -= (m.innerHTML === '👹' ? 60 : 15);
                     document.getElementById('hp-bar').style.width = Math.max(0, villageHp) + '%';
                     m.remove(); monsters.splice(idx, 1);
-                    if (villageHp <= 0) { alert("VILLAGE DESTROYED!"); location.reload(); }
+                    if (villageHp <= 0) { alert("GAME OVER"); location.reload(); }
                 } else if (m.hp <= 0) {
-                    m.remove(); monsters.splice(idx, 1); dCoin += 50;
+                    m.remove(); monsters.splice(idx, 1); dCoin += 60;
                     document.getElementById('d-coin').innerText = dCoin + " DG";
                 }
             });
@@ -307,7 +321,7 @@
             if (isWaveActive && monsters.length === 0) {
                 isWaveActive = false; currentRound++;
                 document.getElementById('round-display').innerText = "ROUND " + currentRound;
-                document.getElementById('start-btn').style.display = 'block';
+                document.getElementById('start-btn').classList.remove('opacity-50', 'pointer-events-none');
                 updateVisualPath();
             }
         }, 800);
@@ -320,17 +334,17 @@
                     const target = monsters.find(m => Math.abs(t.r-m.r) + Math.abs(t.c-m.c) <= t.range * 2.5);
                     if (target) {
                         sndTower.currentTime = 0; sndTower.play();
-                        fireProjectile(t.r, t.c, target, '#38bdf8', (35 + user_str/6));
+                        fireProjectile(t.r, t.c, target, '#38bdf8', (40 + user_str/6));
                         t.lastShot = now;
                     }
                 }
             });
-            if (playerActive && now - playerLastShot > 500) {
-                const pRangeVal = 2 + (user_int / 100);
+            if (playerActive && now - playerLastShot > 600) {
+                const pRangeVal = 1.8 + (user_int / 100);
                 const target = monsters.find(m => Math.abs(playerPos.r-m.r) + Math.abs(playerPos.c-m.c) <= pRangeVal * 2.5);
                 if (target) {
                     sndAtk.currentTime = 0; sndAtk.play();
-                    fireProjectile(playerPos.r, playerPos.c, target, '#fbbf24', (30 + user_str/4));
+                    fireProjectile(playerPos.r, playerPos.c, target, '#fbbf24', (35 + user_str/4));
                     playerLastShot = now;
                 }
             }
