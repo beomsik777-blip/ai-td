@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>QuestBody - Tactical North Defense</title>
+    <title>QuestBody - Elite Defense</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&display=swap');
@@ -12,18 +12,16 @@
         
         .grid-map { 
             display: grid; grid-template-columns: repeat(20, 1fr); grid-template-rows: repeat(20, 1fr);
-            width: 95vw; height: 95vw; max-width: 550px; max-height: 550px;
+            width: 95vw; height: 95vw; max-width: 500px; max-height: 500px;
             background: #0f172a; border: 2px solid #334155; position: relative; margin: 5px auto;
         }
         .grid-cell { border: 0.1px solid rgba(56, 189, 248, 0.05); transition: background 0.3s; }
         .path-tile { background: rgba(56, 189, 248, 0.12) !important; }
 
-        /* 🏰 하단 마을 고정 구역 */
         #base { 
             position: absolute; bottom: 0; left: 25%; width: 50%; height: 10%; 
-            background: #1e293b; border: 3px solid #38bdf8; z-index: 10; border-radius: 10px 10px 0 0;
-            display: flex; align-items: center; justify-content: center; font-size: 0.8rem; 
-            box-shadow: 0 -5px 25px rgba(56, 189, 248, 0.5); font-weight: bold;
+            background: #1e293b; border: 2px solid #38bdf8; z-index: 10; border-radius: 10px 10px 0 0;
+            display: flex; align-items: center; justify-content: center; font-size: 0.7rem; font-weight: bold;
         }
 
         #player { 
@@ -39,17 +37,17 @@
         .hp-bg { width: 80%; height: 3px; background: #450a0a; position: absolute; top: -5px; border-radius: 2px; }
         .hp-fill { height: 100%; background: #22c55e; width: 100%; transition: width 0.2s; }
 
-        .tower { position: absolute; width: 5%; height: 5%; z-index: 40; display: flex; align-items: center; justify-content: center; background: rgba(56, 189, 248, 0.2); border-radius: 4px; border: 1px solid #38bdf866; box-shadow: 0 0 10px rgba(56, 189, 248, 0.15); }
+        .tower { position: absolute; width: 5%; height: 5%; z-index: 40; display: flex; align-items: center; justify-content: center; background: rgba(56, 189, 248, 0.2); border-radius: 4px; border: 1px solid #38bdf866; }
         #preview-tower { position: absolute; width: 5%; height: 5%; z-index: 45; display: none; filter: opacity(0.6); pointer-events: none; }
 
         .projectile { position: absolute; width: 6px; height: 6px; border-radius: 50%; z-index: 80; pointer-events: none; }
         .dmg-text { position: absolute; font-weight: bold; color: #fbbf24; font-size: 10px; z-index: 110; animation: up-fade 0.5s forwards; }
         @keyframes up-fade { from { transform: translateY(0); opacity: 1; } to { transform: translateY(-15px); opacity: 0; } }
 
-        .ui-panel { background: #0f172a; border-top: 2px solid #334155; padding: 10px; }
-        .tower-btn { background: #1e293b; border: 1px solid #475569; border-radius: 8px; padding: 6px; text-align: center; }
-        .tower-btn.selected { border-color: #38bdf8; color: #38bdf8; background: #0f172a; }
-        .ctrl-btn { background: #1e293b; color: white; width: 45px; height: 40px; border-radius: 8px; font-size: 1.2rem; display: flex; align-items: center; justify-content: center; }
+        .ui-panel { background: #0f172a; border-top: 2px solid #334155; padding: 8px; }
+        .tower-btn { background: #1e293b; border: 1px solid #475569; border-radius: 6px; padding: 4px; text-align: center; }
+        .tower-btn.selected { border-color: #38bdf8; background: #0f172a; color: #38bdf8; }
+        .ctrl-btn { background: #1e293b; color: white; width: 35px; height: 35px; border-radius: 6px; font-size: 1rem; display: flex; align-items: center; justify-content: center; }
     </style>
 </head>
 <body class="flex flex-col">
@@ -58,11 +56,11 @@
     <audio id="snd-atk"><source src="https://assets.mixkit.co/active_storage/sfx/2578/2578-preview.mp3" type="audio/mpeg"></audio>
     <audio id="snd-tower"><source src="https://assets.mixkit.co/active_storage/sfx/2568/2568-preview.mp3" type="audio/mpeg"></audio>
 
-    <header class="p-3 bg-slate-900 flex justify-between items-center border-b border-slate-700">
-        <button onclick="location.href='index.html'" class="text-slate-400 text-[10px] font-bold uppercase">◀ Exit</button>
+    <header class="p-2 bg-slate-900 flex justify-between items-center border-b border-slate-700">
+        <button onclick="location.href='index.html'" class="text-slate-400 text-[9px] font-bold uppercase tracking-tighter">◀ Exit</button>
         <div class="text-center flex-1 mx-4">
-            <span id="round-display" class="text-blue-400 text-[10px] font-bold uppercase tracking-widest">Round 1</span>
-            <div class="w-full bg-slate-800 h-1 mt-1 rounded-full overflow-hidden border border-slate-700">
+            <span id="round-display" class="text-blue-400 text-[10px] font-bold uppercase">Round 1</span>
+            <div class="w-full bg-slate-800 h-1 mt-0.5 rounded-full overflow-hidden border border-slate-700">
                 <div id="hp-bar" class="bg-emerald-500 h-full w-full"></div>
             </div>
         </div>
@@ -71,7 +69,7 @@
 
     <div class="flex-1 flex flex-col items-center justify-center bg-black relative">
         <div id="map" class="grid-map" onclick="handleMapClick(event)">
-            <div id="base">🛡️ VILLAGE</div>
+            <div id="base">🏰 VILLAGE</div>
             <div id="p-range-circle" class="range-circle" style="border-color: #fbbf24;"></div>
             <div id="preview-range" class="range-circle" style="border-color: #38bdf8;"></div>
             <div id="preview-tower"></div>
@@ -80,14 +78,23 @@
     </div>
 
     <div class="ui-panel shrink-0">
-        <div class="flex gap-2 mb-3">
-            <button onclick="selectTowerType('arrow', 50)" id="btn-arrow" class="tower-btn flex-1 text-[9px] font-bold">🏹 ARROW</button>
-            <button onclick="selectTowerType('magic', 80)" id="btn-magic" class="tower-btn flex-1 text-[9px] font-bold">⚡ MAGIC</button>
-            <button onclick="selectTowerType('cannon', 120)" id="btn-cannon" class="tower-btn flex-1 text-[9px] font-bold">💣 CANNON</button>
-            <button id="confirm-btn" onclick="confirmBuild()" class="flex-1 bg-emerald-700 rounded text-[9px] font-bold hidden">BUILD</button>
+        <div class="flex gap-1.5 mb-2">
+            <button onclick="selectTowerType('arrow', 50)" id="btn-arrow" class="tower-btn flex-1">
+                <p class="text-[9px] font-bold">🏹 Arrow</p>
+                <p id="dmg-arrow" class="text-[7px] text-orange-400">ATK: --</p>
+            </button>
+            <button onclick="selectTowerType('magic', 80)" id="btn-magic" class="tower-btn flex-1">
+                <p class="text-[9px] font-bold">⚡ Magic</p>
+                <p id="dmg-magic" class="text-[7px] text-blue-400">ATK: --</p>
+            </button>
+            <button onclick="selectTowerType('cannon', 120)" id="btn-cannon" class="tower-btn flex-1">
+                <p class="text-[9px] font-bold">💣 Cannon</p>
+                <p id="dmg-cannon" class="text-[7px] text-red-400">ATK: --</p>
+            </button>
+            <button id="confirm-btn" onclick="confirmBuild()" class="flex-1 bg-emerald-700 rounded text-[9px] font-bold hidden shadow-lg">INSTALL</button>
         </div>
         
-        <div class="flex justify-between items-center px-2">
+        <div class="flex justify-between items-center gap-2">
             <div class="grid grid-cols-3 gap-1">
                 <div></div><button class="ctrl-btn" onclick="movePlayer(-1, 0)">▲</button><div></div>
                 <button class="ctrl-btn" onclick="movePlayer(0, -1)">◀</button>
@@ -95,11 +102,17 @@
                 <button class="ctrl-btn" onclick="movePlayer(0, 1)">▶</button>
             </div>
             
-            <button onclick="startWave()" id="start-btn" class="px-8 py-4 bg-blue-600 rounded-lg font-bold text-xs shadow-lg active:scale-95">START WAVE</button>
+            <div class="flex flex-col items-center gap-1.5 flex-1">
+                <div class="text-[7px] text-slate-500 uppercase font-bold tracking-widest">Auto Attack System</div>
+                <button onclick="startWave()" id="start-btn" class="w-full py-2 bg-blue-600 rounded-md font-bold text-[10px] shadow-lg active:scale-95 transition-all">START WAVE</button>
+            </div>
 
-            <div class="text-right">
-                <p class="text-[7px] text-slate-500 uppercase">Master Stat</p>
-                <p class="text-[10px] text-orange-400 font-bold tracking-tighter">STR <span id="s-val">0</span></p>
+            <div class="bg-slate-900/80 p-2 rounded border border-slate-700 min-w-[65px] text-center">
+                <p class="text-[7px] text-slate-500 uppercase mb-0.5">Hero ATK</p>
+                <p id="hero-atk-val" class="text-[11px] text-orange-400 font-bold">0</p>
+                <div class="h-[1px] bg-slate-700 my-1"></div>
+                <p class="text-[7px] text-slate-500 uppercase mb-0.5">INT (Mana)</p>
+                <p id="hero-int-val" class="text-[11px] text-blue-400 font-bold">0</p>
             </div>
         </div>
     </div>
@@ -120,12 +133,19 @@
             player.style.backgroundImage = inbody?.gender === 'woman' ? "url('image/woman.png')" : "url('image/man/man.png')";
             for (let i = 0; i < 400; i++) {
                 const cell = document.createElement('div');
-                cell.className = 'grid-cell';
-                cell.id = `cell-${Math.floor(i/20)}-${i%20}`;
+                cell.className = 'grid-cell'; cell.id = `cell-${Math.floor(i/20)}-${i%20}`;
                 map.appendChild(cell);
             }
             updatePlayerUI();
-            document.getElementById('s-val').innerText = user_str;
+            
+            // ⚔️ 공격력 수치 계산 및 표시
+            const heroAtk = 30 + user_str / 4;
+            document.getElementById('hero-atk-val').innerText = Math.floor(heroAtk);
+            document.getElementById('hero-int-val').innerText = user_int;
+            document.getElementById('dmg-arrow').innerText = `ATK: ${Math.floor(35 + user_str/6)}`;
+            document.getElementById('dmg-magic').innerText = `ATK: ${Math.floor(25 + user_str/8)}`;
+            document.getElementById('dmg-cannon').innerText = `ATK: ${Math.floor(60 + user_str/4)}`;
+
             document.body.addEventListener('click', () => { document.getElementById('bgm').play().catch(e=>{}); }, {once: true});
             updateVisualPath();
         };
@@ -141,7 +161,7 @@
         function updatePlayerUI() {
             player.style.top = (playerPos.r * 5) + '%';
             player.style.left = (playerPos.c * 5) + '%';
-            const rangeVal = 1.8 + (user_int / 100); 
+            const rangeVal = 1.6 + (user_int / 120); 
             pRange.style.width = (rangeVal * 10 * 2) + '%';
             pRange.style.height = (rangeVal * 10 * 2) + '%';
             pRange.style.top = ((playerPos.r + 0.5) * 5) + '%';
@@ -153,8 +173,7 @@
             const nr = playerPos.r + dr, nc = playerPos.c + dc;
             if (nr >= 0 && nr < 20 && nc >= 0 && nc < 20 && !towers.some(t => t.r === nr && t.c === nc)) {
                 if (!(nr >= 18 && nc >= 5 && nc <= 14)) { 
-                    playerPos.r = nr; playerPos.c = nc;
-                    updatePlayerUI();
+                    playerPos.r = nr; playerPos.c = nc; updatePlayerUI();
                 }
             }
         }
@@ -174,7 +193,6 @@
             const c = Math.floor(((e.clientX - rect.left) / rect.width) * 20);
             const r = Math.floor(((e.clientY - rect.top) / rect.height) * 20);
             if (towers.some(t => t.r === r && t.c === c) || (r >= 18 && c >= 5 && c <= 14)) return;
-            
             pendingBuild = { r, c, ...selectedType };
             previewTower.style.display = 'flex';
             previewTower.innerHTML = pendingBuild.type === 'arrow' ? '🏹' : pendingBuild.type === 'magic' ? '⚡' : '💣';
@@ -204,40 +222,44 @@
             document.querySelectorAll('.tower-btn').forEach(b => b.classList.remove('selected'));
         }
 
-        // 🛣️ 실시간 경로 업데이트 (최단 거리 타일 표시)
+        // 🧠 지능형 길찾기 미리보기 (A* 알고리즘 약식 버전)
         function updateVisualPath() {
             document.querySelectorAll('.grid-cell').forEach(c => c.classList.remove('path-tile'));
             let curR = 0, curC = 10;
             const targetR = 18, targetC = 10;
 
-            for(let i=0; i<50; i++) {
+            for(let i=0; i<60; i++) {
                 const cell = document.getElementById(`cell-${curR}-${curC}`);
                 if(cell) cell.classList.add('path-tile');
                 if (curR >= targetR) break;
 
-                let dr = targetR - curR, dc = targetC - curC;
-                let nextR = curR + 1, nextC = curC;
+                let possible = [
+                    {r: curR + 1, c: curC}, // 아래
+                    {r: curR, c: curC + 1}, // 우
+                    {r: curR, c: curC - 1}, // 좌
+                    {r: curR - 1, c: curC}  // 위
+                ];
 
-                // 타워가 있으면 좌우로 우회
-                if (towers.some(t => t.r === nextR && t.c === nextC)) {
-                    if (dc >= 0) { 
-                        if (!towers.some(t => t.r === curR && t.c === curC+1)) nextC++; 
-                        else nextC--;
-                    } else {
-                        if (!towers.some(t => t.r === curR && t.c === curC-1)) nextC--;
-                        else nextC++;
-                    }
-                    nextR = curR; 
+                // 타워 없는 곳 중 마을과 가장 가까운 칸 선택
+                possible = possible.filter(p => p.r >= 0 && p.r < 20 && p.c >= 0 && p.c < 20 && !towers.some(t => t.r === p.r && t.c === p.c));
+                
+                if (possible.length > 0) {
+                    possible.sort((a, b) => {
+                        const distA = Math.sqrt(Math.pow(targetR-a.r,2) + Math.pow(targetC-a.c,2));
+                        const distB = Math.sqrt(Math.pow(targetR-b.r,2) + Math.pow(targetC-b.c,2));
+                        return distA - distB;
+                    });
+                    curR = possible[0].r; curC = possible[0].c;
+                } else {
+                    break; // 길이 완전히 막힘 (이런 경우는 없도록 설계 필요)
                 }
-                curR = nextR; curC = nextC;
             }
         }
 
         function startWave() {
-            if (isWaveActive) return; // 중복 실행 방지
+            if (isWaveActive) return;
             isWaveActive = true;
             document.getElementById('start-btn').classList.add('opacity-50', 'pointer-events-none');
-            
             const isBoss = currentRound % 5 === 0;
             let count = isBoss ? 1 : 5 + currentRound;
             const interval = setInterval(() => {
@@ -252,9 +274,8 @@
             const hpCont = document.createElement('div'); hpCont.className = 'hp-bg';
             const hpFill = document.createElement('div'); hpFill.className = 'hp-fill';
             hpCont.appendChild(hpFill); m.appendChild(hpCont);
-            
-            m.r = 0; m.c = 10; // 북쪽 정중앙 고정
-            m.maxHp = (isBoss ? 2000 : 200) + (currentRound * 80);
+            m.r = 0; m.c = 10;
+            m.maxHp = (isBoss ? 2500 : 250) + (currentRound * 100);
             m.hp = m.maxHp;
             m.style.top = (m.r * 5) + '%'; m.style.left = (m.c * 5) + '%';
             m.style.visibility = 'visible';
@@ -269,49 +290,42 @@
             p.style.left = sX + '%'; p.style.top = sY + '%';
             map.appendChild(p);
 
-            p.animate([
-                { left: sX + '%', top: sY + '%' },
-                { left: (target.c * 5 + 2.5) + '%', top: (target.r * 5 + 2.5) + '%' }
-            ], { duration: 150 }).onfinish = () => {
+            p.animate([{ left: sX + '%', top: sY + '%' }, { left: (target.c * 5 + 2.5) + '%', top: (target.r * 5 + 2.5) + '%' }], { duration: 150 }).onfinish = () => {
                 p.remove();
                 if (monsters.includes(target)) {
                     target.hp -= dmg;
+                    const t = document.createElement('div'); t.className = 'dmg-text'; t.innerText = `-${Math.floor(dmg)}`;
+                    t.style.top = (target.r*5)+'%'; t.style.left = (target.c*5)+'%'; map.appendChild(t); setTimeout(() => t.remove(), 400);
                     const fill = target.querySelector('.hp-fill');
                     if (fill) fill.style.width = Math.max(0, (target.hp/target.maxHp*100)) + '%';
                 }
             };
         }
 
-        // ⚙️ 몬스터 이동 엔진 (0.8초 고정 / 길찾기 로직)
+        // ⚙️ 몬스터 지능형 이동 엔진 (0.8초)
         setInterval(() => {
             if (!isWaveActive && monsters.length === 0) return;
             monsters.forEach((m, idx) => {
-                let dr = 18 - m.r, dc = 10 - m.c;
-                let nr = m.r, nc = m.c;
+                const targetR = 18, targetC = 10;
+                let possible = [{r: m.r+1, c: m.c}, {r: m.r, c: m.c+1}, {r: m.r, c: m.c-1}, {r: m.r-1, c: m.c}];
+                possible = possible.filter(p => p.r >= 0 && p.r < 20 && p.c >= 0 && p.c < 20 && !towers.some(t => t.r === p.r && t.c === p.c));
 
-                // 기본적으로 아래로 전진
-                if (Math.abs(dr) > 0) nr++;
-
-                // 타워 충돌 시 회피 로직
-                if (towers.some(t => t.r === nr && t.c === nc)) {
-                    nr = m.r; // 아래로 못가면 현재 행 유지
-                    if (dc >= 0) nc++; // 타겟이 오른쪽에 있으면 오른쪽으로
-                    else nc--; // 타겟이 왼쪽에 있으면 왼쪽으로
-                    
-                    // 만약 옆도 막혀있다면? 반대쪽으로 회피
-                    if (towers.some(t => t.r === nr && t.c === nc)) {
-                        nc = m.c + (dc >= 0 ? -1 : 1);
-                    }
+                if (possible.length > 0) {
+                    possible.sort((a, b) => {
+                        const distA = Math.sqrt(Math.pow(targetR-a.r,2) + Math.pow(targetC-a.c,2));
+                        const distB = Math.sqrt(Math.pow(targetR-b.r,2) + Math.pow(targetC-b.c,2));
+                        return distA - distB;
+                    });
+                    m.r = possible[0].r; m.c = possible[0].c;
                 }
 
-                m.r = nr; m.c = nc;
                 m.style.top = (m.r * 5) + '%'; m.style.left = (m.c * 5) + '%';
 
                 if (m.r >= 18) {
                     villageHp -= (m.innerHTML === '👹' ? 60 : 15);
                     document.getElementById('hp-bar').style.width = Math.max(0, villageHp) + '%';
                     m.remove(); monsters.splice(idx, 1);
-                    if (villageHp <= 0) { alert("GAME OVER"); location.reload(); }
+                    if (villageHp <= 0) { alert("VILLAGE DESTROYED!"); location.reload(); }
                 } else if (m.hp <= 0) {
                     m.remove(); monsters.splice(idx, 1); dCoin += 60;
                     document.getElementById('d-coin').innerText = dCoin + " DG";
@@ -326,7 +340,7 @@
             }
         }, 800);
 
-        // ⚔️ 상시 공격 엔진 (0.1초)
+        // ⚔️ 공격 엔진 (0.1초)
         setInterval(() => {
             const now = Date.now();
             towers.forEach(t => {
@@ -334,17 +348,17 @@
                     const target = monsters.find(m => Math.abs(t.r-m.r) + Math.abs(t.c-m.c) <= t.range * 2.5);
                     if (target) {
                         sndTower.currentTime = 0; sndTower.play();
-                        fireProjectile(t.r, t.c, target, '#38bdf8', (40 + user_str/6));
+                        fireProjectile(t.r, t.c, target, '#38bdf8', (35 + user_str/6));
                         t.lastShot = now;
                     }
                 }
             });
             if (playerActive && now - playerLastShot > 600) {
-                const pRangeVal = 1.8 + (user_int / 100);
+                const pRangeVal = 1.6 + (user_int / 120);
                 const target = monsters.find(m => Math.abs(playerPos.r-m.r) + Math.abs(playerPos.c-m.c) <= pRangeVal * 2.5);
                 if (target) {
                     sndAtk.currentTime = 0; sndAtk.play();
-                    fireProjectile(playerPos.r, playerPos.c, target, '#fbbf24', (35 + user_str/4));
+                    fireProjectile(playerPos.r, playerPos.c, target, '#fbbf24', (30 + user_str/4));
                     playerLastShot = now;
                 }
             }
