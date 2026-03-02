@@ -13,11 +13,13 @@
         .status-bar { transition: width 1s cubic-bezier(0.34, 1.56, 0.64, 1); }
 
         #character-sprite {
-            background-image: url('image/man/man.png');
+            /* 💡 기본 이미지는 nocheck.png로 설정 */
+            background-image: url('image/nocheck.png'); 
             background-size: contain;
             background-repeat: no-repeat;
             background-position: center;
             background-color: transparent;
+            filter: drop-shadow(0 0 10px rgba(56, 189, 248, 0.8));
         }
     </style>
 </head>
@@ -49,7 +51,6 @@
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
                 </svg>
             </button>
-
             <button onclick="logout()" class="p-2 bg-slate-800/50 rounded-lg border border-slate-700 text-slate-400 active:scale-95 transition-all">
                 <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
@@ -61,15 +62,20 @@
     <main class="flex-1 relative flex flex-col items-center justify-center p-6">
         <div class="absolute inset-0 bg-[linear-gradient(to_right,#1e293b_1px,transparent_1px),linear-gradient(to_bottom,#1e293b_1px,transparent_1px)] bg-[size:40px_40px] [mask-image:radial-gradient(ellipse_60%_50%_at_50%_50%,#000_70%,transparent_100%)]"></div>
 
-        <div class="relative z-10 w-72 h-80 flex flex-col items-center">
+        <div class="relative z-10 w-72 flex flex-col items-center">
             <div id="character-sprite" class="w-64 h-64 bg-slate-800/20 rounded-xl pixel-border neon-glow flex items-center justify-center overflow-hidden"></div>
+            
+            <button onclick="location.href='inbody.html'" class="mt-4 w-48 py-2 bg-blue-600/80 hover:bg-blue-500 text-white text-[10px] font-bold rounded border border-blue-400 shadow-[0_0_10px_rgba(59,130,246,0.5)] transition-all active:scale-95 uppercase tracking-widest">
+                Body Sign Up
+            </button>
+
             <div class="mt-4 text-center">
                 <span class="bg-blue-600 text-[10px] px-2 py-0.5 rounded-full font-bold">LV. 15</span>
-                <h2 class="text-xl font-bold mt-1 tracking-wider text-white uppercase">Future Chaser</h2>
+                <h2 class="text-lg font-bold mt-1 tracking-wider text-white uppercase">Future Chaser</h2>
             </div>
         </div>
 
-        <div class="w-full max-w-xs mt-8 space-y-4 z-10">
+        <div class="w-full max-w-xs mt-6 space-y-4 z-10">
             <div class="bg-slate-900/60 p-3 rounded border border-slate-700 backdrop-blur-sm shadow-inner">
                 <div class="flex justify-between text-[10px] mb-1">
                     <span class="text-orange-400 font-bold uppercase">Str (근력)</span>
@@ -100,7 +106,7 @@
             <div class="w-10 h-10 bg-blue-500/20 rounded-full flex-shrink-0 border border-blue-400 flex items-center justify-center text-xl">👤</div>
             <div>
                 <p class="text-[9px] text-blue-400 font-bold tracking-tighter uppercase">QuestBody Guide</p>
-                <p id="guide-text" class="text-[11px] leading-tight text-slate-200 mt-1">"지능을 높여서 마나 최대치를 확장해봐!"</p>
+                <p id="guide-text" class="text-[11px] leading-tight text-slate-200 mt-1">"Body Sign Up을 눌러 정보를 입력해!"</p>
             </div>
         </div>
     </section>
@@ -125,13 +131,9 @@
     </nav>
 
     <script>
-        // 🎵 사운드 활성화 로직
         const bgm = document.getElementById('main-bgm');
-        document.body.onclick = function() {
-            if (bgm.paused) {
-                bgm.play().catch(e => console.log("Audio play failed:", e));
-            }
-        };
+        // 브라우저 정책 대응: 클릭 시 재생
+        document.body.onclick = function() { if (bgm.paused) { bgm.play().catch(e => console.log(e)); } };
 
         if (sessionStorage.getItem('isLoggedIn') !== 'true') { location.href = 'login.html'; }
 
@@ -140,34 +142,41 @@
         function updateUI() {
             const savedInt = parseInt(localStorage.getItem('user_int')) || 0;
             const savedStr = parseInt(localStorage.getItem('user_str')) || 70;
-            const baseCoin = 100;
-            const bonusCoin = savedInt * 10;
+            const userGender = localStorage.getItem('user_gender'); 
+
+            const sprite = document.getElementById('character-sprite');
             
-            const baseMana = 10;
-            const maxMana = baseMana + savedInt;
-            
+            // 💡 성별 체크 로직: 'man'이면 캐릭터 이미지, 아니면 nocheck.png
+            if(userGender === 'man') {
+                sprite.style.backgroundImage = "url('image/man/man.png')";
+            } else {
+                sprite.style.backgroundImage = "url('image/nocheck.png')";
+            }
+
             document.getElementById('int-val').innerText = savedInt;
             document.getElementById('int-bar').style.width = Math.min(savedInt, 100) + '%';
             document.getElementById('str-val').innerText = savedStr;
             document.getElementById('str-bar').style.width = Math.min(savedStr, 100) + '%';
+            
+            // 마나통 업데이트
+            const maxMana = 10 + savedInt;
             document.getElementById('user-mana').innerText = `${maxMana} / ${maxMana}`;
             
+            // 코인 업데이트
             document.getElementById('user-coin').innerText = (parseInt(localStorage.getItem('user_coin')) || 100).toLocaleString();
 
-            if (savedInt >= 50) {
-                document.getElementById('guide-text').innerText = "훌륭해! 지능이 상당히 높아졌어. 마나통이 넉넉해졌군.";
-            } else if (savedInt > 0) {
-                document.getElementById('guide-text').innerText = `현재 INT ${savedInt} 달성! 마나가 확장되고 있어.`;
+            const guide = document.getElementById('guide-text');
+            if (userGender) {
+                guide.innerText = "신체 데이터 동기화 완료. 트레이닝을 시작해!";
             } else {
-                document.getElementById('guide-text').innerText = "지능을 높여서 마나 최대치를 확장해봐!";
+                guide.innerText = "Body Sign Up을 눌러 성별과 신체 정보를 등록해!";
             }
         }
 
         function resetCharacter() {
-            if(confirm('모든 데이터(코인 포함)를 초기화할까?')) {
+            if(confirm('데이터를 초기화할까?')) {
                 localStorage.clear();
                 localStorage.setItem('user_coin', 100);
-                alert('데이터가 100코인으로 초기화되었습니다.');
                 location.reload();
             }
         }
