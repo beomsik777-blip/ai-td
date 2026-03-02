@@ -14,44 +14,48 @@
         .status-bar { transition: width 1s cubic-bezier(0.34, 1.56, 0.64, 1); }
 
         #character-sprite {
-            background-size: contain;
-            background-repeat: no-repeat;
-            background-position: center bottom;
-            background-color: transparent;
-            filter: drop-shadow(0 0 10px rgba(56, 189, 248, 0.8));
+            background-size: contain; background-repeat: no-repeat; background-position: center bottom;
+            background-color: transparent; filter: drop-shadow(0 0 10px rgba(56, 189, 248, 0.8));
             transition: background-image 0.5s ease-in-out;
         }
         
-        .main-container { height: calc(100dvh - 160px); overflow-y: auto; -webkit-overflow-scrolling: touch; }
+        .main-container { height: calc(100dvh - 160px); overflow-y: auto; -webkit-overflow-scrolling: touch; scrollbar-width: none; }
         .main-container::-webkit-scrollbar { display: none; }
 
         .chart-container {
-            background: rgba(30, 41, 59, 0.4);
-            border: 1px solid rgba(56, 189, 248, 0.2);
-            border-radius: 20px;
-            width: 100%;
-            max-width: 300px;
-            height: 240px;
-            margin-top: 1rem;
-            padding: 10px;
+            background: rgba(30, 41, 59, 0.4); border: 1px solid rgba(56, 189, 248, 0.2);
+            border-radius: 20px; width: 100%; max-width: 300px; height: 240px; margin-top: 1rem; padding: 10px;
         }
 
         .stat-card { background: rgba(30, 41, 59, 0.6); border: 1px solid #334155; border-radius: 8px; padding: 8px; text-align: center; backdrop-filter: blur(4px); }
         
         .sync-btn-new {
-            background: linear-gradient(90deg, #1e293b, #0f172a);
-            border: 2px solid #38bdf8;
-            box-shadow: 0 0 15px rgba(56, 189, 248, 0.3);
-            transition: all 0.2s;
+            background: linear-gradient(90deg, #1e293b, #0f172a); border: 2px solid #38bdf8;
+            box-shadow: 0 0 15px rgba(56, 189, 248, 0.3); transition: all 0.2s;
         }
-        .sync-btn-new:active { transform: scale(0.95); box-shadow: 0 0 5px #38bdf8; }
+
+        /* 🌊 수분 시스템 스타일 */
+        .water-wave {
+            position: relative; width: 100%; height: 140px; background: #020617; 
+            border-radius: 12px; overflow: hidden; border: 1px solid #1e293b;
+        }
+        .water-fill {
+            position: absolute; bottom: 0; width: 100%;
+            background: linear-gradient(to top, #0ea5e9, #38bdf8);
+            transition: height 1.5s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: 0 0 20px rgba(14, 165, 233, 0.5);
+        }
+        .water-fill::after {
+            content: ""; position: absolute; top: 0; left: 0; width: 200%; height: 20px;
+            background: rgba(255, 255, 255, 0.1); border-radius: 50%;
+            animation: wave 3s infinite linear;
+        }
+        @keyframes wave { from { transform: translateX(0); } to { transform: translateX(-50%); } }
     </style>
 </head>
 <body class="flex flex-col h-screen overflow-hidden">
 
-    <audio id="main-bgm" loop>
-        <source src="music/loginbgm.mp3" type="audio/mpeg">
-    </audio>
+    <audio id="main-bgm" loop><source src="music/loginbgm.mp3" type="audio/mpeg"></audio>
 
     <header class="p-4 bg-slate-900 border-b-2 border-slate-700 flex justify-between items-center z-20 shrink-0">
         <div class="flex flex-col">
@@ -61,7 +65,7 @@
             </div>
         </div>
         <div class="flex gap-2 text-right items-center">
-            <div class="mr-1">
+            <div>
                 <span class="text-[10px] text-slate-400 uppercase">Coin</span>
                 <p id="user-coin" class="font-bold text-yellow-400 text-sm">100</p>
             </div>
@@ -69,16 +73,12 @@
                 <span class="text-[10px] text-slate-400 uppercase">Mana Pool</span>
                 <p id="user-mana" class="font-bold text-blue-400 text-sm">10 / 10</p>
             </div>
-            <button onclick="resetCharacter()" class="p-2 bg-red-900/30 rounded-lg border border-red-900/50 text-red-500 active:scale-95 ml-1">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-                </svg>
-            </button>
+            <button onclick="resetCharacter()" class="p-2 bg-red-900/30 rounded-lg border border-red-900/50 text-red-500 active:scale-95 ml-1">🔄</button>
         </div>
     </header>
 
-    <main class="main-container relative flex flex-col items-center p-6 shrink-0">
-        <div class="absolute inset-0 bg-[linear-gradient(to_right,#1e293b_1px,transparent_1px),linear-gradient(to_bottom,#1e293b_1px,transparent_1px)] bg-[size:40px_40px] [mask-image:radial-gradient(ellipse_60%_50%_at_50%_50%,#000_70%,transparent_100%)]"></div>
+    <main class="main-container relative flex flex-col items-center p-6 space-y-8">
+        <div class="absolute inset-0 bg-[linear-gradient(to_right,#1e293b_1px,transparent_1px),linear-gradient(to_bottom,#1e293b_1px,transparent_1px)] bg-[size:40px_40px] [mask-image:radial-gradient(ellipse_60%_50%_at_50%_50%,#000_70%,transparent_100%)] pointer-events-none"></div>
 
         <div class="relative z-10 w-72 flex flex-col items-center">
             <div id="character-sprite" class="w-64 h-64 bg-slate-800/20 rounded-xl pixel-border neon-glow flex items-center justify-center overflow-hidden"></div>
@@ -89,133 +89,179 @@
             </div>
         </div>
 
-        <div onclick="goToPage('inbody.html')" class="sync-btn-new w-full max-w-xs mt-6 p-3 rounded-lg flex items-center gap-3 cursor-pointer z-10">
-            <div class="w-8 h-8 bg-blue-500/20 rounded-full flex-shrink-0 border border-blue-400 flex items-center justify-center text-lg">🧬</div>
-            <div>
-                <p id="sync-status" class="text-[9px] text-blue-400 font-bold tracking-tighter uppercase">InBody Sync</p>
-                <p id="guide-text" class="text-[10px] leading-tight text-slate-300">"데이터 동기화 및 신체 분석하기"</p>
+        <div class="w-full max-w-xs z-10 space-y-4">
+            <div onclick="goToPage('inbody.html')" class="sync-btn-new p-3 rounded-lg flex items-center gap-3 cursor-pointer">
+                <div class="w-8 h-8 bg-blue-500/20 rounded-full border border-blue-400 flex items-center justify-center text-lg">🧬</div>
+                <div>
+                    <p id="sync-status" class="text-[9px] text-blue-400 font-bold tracking-tighter uppercase">InBody Sync</p>
+                    <p class="text-[10px] leading-tight text-slate-300">신체 분석 데이터 동기화</p>
+                </div>
+            </div>
+
+            <div class="chart-container mx-auto">
+                <canvas id="bodyChart"></canvas>
+            </div>
+
+            <div class="grid grid-cols-3 gap-2">
+                <div class="stat-card"><p class="text-[7px] text-orange-400 uppercase font-bold">Muscle</p><p id="stat-muscle" class="text-[11px] font-bold">--</p></div>
+                <div class="stat-card"><p class="text-[7px] text-blue-400 uppercase font-bold">Fat</p><p id="stat-fat" class="text-[11px] font-bold">--</p></div>
+                <div class="stat-card"><p class="text-[7px] text-emerald-400 uppercase font-bold">BMI</p><p id="stat-bmi" class="text-[11px] font-bold">--</p></div>
             </div>
         </div>
 
-        <div class="chart-container z-10">
-            <canvas id="bodyChart"></canvas>
-        </div>
-
-        <div class="w-full max-w-xs mt-4 grid grid-cols-3 gap-2 z-10">
-            <div class="stat-card"><p class="text-[7px] text-orange-400 uppercase font-bold">Muscle</p><p id="stat-muscle" class="text-[11px] font-bold">--</p></div>
-            <div class="stat-card"><p class="text-[7px] text-blue-400 uppercase font-bold">Fat</p><p id="stat-fat" class="text-[11px] font-bold">--</p></div>
-            <div class="stat-card"><p class="text-[7px] text-emerald-400 uppercase font-bold">BMI</p><p id="stat-bmi" class="text-[11px] font-bold">--</p></div>
-            <div class="stat-card"><p class="text-[7px] text-rose-400 uppercase font-bold">Fat %</p><p id="stat-percent" class="text-[11px] font-bold">--</p></div>
-            <div class="stat-card col-span-2"><p class="text-[7px] text-purple-400 uppercase font-bold">BMR (Metabolism)</p><p id="stat-bmr" class="text-[11px] font-bold">--</p></div>
-        </div>
-
-        <div class="w-full max-w-xs mt-6 space-y-4 z-10 pb-20">
-            <div class="bg-slate-900/60 p-3 rounded border border-slate-700 shadow-inner">
-                <div class="flex justify-between text-[10px] mb-1"><span class="text-orange-400 font-bold uppercase">Str</span><span id="str-val">0</span></div>
-                <div class="w-full bg-slate-800 h-2 rounded-full overflow-hidden"><div id="str-bar" class="status-bar bg-gradient-to-r from-orange-600 to-orange-400 h-full w-[0%]"></div></div>
+        <div class="w-full max-w-xs bg-slate-900/80 p-5 rounded-2xl border border-slate-700 neon-glow z-10 space-y-4">
+            <div class="flex justify-between items-center">
+                <h3 class="text-blue-400 font-bold text-xs tracking-widest">HYDRATION</h3>
+                <span class="text-[8px] text-slate-500 animate-pulse">EVAPORATING...</span>
             </div>
-            <div class="bg-slate-900/60 p-3 rounded border border-slate-700 shadow-inner">
-                <div class="flex justify-between text-[10px] mb-1"><span class="text-purple-400 font-bold uppercase">Int</span><div class="flex items-center gap-2"><span id="int-val">0</span><button onclick="goToPage('brain.html')" class="bg-purple-600 text-[8px] px-2 py-0.5 rounded font-bold">TRAINING</button></div></div>
-                <div class="w-full bg-slate-800 h-2 rounded-full overflow-hidden"><div id="int-bar" class="status-bar bg-gradient-to-r from-purple-600 to-purple-400 h-full w-[0%]"></div></div>
+
+            <div class="water-wave">
+                <div id="water-fill" class="water-fill" style="height: 0%;"></div>
+                <div class="absolute inset-0 flex flex-col items-center justify-center font-bold">
+                    <span id="current-water" class="text-2xl">0</span>
+                    <span class="text-[10px] text-slate-400 uppercase">/ 2000 ml</span>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-3 gap-2">
+                <button onclick="drinkWater(200)" class="bg-slate-800 border border-blue-500/20 py-2 rounded-lg text-[9px] active:scale-95 transition-all">🥛 200ml</button>
+                <button onclick="drinkWater(350)" class="bg-slate-800 border border-blue-500/20 py-2 rounded-lg text-[9px] active:scale-95 transition-all">🥤 350ml</button>
+                <button onclick="drinkWater(500)" class="bg-slate-800 border border-blue-500/20 py-2 rounded-lg text-[9px] active:scale-95 transition-all">🧴 500ml</button>
+            </div>
+
+            <div class="pt-2 border-t border-slate-800">
+                <p class="text-[8px] text-slate-500 uppercase mb-2">Recent 3 Days</p>
+                <div id="hydration-history" class="space-y-1.5">
+                    </div>
+            </div>
+        </div>
+
+        <div class="w-full max-w-xs space-y-3 z-10 pb-10">
+            <div class="bg-slate-900/60 p-3 rounded border border-slate-700">
+                <div class="flex justify-between text-[10px] mb-1"><span class="text-orange-400 font-bold uppercase">Str (Gym)</span><span id="str-val">0</span></div>
+                <div class="w-full bg-slate-800 h-1.5 rounded-full overflow-hidden"><div id="str-bar" class="status-bar bg-orange-500 h-full w-[0%]"></div></div>
+            </div>
+            <div class="bg-slate-900/60 p-3 rounded border border-slate-700">
+                <div class="flex justify-between text-[10px] mb-1"><span class="text-purple-400 font-bold uppercase">Int (Brain)</span><span id="int-val">0</span></div>
+                <div class="w-full bg-slate-800 h-1.5 rounded-full overflow-hidden"><div id="int-bar" class="status-bar bg-purple-500 h-full w-[0%]"></div></div>
             </div>
         </div>
     </main>
 
     <nav class="bg-slate-950 border-t border-slate-800 grid grid-cols-4 h-20 z-20 shrink-0">
         <button onclick="goToPage('gym.html')" class="flex flex-col items-center justify-center text-slate-400"><span class="text-2xl">🏋️</span><span class="text-[9px] font-bold mt-1 uppercase">Gym</span></button>
-        <button onclick="goToPage('brain.html')" class="flex flex-col items-center justify-center text-slate-400 border-x border-slate-900"><span class="text-2xl">🧩</span><span class="text-[9px] font-bold mt-1 uppercase">Brain</span></button>
-        <button onclick="goToPage('defense.html')" class="flex flex-col items-center justify-center bg-blue-900/20 text-blue-400 border-y-2 border-blue-500"><span class="text-2xl">🛡️</span><span class="text-[9px] font-bold mt-1 uppercase">Defense</span></button>
-        <button onclick="goToPage('shop.html')" class="flex flex-col items-center justify-center text-slate-400 border-l border-slate-900"><span class="text-2xl">🏪</span><span class="text-[9px] font-bold mt-1 uppercase">Shop</span></button>
+        <button onclick="goToPage('brain.html')" class="flex flex-col items-center justify-center text-slate-400"><span class="text-2xl">🧩</span><span class="text-[9px] font-bold mt-1 uppercase">Brain</span></button>
+        <button onclick="goToPage('defense.html')" class="flex flex-col items-center justify-center text-slate-400"><span class="text-2xl">🛡️</span><span class="text-[9px] font-bold mt-1 uppercase">Defense</span></button>
+        <button onclick="goToPage('shop.html')" class="flex flex-col items-center justify-center text-slate-400"><span class="text-2xl">🏪</span><span class="text-[9px] font-bold mt-1 uppercase">Shop</span></button>
     </nav>
 
     <script>
         let bodyChart = null;
-        function goToPage(url) { window.location.href = url; }
-
         const bgm = document.getElementById('main-bgm');
-        document.body.onclick = function() { if (bgm.paused) { bgm.play().catch(e => {}); } };
 
-        if (sessionStorage.getItem('isLoggedIn') !== 'true') { location.href = 'login.html'; }
+        function goToPage(url) { window.location.href = url; }
+        document.body.onclick = () => { if (bgm.paused) bgm.play().catch(e => {}); };
 
-        window.onload = function() { updateUI(); };
+        window.onload = () => {
+            if (sessionStorage.getItem('isLoggedIn') !== 'true') location.href = 'login.html';
+            updateUI();
+            evaporateWater();
+            setInterval(evaporateWater, 1000 * 60 * 10); // 10분마다 수분 체크
+        };
+
+        // 🌊 수분 관리 로직
+        let hydData = JSON.parse(localStorage.getItem('user_hydration')) || { current: 0, history: [], lastUpdate: Date.now() };
+
+        function drinkWater(ml) {
+            const today = new Date().toLocaleDateString();
+            hydData.current = Math.min(2000, hydData.current + ml);
+            hydData.lastUpdate = Date.now();
+
+            let dayRecord = hydData.history.find(h => h.date === today);
+            if (dayRecord) dayRecord.amount = Math.min(2000, dayRecord.amount + ml);
+            else {
+                hydData.history.push({ date: today, amount: ml });
+                if (hydData.history.length > 3) hydData.history.shift();
+            }
+            saveHydData();
+        }
+
+        function evaporateWater() {
+            const now = Date.now();
+            const elapsedHours = (now - hydData.lastUpdate) / (1000 * 60 * 60);
+            const loss = Math.floor(elapsedHours * 40); // 시간당 40ml 증발
+            if (loss > 0) {
+                hydData.current = Math.max(0, hydData.current - loss);
+                hydData.lastUpdate = now;
+                saveHydData();
+            }
+        }
+
+        function saveHydData() {
+            localStorage.setItem('user_hydration', JSON.stringify(hydData));
+            updateHydUI();
+        }
+
+        function updateHydUI() {
+            const percentage = (hydData.current / 2000) * 100;
+            document.getElementById('water-fill').style.height = percentage + '%';
+            document.getElementById('current-water').innerText = Math.floor(hydData.current);
+
+            const histDiv = document.getElementById('hydration-history');
+            histDiv.innerHTML = "";
+            [...hydData.history].reverse().forEach(h => {
+                const item = document.createElement('div');
+                item.className = "flex justify-between p-2 bg-slate-800/40 rounded border-l-2 border-blue-500 text-[10px]";
+                item.innerHTML = `<span>${h.date}</span><span class="text-blue-400 font-bold">${h.amount}ml</span>`;
+                histDiv.appendChild(item);
+            });
+        }
 
         function updateUI() {
-            const savedInt = parseInt(localStorage.getItem('user_int')) || 0;
-            const savedStr = parseInt(localStorage.getItem('user_str')) || 0;
-            const savedCoin = parseInt(localStorage.getItem('user_coin')) || 100;
+            const sInt = parseInt(localStorage.getItem('user_int')) || 0;
+            const sStr = parseInt(localStorage.getItem('user_str')) || 0;
+            const sCoin = parseInt(localStorage.getItem('user_coin')) || 100;
             
-            document.getElementById('int-val').innerText = savedInt;
-            document.getElementById('int-bar').style.width = Math.min(savedInt, 100) + '%';
-            document.getElementById('str-val').innerText = savedStr;
-            document.getElementById('str-bar').style.width = Math.min(savedStr, 100) + '%';
-            document.getElementById('user-coin').innerText = savedCoin.toLocaleString();
-
-            const baseMana = 10;
-            const maxMana = baseMana + savedInt;
-            document.getElementById('user-mana').innerText = `${maxMana} / ${maxMana}`;
-
-            const level = Math.floor((savedStr + savedInt) / 10) + 1;
-            document.getElementById('user-lv').innerText = `LV. ${level}`;
+            document.getElementById('int-val').innerText = sInt;
+            document.getElementById('int-bar').style.width = Math.min(sInt, 100) + '%';
+            document.getElementById('str-val').innerText = sStr;
+            document.getElementById('str-bar').style.width = Math.min(sStr, 100) + '%';
+            document.getElementById('user-coin').innerText = sCoin.toLocaleString();
+            document.getElementById('user-mana').innerText = `${10 + sInt} / ${10 + sInt}`;
+            document.getElementById('user-lv').innerText = `LV. ${Math.floor((sStr + sInt) / 10) + 1}`;
 
             const inbody = JSON.parse(localStorage.getItem('user_inbody'));
             const sprite = document.getElementById('character-sprite');
             
             if (inbody) {
-                if (inbody.gender === 'woman') sprite.style.backgroundImage = "url('image/woman.png')";
-                else if (inbody.gender === 'man') sprite.style.backgroundImage = "url('image/man/man.png')";
-                else sprite.style.backgroundImage = "url('image/nocheck.png')";
-                
+                sprite.style.backgroundImage = inbody.gender === 'woman' ? "url('image/woman.png')" : "url('image/man/man.png')";
                 document.getElementById('user-weight').innerText = `Weight: ${inbody.weight} kg`;
                 document.getElementById('stat-muscle').innerText = `${inbody.muscle}kg`;
                 document.getElementById('stat-fat').innerText = `${inbody.fatMass}kg`;
                 document.getElementById('stat-bmi').innerText = inbody.bmi;
-                document.getElementById('stat-percent').innerText = `${inbody.fatPercent}%`;
-                document.getElementById('stat-bmr').innerText = `${inbody.bmr}`;
-
                 document.getElementById('sync-status').innerText = "BODY DATA SYNCED ✓";
                 document.getElementById('sync-status').classList.replace('text-blue-400', 'text-emerald-400');
-                
                 renderRadarChart(inbody);
             } else {
-                sprite.style.backgroundImage = "url('image/nocheck.png')"; 
-                document.getElementById('user-weight').innerText = "Weight: 0.0 kg";
+                sprite.style.backgroundImage = "url('image/nocheck.png')";
             }
+            updateHydUI();
         }
 
         function renderRadarChart(data) {
             const ctx = document.getElementById('bodyChart').getContext('2d');
-            if (bodyChart) { bodyChart.destroy(); }
-            const chartData = [
-                (parseFloat(data.muscle) / 45) * 100,
-                (parseFloat(data.fatMass) / 30) * 100,
-                (parseFloat(data.bmi) / 35) * 100,
-                (parseFloat(data.fatPercent) / 40) * 100,
-                (parseFloat(data.bmr) / 2000) * 100
-            ];
+            if (bodyChart) bodyChart.destroy();
             bodyChart = new Chart(ctx, {
                 type: 'radar',
                 data: {
                     labels: ['근육', '지방', 'BMI', '지방%', '대사량'],
                     datasets: [{
-                        data: chartData,
-                        backgroundColor: 'rgba(56, 189, 248, 0.2)',
-                        borderColor: '#38bdf8',
-                        borderWidth: 2,
-                        pointRadius: 2,
-                        pointBackgroundColor: '#38bdf8'
+                        data: [(data.muscle/45)*100, (data.fatMass/30)*100, (data.bmi/35)*100, (data.fatPercent/40)*100, (data.bmr/2000)*100],
+                        backgroundColor: 'rgba(56, 189, 248, 0.2)', borderColor: '#38bdf8', borderWidth: 2, pointRadius: 0
                     }]
                 },
                 options: {
-                    responsive: true, maintainAspectRatio: false,
-                    scales: {
-                        r: {
-                            angleLines: { color: 'rgba(255, 255, 255, 0.1)' },
-                            grid: { color: 'rgba(255, 255, 255, 0.1)' },
-                            pointLabels: { color: '#94a3b8', font: { size: 9, family: 'Orbitron' } },
-                            ticks: { display: false },
-                            suggestedMin: 0, suggestedMax: 100
-                        }
-                    },
+                    scales: { r: { angleLines: { display: false }, grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { display: false }, suggestedMin: 0, suggestedMax: 100, pointLabels: { color: '#64748b', font: { size: 8 } } } },
                     plugins: { legend: { display: false } }
                 }
             });
