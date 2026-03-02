@@ -15,41 +15,59 @@
             width: 95vw; height: 95vw; max-width: 550px; max-height: 550px;
             background: #0f172a; border: 2px solid #334155; position: relative; margin: 5px auto;
         }
-        .grid-cell { border: 0.1px solid rgba(56, 189, 248, 0.05); position: relative; }
+        .grid-cell { border: 0.1px solid rgba(56, 189, 248, 0.05); position: relative; z-index: 5; }
 
-        #base { position: absolute; top: 45%; left: 45%; width: 10%; height: 10%; background: #1e293b; border: 2px solid #38bdf8; z-index: 10; border-radius: 4px; display: flex; align-items: center; justify-content: center; font-size: 1rem; }
+        /* 🛣️ 은은한 경로 가이드 라인 */
+        .path-line { position: absolute; background: rgba(56, 189, 248, 0.1); z-index: 1; pointer-events: none; }
 
-        #player { position: absolute; width: 5%; height: 5%; z-index: 100; background-size: contain; background-repeat: no-repeat; transition: all 0.2s ease-out; cursor: pointer; }
+        #base { position: absolute; top: 45%; left: 45%; width: 10%; height: 10%; background: #1e293b; border: 2px solid #38bdf8; z-index: 10; border-radius: 4px; display: flex; align-items: center; justify-content: center; font-size: 1rem; box-shadow: 0 0 15px rgba(56, 189, 248, 0.4); }
+
+        /* 🤺 캐릭터 중앙 정렬 수정 */
+        #player { 
+            position: absolute; width: 5%; height: 5%; z-index: 100; 
+            background-size: contain; background-repeat: no-repeat; background-position: center;
+            transition: all 0.2s ease-out; cursor: pointer;
+            transform-origin: center;
+        }
         #player.active { filter: drop-shadow(0 0 10px #38bdf8); outline: 2px solid #38bdf8; border-radius: 50%; }
 
-        /* ⚔️ 범위 시각화 */
         .range-circle { position: absolute; border: 1px dashed rgba(56, 189, 248, 0.4); border-radius: 50%; background: rgba(56, 189, 248, 0.05); pointer-events: none; z-index: 5; transform: translate(-50%, -50%); display: none; }
         #p-range-circle { border-color: #fbbf24; background: rgba(251, 191, 36, 0.05); z-index: 90; }
 
-        .monster { position: absolute; width: 5%; height: 5%; z-index: 30; transition: all 0.3s linear; font-size: 1rem; display: flex; align-items: center; justify-content: center; }
+        /* 👾 몬스터 및 체력바 */
+        .monster { position: absolute; width: 5%; height: 5%; z-index: 30; transition: all 0.3s linear; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+        .hp-bg { width: 100%; height: 3px; background: #ef4444; position: absolute; top: -5px; border-radius: 2px; }
+        .hp-fill { height: 100%; background: #22c55e; transition: width 0.2s; }
+
         .tower { position: absolute; width: 5%; height: 5%; z-index: 40; display: flex; align-items: center; justify-content: center; background: rgba(56, 189, 248, 0.15); border-radius: 4px; }
-        
-        /* 프리뷰 타워 */
         #preview-tower { position: absolute; width: 5%; height: 5%; z-index: 45; display: none; filter: opacity(0.6); pointer-events: none; }
 
+        /* 💥 데미지 텍스트 */
+        .dmg-text { position: absolute; font-weight: bold; color: #fbbf24; font-size: 10px; z-index: 110; animation: up-fade 0.5s forwards; pointer-events: none; }
+        @keyframes up-fade { from { transform: translateY(0); opacity: 1; } to { transform: translateY(-20px); opacity: 0; } }
+
         .laser { position: absolute; background: #38bdf8; z-index: 45; transform-origin: 0 50%; height: 2px; pointer-events: none; }
-        
         .ui-panel { background: #0f172a; border-top: 2px solid #334155; padding: 10px; }
         .tower-btn { background: #1e293b; border: 1px solid #475569; border-radius: 8px; padding: 5px; text-align: center; }
-        .tower-btn.selected { border-color: #38bdf8; color: #38bdf8; }
-        
+        .tower-btn.selected { border-color: #38bdf8; color: #38bdf8; background: #1e293b88; }
         .ctrl-btn { background: #1e293b; color: white; width: 40px; height: 35px; border-radius: 8px; font-size: 1rem; }
     </style>
 </head>
 <body class="flex flex-col">
 
     <audio id="bgm" loop><source src="music/townbgm.mp3" type="audio/mpeg"></audio>
-    <audio id="snd-atk"><source src="https://assets.mixkit.co/active_storage/sfx/2571/2571-preview.mp3" type="audio/mpeg"></audio> <audio id="snd-tower"><source src="https://assets.mixkit.co/active_storage/sfx/1653/1653-preview.mp3" type="audio/mpeg"></audio> <header class="p-3 bg-slate-900 flex justify-between items-center border-b border-slate-700">
+    <audio id="snd-atk"><source src="https://assets.mixkit.co/active_storage/sfx/2571/2571-preview.mp3" type="audio/mpeg"></audio>
+    <audio id="snd-tower"><source src="https://assets.mixkit.co/active_storage/sfx/1653/1653-preview.mp3" type="audio/mpeg"></audio>
+
+    <header class="p-3 bg-slate-900 flex justify-between items-center border-b border-slate-700">
         <button onclick="location.href='index.html'" class="text-slate-400 text-[10px] font-bold">◀ EXIT</button>
-        <div class="text-center">
-            <span id="round-display" class="text-blue-400 text-[10px] font-bold uppercase">Round 1</span>
-            <div class="w-24 bg-slate-800 h-1 mt-1 rounded-full overflow-hidden border border-slate-700">
-                <div id="hp-bar" class="bg-emerald-500 h-full w-full"></div>
+        <div class="text-center flex-1 mx-4">
+            <div class="flex justify-between items-center mb-1">
+                <span id="round-display" class="text-blue-400 text-[9px] font-bold uppercase">Round 1</span>
+                <span id="monster-info" class="text-rose-400 text-[9px] font-bold uppercase">ENEMY: SLIME</span>
+            </div>
+            <div class="w-full bg-slate-800 h-1.5 rounded-full overflow-hidden border border-slate-700">
+                <div id="hp-bar" class="bg-emerald-500 h-full w-full transition-all"></div>
             </div>
         </div>
         <p id="d-coin" class="text-xs font-bold text-yellow-400">200 DG</p>
@@ -57,6 +75,9 @@
 
     <div class="flex-1 flex flex-col items-center justify-center bg-black">
         <div id="map" class="grid-map" onclick="handleMapClick(event)">
+            <div class="path-line" style="top: 47.5%; left: 0; width: 100%; height: 5%;"></div>
+            <div class="path-line" style="top: 0; left: 47.5%; width: 5%; height: 100%;"></div>
+            
             <div id="base">🏰</div>
             <div id="p-range-circle" class="range-circle"></div>
             <div id="preview-range" class="range-circle" style="border-color: #38bdf8;"></div>
@@ -67,10 +88,10 @@
 
     <div class="ui-panel shrink-0">
         <div class="flex gap-2 mb-2">
-            <button onclick="selectTowerType('arrow', 50)" id="btn-arrow" class="tower-btn flex-1 text-[9px]">🏹 Arrow</button>
-            <button onclick="selectTowerType('magic', 80)" id="btn-magic" class="tower-btn flex-1 text-[9px]">⚡ Magic</button>
-            <button onclick="selectTowerType('cannon', 120)" id="btn-cannon" class="tower-btn flex-1 text-[9px]">💣 Cannon</button>
-            <button id="confirm-btn" onclick="confirmBuild()" class="flex-1 bg-emerald-600 rounded text-[9px] font-bold hidden">BUILD (설치)</button>
+            <button onclick="selectTowerType('arrow', 50)" id="btn-arrow" class="tower-btn flex-1 text-[8px]">🏹 Arrow</button>
+            <button onclick="selectTowerType('magic', 80)" id="btn-magic" class="tower-btn flex-1 text-[8px]">⚡ Magic</button>
+            <button onclick="selectTowerType('cannon', 120)" id="btn-cannon" class="tower-btn flex-1 text-[8px]">💣 Cannon</button>
+            <button id="confirm-btn" onclick="confirmBuild()" class="flex-1 bg-emerald-600 rounded text-[9px] font-bold hidden">INSTALL (설치)</button>
         </div>
         
         <div class="flex justify-between items-center">
@@ -80,9 +101,7 @@
                 <button class="ctrl-btn" onclick="movePlayer(1, 0)">▼</button>
                 <button class="ctrl-btn" onclick="movePlayer(0, 1)">▶</button>
             </div>
-            
             <button onclick="playerAttack()" class="w-14 h-14 bg-orange-600 rounded-full border-2 border-white font-bold active:scale-90 text-[10px]">ATTACK</button>
-            
             <div class="flex flex-col items-end gap-1">
                 <button onclick="startWave()" id="start-btn" class="px-4 py-2 bg-blue-600 rounded font-bold text-[10px]">START</button>
                 <p class="text-[8px] text-slate-500">STR: <span id="s-val" class="text-orange-400">0</span></p>
@@ -94,7 +113,7 @@
         let user_str = parseInt(localStorage.getItem('user_str')) || 0;
         let user_int = parseInt(localStorage.getItem('user_int')) || 0;
         let dCoin = 200, villageHp = 100, currentRound = 1;
-        let playerPos = { r: 10, c: 7 }, playerActive = false;
+        let playerPos = { r: 9, c: 7 }, playerActive = false;
         let selectedType = null, pendingBuild = null, towers = [], monsters = [], isWaveActive = false;
         
         const map = document.getElementById('map'), player = document.getElementById('player'), pRange = document.getElementById('p-range-circle');
@@ -109,7 +128,7 @@
             for (let i = 0; i < 400; i++) map.appendChild(document.createElement('div')).className = 'grid-cell';
             updatePlayerUI();
             document.getElementById('s-val').innerText = user_str;
-            document.body.onclick = () => { if(bgm.paused) bgm.play(); };
+            document.body.onclick = () => { if(bgm.paused) bgm.play().catch(e=>{}); };
         };
 
         function togglePlayer(e) {
@@ -121,6 +140,7 @@
         }
 
         function updatePlayerUI() {
+            // 중앙 정렬을 위해 0.5 더함
             player.style.top = (playerPos.r * 5) + '%';
             player.style.left = (playerPos.c * 5) + '%';
             const rangeVal = 3 + (user_int / 50);
@@ -140,9 +160,15 @@
         }
 
         function selectTowerType(type, cost) {
-            selectedType = { type, cost };
-            document.querySelectorAll('.tower-btn').forEach(b => b.classList.remove('selected'));
-            document.getElementById('btn-' + type).classList.add('selected');
+            if (selectedType && selectedType.type === type) {
+                cancelBuild();
+                selectedType = null;
+                document.querySelectorAll('.tower-btn').forEach(b => b.classList.remove('selected'));
+            } else {
+                selectedType = { type, cost };
+                document.querySelectorAll('.tower-btn').forEach(b => b.classList.remove('selected'));
+                document.getElementById('btn-' + type).classList.add('selected');
+            }
         }
 
         function handleMapClick(e) {
@@ -154,8 +180,6 @@
             if (towers.some(t => t.r === r && t.c === c) || (r >= 9 && r <= 10 && c >= 9 && c <= 10)) return;
 
             pendingBuild = { r, c, ...selectedType };
-            
-            // 프리뷰 업데이트
             previewTower.style.display = 'flex';
             previewTower.innerHTML = pendingBuild.type === 'arrow' ? '🏹' : pendingBuild.type === 'magic' ? '⚡' : '💣';
             previewTower.style.top = (r * 5) + '%';
@@ -172,9 +196,7 @@
         }
 
         function confirmBuild() {
-            if (!pendingBuild || dCoin < pendingBuild.cost) {
-                alert("코인이 부족해!"); return;
-            }
+            if (!pendingBuild || dCoin < pendingBuild.cost) { alert("D-Coin이 부족합니다!"); return; }
             dCoin -= pendingBuild.cost;
             document.getElementById('d-coin').innerText = dCoin + " DG";
             
@@ -182,18 +204,16 @@
             el.className = 'tower'; el.innerHTML = previewTower.innerHTML;
             el.style.top = (pendingBuild.r * 5) + '%'; el.style.left = (pendingBuild.c * 5) + '%';
             
-            // 설치된 타워에도 범위 표시 추가용 데이터
-            const rangeEl = document.createElement('div');
-            rangeEl.className = 'range-circle';
+            const rCircle = document.createElement('div');
+            rCircle.className = 'range-circle';
             const tr = pendingBuild.type === 'magic' ? 4 : 6;
-            rangeEl.style.width = (tr * 10) + '%'; rangeEl.style.height = (tr * 10) + '%';
-            rangeEl.style.top = '50%'; rangeEl.style.left = '50%';
-            rangeEl.style.display = 'block';
-            el.appendChild(rangeEl);
+            rCircle.style.width = (tr * 10) + '%'; rCircle.style.height = (tr * 10) + '%';
+            rCircle.style.top = '50%'; rCircle.style.left = '50%';
+            rCircle.style.display = 'block';
+            el.appendChild(rCircle);
 
             map.appendChild(el);
             towers.push({ ...pendingBuild, lastShot: 0, cooldown: pendingBuild.type === 'magic' ? 600 : 1200, range: tr/2 });
-            
             cancelBuild();
         }
 
@@ -204,6 +224,16 @@
             document.getElementById('confirm-btn').classList.add('hidden');
         }
 
+        function showDamage(r, c, dmg) {
+            const txt = document.createElement('div');
+            txt.className = 'dmg-text';
+            txt.innerText = `-${Math.floor(dmg)}`;
+            txt.style.top = (r * 5) + '%';
+            txt.style.left = (c * 5) + '%';
+            map.appendChild(txt);
+            setTimeout(() => txt.remove(), 500);
+        }
+
         function playerAttack() {
             if (!playerActive) return;
             sndAtk.currentTime = 0; sndAtk.play();
@@ -211,28 +241,47 @@
             monsters.forEach(m => {
                 const dist = Math.sqrt(Math.pow(playerPos.r - m.r, 2) + Math.pow(playerPos.c - m.c, 2));
                 if (dist <= rangeVal) {
-                    m.hp -= (15 + user_str / 5);
+                    const dmg = (15 + user_str / 5);
+                    m.hp -= dmg;
+                    showDamage(m.r, m.c, dmg);
+                    updateHpBar(m);
                     drawLaser(playerPos.r + 0.5, playerPos.c + 0.5, m.r + 0.5, m.c + 0.5, '#fbbf24');
                 }
             });
+        }
+
+        function updateHpBar(m) {
+            const fill = m.querySelector('.hp-fill');
+            if(fill) fill.style.width = (m.hp / m.maxHp * 100) + '%';
         }
 
         function startWave() {
             if (isWaveActive) return;
             isWaveActive = true;
             document.getElementById('start-btn').style.display = 'none';
-            let count = currentRound * 3 + 2;
+            const isBossRound = currentRound % 5 === 0;
+            document.getElementById('monster-info').innerText = isBossRound ? "ENEMY: BOSS RED" : "ENEMY: SLIME";
+            
+            let count = isBossRound ? 1 : currentRound * 3 + 2;
             const interval = setInterval(() => {
                 if (count-- <= 0) { clearInterval(interval); return; }
-                spawnMonster(currentRound % 4);
-            }, 800);
+                spawnMonster(currentRound % 4, isBossRound);
+            }, 1000);
         }
 
-        function spawnMonster(dir) {
+        function spawnMonster(dir, isBoss) {
             const m = document.createElement('div');
-            m.className = 'monster'; m.innerHTML = '👾';
+            m.className = 'monster'; m.innerHTML = isBoss ? '👹' : '👾';
+            const hpCont = document.createElement('div');
+            hpCont.className = 'hp-bg';
+            const hpFill = document.createElement('div');
+            hpFill.className = 'hp-fill';
+            hpCont.appendChild(hpFill); m.appendChild(hpCont);
+
             const start = [{r:0,c:10}, {r:10,c:19}, {r:19,c:10}, {r:10,c:0}][dir];
-            m.r = start.r; m.c = start.c; m.hp = 30 + (currentRound * 20);
+            m.r = start.r; m.c = start.c;
+            m.maxHp = (isBoss ? 400 : 30) + (currentRound * 20);
+            m.hp = m.maxHp;
             map.appendChild(m); monsters.push(m);
         }
 
@@ -261,7 +310,7 @@
                 if (Math.abs(9.5-m.r) < 0.6 && Math.abs(9.5-m.c) < 0.6) {
                     villageHp -= 10; document.getElementById('hp-bar').style.width = villageHp + '%';
                     m.remove(); monsters.splice(idx, 1);
-                    if (villageHp <= 0) { alert("마을이 함락되었습니다!"); location.reload(); }
+                    if (villageHp <= 0) { alert("마을 함락!"); location.reload(); }
                 }
                 if (m.hp <= 0) { m.remove(); monsters.splice(idx, 1); dCoin += 25; document.getElementById('d-coin').innerText = dCoin + " DG"; }
             });
@@ -271,7 +320,11 @@
                     const target = monsters.find(m => Math.sqrt(Math.pow(t.r-m.r,2)+Math.pow(t.c-m.c,2)) < t.range);
                     if (target) {
                         sndTower.currentTime = 0; sndTower.play();
-                        target.hp -= (20 + user_str/10); t.lastShot = now;
+                        const dmg = (20 + user_str/10);
+                        target.hp -= dmg;
+                        showDamage(target.r, target.c, dmg);
+                        updateHpBar(target);
+                        t.lastShot = now;
                         drawLaser(t.r + 0.5, t.c + 0.5, target.r + 0.5, target.c + 0.5, '#38bdf8');
                     }
                 }
