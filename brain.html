@@ -28,10 +28,22 @@
         .fixed-cell { background-color: #0f172a; color: #ffffff; font-weight: bold; }
         .user-cell { color: #38bdf8; cursor: pointer; }
         .user-cell.selected { background-color: #334155; box-shadow: inset 0 0 10px #38bdf8; }
+        
+        /* ❌ 오답 표시 스타일 */
+        .user-cell.wrong { color: #ef4444; background-color: rgba(239, 68, 68, 0.2); animation: shake 0.3s; }
 
-        .number-pad { display: grid; grid-template-columns: repeat(9, 1fr); gap: 4px; width: 90vw; max-width: 360px; margin: 8px auto; }
-        .num-btn { background-color: #1e293b; border: 1px solid #38bdf8; border-radius: 6px; padding: 6px 0; display: flex; flex-direction: column; align-items: center; }
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-2px); }
+            75% { transform: translateX(2px); }
+        }
+
+        .number-pad { display: grid; grid-template-columns: repeat(5, 1fr); gap: 6px; width: 90vw; max-width: 360px; margin: 8px auto; }
+        .num-btn { background-color: #1e293b; border: 1px solid #38bdf8; border-radius: 6px; padding: 8px 0; display: flex; flex-direction: column; align-items: center; }
         .num-btn.completed { opacity: 0.1; pointer-events: none; }
+        
+        /* 🧹 지우개 버튼 스타일 */
+        .eraser-btn { grid-column: span 1; background-color: #334155; border: 1px solid #94a3b8; }
 
         .ad-banner { width: 100%; height: 50px; background: #020617; display: flex; align-items: center; justify-content: center; border-top: 1px solid #1e293b; font-size: 10px; color: #475569; shrink-0; }
 
@@ -50,9 +62,12 @@
 
     <div id="ad-overlay" class="overlay" style="display: none;">
         <div class="w-72 p-6 bg-slate-800 border-2 border-blue-400 rounded-2xl text-center">
-            <h3 class="text-lg font-bold text-white mb-2 uppercase text-emerald-400">Sync Complete!</h3>
-            <p class="text-white text-xs mb-6 uppercase">INT +1 Reward</p>
-            <button onclick="finishGame()" class="w-full py-3 bg-blue-600 text-white rounded-lg font-bold">GET REWARD</button>
+            <h3 class="text-lg font-bold text-emerald-400 mb-2 uppercase">Success! (성공!)</h3>
+            <div class="space-y-1 mb-6">
+                <p class="text-white text-xs uppercase">INT +1 Reward</p>
+                <p class="text-yellow-400 text-xs uppercase font-bold">Coin +10 Reward</p>
+            </div>
+            <button onclick="finishGame()" class="w-full py-3 bg-blue-600 text-white rounded-lg font-bold shadow-lg">GET REWARD</button>
         </div>
     </div>
 
@@ -63,7 +78,7 @@
     </header>
 
     <div class="info-panel mx-4 mb-2 p-3 rounded-lg flex justify-around shrink-0 shadow-lg">
-        <div class="text-center"><p class="text-[8px] text-slate-500 uppercase font-bold">Reward</p><p class="text-purple-400 font-bold text-xs">INT +1</p></div>
+        <div class="text-center"><p class="text-[8px] text-slate-500 uppercase font-bold">Reward</p><p class="text-purple-400 font-bold text-xs">INT +1 / 10G</p></div>
         <div class="text-center border-l border-slate-700 pl-6"><p class="text-[8px] text-slate-500 uppercase font-bold">Time</p><p id="timer-display" class="text-emerald-400 font-bold text-xs">00:00</p></div>
     </div>
 
@@ -83,8 +98,15 @@
     <script>
         const stages = [
             { b: [[5,3,0,0,7,0,0,0,0],[6,0,0,1,9,5,0,0,0],[0,9,8,0,0,0,0,6,0],[8,0,0,0,6,0,0,0,3],[4,0,0,8,0,3,0,0,1],[7,0,0,0,2,0,0,0,6],[0,6,0,0,0,0,2,8,0],[0,0,0,4,1,9,0,0,5],[0,0,0,0,8,0,0,7,9]], s: [[5,3,4,6,7,8,9,1,2],[6,7,2,1,9,5,3,4,8],[1,9,8,3,4,2,5,6,7],[8,5,9,7,6,1,4,2,3],[4,2,6,8,5,3,7,9,1],[7,1,3,9,2,4,8,5,6],[9,6,1,5,3,7,2,8,4],[2,8,7,4,1,9,6,3,5],[3,4,5,2,8,6,1,7,9]] },
-            { b: [[0,0,0,2,6,0,7,0,1],[6,8,0,0,7,0,0,9,0],[1,9,0,0,0,4,5,0,0],[8,2,0,1,0,0,0,4,0],[0,0,4,6,0,2,9,0,0],[0,5,0,0,0,3,0,2,8],[0,0,9,3,0,0,0,7,4],[0,4,0,0,5,0,0,3,6],[7,0,3,0,1,8,0,0,0]], s: [[4,3,5,2,6,9,7,8,1],[6,8,2,5,7,1,4,9,3],[1,9,7,8,3,4,5,6,2],[8,2,6,1,9,5,3,4,7],[3,7,4,6,8,2,9,1,5],[9,5,1,7,4,3,6,2,8],[5,1,9,3,2,6,8,7,4],[2,4,8,9,5,7,1,3,6],[7,6,3,4,1,8,2,5,9]] }
-            // ... 나머지 데이터 생략
+            { b: [[0,0,0,2,6,0,7,0,1],[6,8,0,0,7,0,0,9,0],[1,9,0,0,0,4,5,0,0],[8,2,0,1,0,0,0,4,0],[0,0,4,6,0,2,9,0,0],[0,5,0,0,0,3,0,2,8],[0,0,9,3,0,0,0,7,4],[0,4,0,0,5,0,0,3,6],[7,0,3,0,1,8,0,0,0]], s: [[4,3,5,2,6,9,7,8,1],[6,8,2,5,7,1,4,9,3],[1,9,7,8,3,4,5,6,2],[8,2,6,1,9,5,3,4,7],[3,7,4,6,8,2,9,1,5],[9,5,1,7,4,3,6,2,8],[5,1,9,3,2,6,8,7,4],[2,4,8,9,5,7,1,3,6],[7,6,3,4,1,8,2,5,9]] },
+            { b: [[1,0,0,4,8,9,0,0,6],[7,3,0,0,0,0,0,4,0],[0,0,0,0,0,1,2,9,5],[0,0,7,1,2,0,6,0,0],[5,0,0,7,0,3,0,0,8],[0,0,6,0,9,5,7,0,0],[9,1,4,6,0,0,0,0,0],[0,2,0,0,0,0,0,3,7],[8,0,0,5,1,2,0,0,4]], s: [[1,5,2,4,8,9,3,7,6],[7,3,9,2,5,6,8,4,1],[4,6,8,3,7,1,2,9,5],[3,8,7,1,2,4,6,5,9],[5,9,1,7,6,3,4,2,8],[2,4,6,8,9,5,7,1,3],[9,1,4,6,3,7,5,8,2],[6,2,5,9,4,8,1,3,7],[8,7,3,5,1,2,9,6,4]] },
+            { b: [[0,2,0,6,0,8,0,0,0],[5,8,0,0,0,9,7,0,0],[0,0,0,0,4,0,0,0,0],[3,7,0,0,0,0,5,0,0],[6,0,0,0,0,0,0,0,4],[0,0,8,0,0,0,0,1,3],[0,0,0,0,2,0,0,0,0],[0,0,9,8,0,0,0,3,6],[0,0,0,3,0,6,0,9,0]], s: [[1,2,3,6,7,8,9,4,5],[5,8,4,2,3,9,7,6,1],[9,6,7,1,4,5,3,8,2],[3,7,1,4,6,2,5,8,9],[6,9,2,5,8,3,1,7,4],[4,5,8,7,9,1,6,2,3],[8,3,6,9,2,4,4,5,7],[7,4,9,8,5,2,1,3,6],[2,1,5,3,7,6,8,9,4]] },
+            { b: [[0,0,0,6,0,0,4,0,0],[7,0,0,0,0,3,6,0,0],[0,0,0,0,9,1,0,8,0],[0,0,0,0,0,0,0,0,0],[0,5,0,1,8,0,0,0,3],[0,0,0,3,0,6,0,4,5],[0,4,0,2,0,0,0,6,0],[9,0,3,0,0,0,0,0,0],[0,2,0,0,0,0,1,0,0]], s: [[1,3,8,6,5,2,4,7,9],[7,9,2,8,4,3,6,5,1],[4,6,5,7,9,1,3,8,2],[3,1,4,5,2,9,7,6,8],[6,5,9,1,8,7,2,1,3],[2,8,7,3,1,6,9,4,5],[8,4,1,2,3,5,9,6,7],[9,7,3,4,6,8,5,2,1],[5,2,6,9,7,4,1,3,8]] },
+            { b: [[2,0,0,3,0,0,0,0,0],[8,0,4,0,6,2,0,0,3],[0,1,3,8,0,0,2,0,0],[0,0,0,0,2,0,3,9,0],[5,0,7,0,0,0,6,2,1],[0,3,2,0,0,6,0,0,0],[0,2,0,0,0,9,1,4,0],[6,0,1,2,5,0,8,0,9],[0,0,0,0,0,1,0,0,2]], s: [[2,6,5,3,1,7,9,8,4],[8,7,4,9,6,2,5,1,3],[9,1,3,8,4,5,2,6,7],[1,4,6,5,2,8,3,9,7],[5,8,7,4,9,3,6,2,1],[7,3,2,1,8,6,4,5,9],[3,2,8,7,6,9,1,4,5],[6,9,1,2,5,4,8,7,9],[4,5,9,6,7,1,8,3,2]] },
+            { b: [[0,0,0,0,0,0,0,0,0],[0,0,0,0,0,3,0,8,5],[0,0,1,0,2,0,0,0,0],[0,0,0,5,0,7,0,0,0],[0,0,4,0,0,0,1,0,0],[0,9,0,0,0,0,0,0,0],[5,0,0,0,0,0,0,7,3],[0,0,2,0,1,0,0,0,0],[0,0,0,0,4,0,0,0,9]], s: [[9,8,5,1,7,6,3,2,4],[6,2,7,4,9,3,1,8,5],[4,3,1,8,2,5,9,6,7],[1,6,3,5,4,7,8,9,2],[2,5,4,9,8,1,7,3,6],[7,9,8,2,3,6,4,5,1],[5,1,9,6,2,8,4,7,3],[3,4,2,7,1,9,5,1,8],[8,7,6,3,4,2,5,1,9]] },
+            { b: [[0,0,0,0,0,0,0,0,0],[0,0,0,0,0,3,0,8,5],[0,0,1,0,2,0,0,0,0],[0,0,0,5,0,7,0,0,0],[0,0,4,0,0,0,1,0,0],[0,9,0,0,0,0,0,0,0],[5,0,0,0,0,0,0,7,3],[0,0,2,0,1,0,0,0,0],[0,0,0,0,4,0,0,0,9]], s: [[9,8,5,1,7,6,3,2,4],[6,2,7,4,9,3,1,8,5],[4,3,1,8,2,5,9,6,7],[1,6,3,5,4,7,8,9,2],[2,5,4,9,8,1,7,3,6],[7,9,8,2,3,6,4,5,1],[5,1,9,6,2,8,4,7,3],[3,4,2,7,1,9,5,1,8],[8,7,6,3,4,2,5,1,9]] },
+            { b: [[0,2,0,0,3,0,0,9,0],[6,0,0,9,0,0,0,0,1],[0,0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0,0]], s: [[4,2,1,5,3,8,6,9,7],[6,5,3,9,7,2,4,8,1],[7,9,8,4,1,6,2,3,5],[1,3,2,6,5,4,7,9,8],[5,8,4,7,2,9,1,6,3],[9,6,7,3,8,1,5,2,4],[2,1,5,8,6,3,9,7,4],[8,4,6,2,9,7,3,5,1],[3,7,9,1,4,5,8,6,2]] },
+            { b: [[5,3,0,0,7,0,0,0,0],[6,0,0,1,9,5,0,0,0],[0,9,8,0,0,0,0,6,0],[8,0,0,0,6,0,0,0,3],[4,0,0,8,0,3,0,0,1],[7,0,0,0,2,0,0,0,6],[0,6,0,0,0,0,2,8,0],[0,0,0,4,1,9,0,0,5],[0,0,0,0,8,0,0,7,9]], s: [[5,3,4,6,7,8,9,1,2],[6,7,2,1,9,5,3,4,8],[1,9,8,3,4,2,5,6,7],[8,5,9,7,6,1,4,2,3],[4,2,6,8,5,3,7,9,1],[7,1,3,9,2,4,8,5,6],[9,6,1,5,3,7,2,8,4],[2,8,7,4,1,9,6,3,5],[3,4,5,2,8,6,1,7,9]] }
         ];
 
         let currentStageIdx = 0;
@@ -106,7 +128,7 @@
             for (let i = 1; i <= 10; i++) {
                 const btn = document.createElement('button');
                 btn.className = `stage-btn ${cleared.includes(i) ? 'cleared' : ''}`;
-                btn.innerText = i + "번"; // 마스터 요청: '번' 추가
+                btn.innerText = i + "번";
                 btn.onclick = () => { if(!cleared.includes(i)) initGame(i-1); };
                 list.appendChild(btn);
             }
@@ -140,7 +162,15 @@
                 for (let c = 0; c < 9; c++) {
                     const td = document.createElement('td');
                     if (data.b[r][c] !== 0) { td.innerText = data.b[r][c]; td.className = "fixed-cell"; }
-                    else { td.id = `cell-${r}-${c}`; td.className = "user-cell"; td.onclick = () => { if (selectedCell) document.getElementById(`cell-${selectedCell.r}-${selectedCell.c}`).classList.remove('selected'); selectedCell = { r, c }; td.classList.add('selected'); }; }
+                    else { 
+                        td.id = `cell-${r}-${c}`; 
+                        td.className = "user-cell"; 
+                        td.onclick = () => { 
+                            if (selectedCell) document.getElementById(`cell-${selectedCell.r}-${selectedCell.c}`).classList.remove('selected');
+                            selectedCell = { r, c };
+                            td.classList.add('selected');
+                        }; 
+                    }
                     tr.appendChild(td);
                 }
                 table.appendChild(tr);
@@ -153,6 +183,7 @@
             pad.innerHTML = "";
             const counts = Array(10).fill(0);
             const data = stages[currentStageIdx] || stages[0];
+            
             for (let r = 0; r < 9; r++) {
                 for (let c = 0; c < 9; c++) {
                     const cell = document.getElementById(`cell-${r}-${c}`);
@@ -160,35 +191,80 @@
                     if (val > 0) counts[val]++;
                 }
             }
+
+            // 1~9 숫자 버튼
             for (let i = 1; i <= 9; i++) {
                 const btn = document.createElement('div');
                 const rem = Math.max(0, 9 - counts[i]);
                 btn.className = `num-btn ${rem === 0 ? 'completed' : ''}`;
                 btn.innerHTML = `<span class="text-xs font-bold">${i}번</span><span class="text-[8px] text-slate-400">${rem}</span>`;
-                btn.onclick = () => { if (!selectedCell) return; document.getElementById(`cell-${selectedCell.r}-${selectedCell.c}`).innerText = i; updateNumberPad(); };
+                btn.onclick = () => { 
+                    if (!selectedCell) return; 
+                    const target = document.getElementById(`cell-${selectedCell.r}-${selectedCell.c}`);
+                    target.innerText = i;
+                    target.classList.remove('wrong'); // 입력 시 오답 표시 제거
+                    updateNumberPad(); 
+                };
                 pad.appendChild(btn);
             }
+
+            // 🧹 지우개 버튼 추가
+            const eraser = document.createElement('div');
+            eraser.className = `num-btn eraser-btn`;
+            eraser.innerHTML = `<span class="text-xl">🧹</span><span class="text-[8px] text-slate-400">지우기</span>`;
+            eraser.onclick = () => {
+                if (!selectedCell) return;
+                const target = document.getElementById(`cell-${selectedCell.r}-${selectedCell.c}`);
+                target.innerText = "";
+                target.classList.remove('wrong');
+                updateNumberPad();
+            };
+            pad.appendChild(eraser);
         }
 
         function checkAnswer() {
             const data = stages[currentStageIdx] || stages[0];
             let win = true;
+            let wrongCount = 0;
+
             for (let r = 0; r < 9; r++) {
                 for (let c = 0; c < 9; c++) {
                     const cell = document.getElementById(`cell-${r}-${c}`);
-                    const val = data.b[r][c] || (cell ? parseInt(cell.innerText) || 0 : 0);
-                    if (val !== data.s[r][c]) { win = false; break; }
+                    if (!cell) continue; // 고정된 숫자는 패스
+
+                    const val = parseInt(cell.innerText) || 0;
+                    if (val !== data.s[r][c]) { 
+                        win = false; 
+                        wrongCount++;
+                        cell.classList.add('wrong'); // 틀린 칸 빨간색 표시
+                    } else {
+                        cell.classList.remove('wrong');
+                    }
                 }
             }
-            if (win) { clearInterval(timerInterval); document.getElementById('ad-overlay').style.display = 'flex'; }
-            else alert('SYNC FAILED!');
+
+            if (win) { 
+                clearInterval(timerInterval); 
+                document.getElementById('ad-overlay').style.display = 'flex'; 
+            } else { 
+                alert(`${wrongCount}개가 틀렸어. 다시 확인해봐.`); 
+            }
         }
 
         function finishGame() {
-            localStorage.setItem('user_int', (parseInt(localStorage.getItem('user_int')) || 0) + 1);
+            // INT 1 증가
+            const currentInt = parseInt(localStorage.getItem('user_int')) || 0;
+            localStorage.setItem('user_int', currentInt + 1);
+            
+            // 💰 코인 10 증가
+            const currentCoin = parseInt(localStorage.getItem('user_coin')) || 100;
+            localStorage.setItem('user_coin', currentCoin + 10);
+
+            // 스테이지 클리어 기록
             let cleared = JSON.parse(localStorage.getItem('cleared_stages') || "[]");
             if (!cleared.includes(currentStageIdx + 1)) cleared.push(currentStageIdx + 1);
             localStorage.setItem('cleared_stages', JSON.stringify(cleared));
+            
             location.href = 'index.html';
         }
     </script>
