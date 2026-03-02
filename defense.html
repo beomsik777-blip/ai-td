@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>QuestBody - Tactical Defense</title>
+    <title>QuestBody - 20 Round Elite Defense</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&display=swap');
@@ -18,7 +18,6 @@
         .grid-cell { border: 0.1px solid rgba(56, 189, 248, 0.05); }
         .path-tile { background: rgba(56, 189, 248, 0.08) !important; }
 
-        /* 🏰 성벽 디자인 (하단 중앙) */
         #base { 
             position: absolute; bottom: 0; left: 25%; width: 50%; height: 10%; 
             background: linear-gradient(to bottom, #1e293b, #0f172a); 
@@ -61,7 +60,7 @@
         <button onclick="location.href='index.html'" class="text-slate-400 text-[9px] font-bold uppercase">◀ Exit</button>
         <div class="text-center flex-1 mx-4">
             <div class="flex justify-between items-center">
-                <span id="round-display" class="text-blue-400 text-[9px] font-bold uppercase">Round 1</span>
+                <span id="round-display" class="text-blue-400 text-[9px] font-bold uppercase">Round 1/20</span>
                 <span id="lv-display" class="text-purple-400 text-[9px] font-bold uppercase">D-LV. 1</span>
             </div>
             <div class="w-full bg-slate-800 h-1 mt-0.5 rounded-full overflow-hidden border border-slate-700">
@@ -184,8 +183,6 @@
             const c = Math.floor(((e.clientX - rect.left) / rect.width) * 20);
             const r = Math.floor(((e.clientY - rect.top) / rect.height) * 20);
             if (towers.some(t => t.r === r && t.c === c) || (r >= 18 && c >= 5 && c <= 14)) return;
-            
-            // 🛑 길막 검사 최적화
             if (!checkPathPossible(r, c)) { alert("길을 막을 수 없습니다!"); return; }
 
             pendingBuild = { r, c, ...selectedType };
@@ -198,7 +195,6 @@
             document.getElementById('confirm-btn').classList.remove('hidden');
         }
 
-        // 🧠 진짜 길찾기 알고리즘 (BFS)
         function checkPathPossible(testR, testC) {
             const queue = [[0, 10]];
             const visited = new Set(["0,10"]);
@@ -233,13 +229,12 @@
             document.querySelectorAll('.tower-btn').forEach(b => b.classList.remove('selected'));
         }
 
-        // 🛣️ 몬스터 이동 경로 계산
         function findNextStep(curR, curC) {
             const queue = [{r: curR, c: curC, path: []}];
             const visited = new Set([`${curR},${curC}`]);
             while(queue.length > 0) {
                 const {r, c, path} = queue.shift();
-                if (r >= 18) return path[0] || {r: r+1, c: c}; // 마을 도착
+                if (r >= 18) return path[0] || {r: r+1, c: c};
                 const neighbors = [[r+1, c], [r, c+1], [r, c-1], [r-1, c]];
                 for(let [nr, nc] of neighbors) {
                     if (nr >=0 && nr < 20 && nc >= 0 && nc < 20 && !towers.some(t => t.r === nr && t.c === nc) && !visited.has(`${nr},${nc}`)) {
@@ -249,7 +244,7 @@
                     }
                 }
             }
-            return {r: curR, c: curC}; // 막힘
+            return {r: curR, c: curC};
         }
 
         function updateVisualPath() {
@@ -283,7 +278,10 @@
             const hpCont = document.createElement('div'); hpCont.className = 'hp-bg';
             const hpFill = document.createElement('div'); hpFill.className = 'hp-fill';
             hpCont.appendChild(hpFill); m.appendChild(hpCont);
-            m.r = 0; m.c = 10; m.maxHp = (isBoss ? 3000 : 300) + (currentRound * 100); m.hp = m.maxHp;
+            m.r = 0; m.c = 10; 
+            // 보스 및 일반 몬스터 체력 밸런스 조정
+            m.maxHp = (isBoss ? 4000 : 300) + (currentRound * 150); 
+            m.hp = m.maxHp;
             m.style.top = '0%'; m.style.left = '50%'; m.style.visibility = 'visible';
             map.appendChild(m); monsters.push(m);
         }
@@ -324,9 +322,30 @@
             document.getElementById('exp-fill').style.width = (currentExp / nextExp * 100) + '%';
         }
 
-        // 🐢 몬스터 이동 엔진 (1.2초로 훨씬 더 느리게 조정)
+        function showVictoryScreen() {
+            // 💰 퀘스트 보상 코인 100 지급
+            let mainCoin = parseInt(localStorage.getItem('user_coin')) || 0;
+            localStorage.setItem('user_coin', mainCoin + 100);
+
+            const victoryDiv = document.createElement('div');
+            victoryDiv.style = "position:fixed; inset:0; z-index:9999; background:rgba(2, 6, 23, 0.95); display:flex; flex-direction:column; align-items:center; justify-content:center; backdrop-filter:blur(10px); color:white; font-family:'Orbitron', sans-serif;";
+            victoryDiv.innerHTML = `
+                <div style="text-align:center; border:2px solid #eab308; padding:40px; border-radius:20px; background:#0f172a; box-shadow:0 0 50px rgba(234,179,8,0.3);">
+                    <h1 style="font-size:3rem; color:#eab308; margin-bottom:10px; animation:bounce 1s infinite;">VICTORY</h1>
+                    <p style="color:#38bdf8; margin-bottom:30px;">20 라운드 돌파! 당신의 승리입니다.</p>
+                    <div style="background:#1e293b; padding:20px; border-radius:10px; margin-bottom:30px;">
+                        <p style="font-size:0.8rem; color:#94a3b8;">CLEAR REWARD</p>
+                        <p style="font-size:2rem; color:#facc15; font-weight:bold;">+ 100 G</p>
+                    </div>
+                    <button onclick="location.href='index.html'" style="padding:15px 40px; background:#2563eb; color:white; border:none; border-radius:50px; font-weight:bold; cursor:pointer;">RETURN TO HUB</button>
+                </div>
+            `;
+            document.body.appendChild(victoryDiv);
+        }
+
         setInterval(() => {
             if (!isWaveActive && monsters.length === 0) return;
+            
             monsters.forEach((m) => {
                 const next = findNextStep(m.r, m.c);
                 m.r = next.r; m.c = next.c;
@@ -339,15 +358,20 @@
                     if (villageHp <= 0) { alert("VILLAGE DESTROYED!"); location.reload(); }
                 }
             });
+
             if (isWaveActive && monsters.length === 0) {
-                isWaveActive = false; currentRound++;
-                document.getElementById('round-display').innerText = "ROUND " + currentRound;
-                document.getElementById('start-btn').classList.remove('opacity-50', 'pointer-events-none');
-                updateVisualPath();
+                isWaveActive = false;
+                if (currentRound >= 20) {
+                    showVictoryScreen();
+                } else {
+                    currentRound++;
+                    document.getElementById('round-display').innerText = `ROUND ${currentRound}/20`;
+                    document.getElementById('start-btn').classList.remove('opacity-50', 'pointer-events-none');
+                    updateVisualPath();
+                }
             }
         }, 1200);
 
-        // ⚔️ 자동 공격 엔진
         setInterval(() => {
             if (monsters.length === 0) return;
             const now = Date.now();
