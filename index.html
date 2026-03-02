@@ -23,6 +23,10 @@
 </head>
 <body class="flex flex-col h-screen overflow-hidden">
 
+    <audio id="main-bgm" loop>
+        <source src="music/loginbgm.mp3" type="audio/mpeg">
+    </audio>
+
     <header class="p-4 bg-slate-900 border-b-2 border-slate-700 flex justify-between items-center z-20">
         <div class="flex flex-col">
             <span class="text-[10px] text-slate-400 tracking-widest uppercase">Village HP</span>
@@ -121,6 +125,14 @@
     </nav>
 
     <script>
+        // 🎵 사운드 활성화 로직
+        const bgm = document.getElementById('main-bgm');
+        document.body.onclick = function() {
+            if (bgm.paused) {
+                bgm.play().catch(e => console.log("Audio play failed:", e));
+            }
+        };
+
         if (sessionStorage.getItem('isLoggedIn') !== 'true') { location.href = 'login.html'; }
 
         window.onload = function() { updateUI(); };
@@ -128,16 +140,8 @@
         function updateUI() {
             const savedInt = parseInt(localStorage.getItem('user_int')) || 0;
             const savedStr = parseInt(localStorage.getItem('user_str')) || 70;
-            
-            // 💰 코인 계산: 기본 100 + (INT * 10)
             const baseCoin = 100;
             const bonusCoin = savedInt * 10;
-            const totalCoin = (parseInt(localStorage.getItem('user_coin')) || baseCoin) + bonusCoin;
-            
-            // 실제 저장 (보너스 코인 반영을 위해)
-            // 주의: 이 방식은 페이지 로드 시마다 코인이 중복 추가될 수 있으므로, 
-            // 실제 서비스에서는 '보상 획득 시점'에만 더해주는 것이 좋습니다.
-            // 여기서는 마스터의 요청대로 INT 수치에 맞춰 코인이 보이게 세팅합니다.
             
             const baseMana = 10;
             const maxMana = baseMana + savedInt;
@@ -148,7 +152,6 @@
             document.getElementById('str-bar').style.width = Math.min(savedStr, 100) + '%';
             document.getElementById('user-mana').innerText = `${maxMana} / ${maxMana}`;
             
-            // 💰 코인 UI 업데이트 (세 자릿수 콤마 추가)
             document.getElementById('user-coin').innerText = (parseInt(localStorage.getItem('user_coin')) || 100).toLocaleString();
 
             if (savedInt >= 50) {
@@ -162,8 +165,8 @@
 
         function resetCharacter() {
             if(confirm('모든 데이터(코인 포함)를 초기화할까?')) {
-                localStorage.clear(); // 싹 다 비우기
-                localStorage.setItem('user_coin', 100); // 💰 기본 코인 100 설정
+                localStorage.clear();
+                localStorage.setItem('user_coin', 100);
                 alert('데이터가 100코인으로 초기화되었습니다.');
                 location.reload();
             }
