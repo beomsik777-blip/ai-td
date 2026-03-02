@@ -1,1 +1,114 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>QuestBody - InBody Sync</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&display=swap');
+        body { background-color: #0f172a; color: white; font-family: 'Orbitron', sans-serif; overflow-x: hidden; }
+        .input-card { background: rgba(30, 41, 59, 0.7); border: 1px solid #334155; backdrop-filter: blur(10px); }
+        .cyber-input { background: #0f172a; border: 1px solid #475569; color: #38bdf8; text-align: center; }
+        .cyber-input:focus { border-color: #38bdf8; outline: none; box-shadow: 0 0 10px rgba(56, 189, 248, 0.3); }
+    </style>
+</head>
+<body class="p-6">
+    <header class="flex justify-between items-center mb-8">
+        <button onclick="location.href='index.html'" class="text-slate-400 text-xs">◀ BACK</button>
+        <h1 class="text-lg font-bold text-blue-400 tracking-widest uppercase">Body Analysis</h1>
+        <div class="w-8"></div>
+    </header>
 
+    <div class="input-card rounded-2xl p-6 space-y-6 shadow-2xl">
+        <div class="grid grid-cols-2 gap-4">
+            <div>
+                <label class="text-[10px] text-slate-500 uppercase block mb-1">Gender</label>
+                <select id="gender" class="cyber-input w-full p-3 rounded-lg text-sm">
+                    <option value="man">MALE</option>
+                    <option value="woman">FEMALE</option>
+                </select>
+            </div>
+            <div>
+                <label class="text-[10px] text-slate-500 uppercase block mb-1">Height (cm)</label>
+                <input type="number" id="height" step="0.1" value="168.0" class="cyber-input w-full p-3 rounded-lg text-sm">
+            </div>
+        </div>
+
+        <div class="space-y-4">
+            <div>
+                <label class="text-[10px] text-slate-500 uppercase block mb-1">Weight (kg)</label>
+                <input type="number" id="weight" step="0.1" value="68.1" class="cyber-input w-full p-3 rounded-lg text-sm font-bold text-white">
+            </div>
+            <div class="grid grid-cols-2 gap-4">
+                <div>
+                    <label class="text-[10px] text-orange-500 uppercase block mb-1">Skeletal Muscle (kg)</label>
+                    <input type="number" id="muscle" step="0.1" value="28.3" class="cyber-input w-full p-3 rounded-lg text-sm">
+                </div>
+                <div>
+                    <label class="text-[10px] text-blue-500 uppercase block mb-1">Body Fat (kg)</label>
+                    <input type="number" id="fat-mass" step="0.1" value="17.5" class="cyber-input w-full p-3 rounded-lg text-sm">
+                </div>
+            </div>
+            <div class="grid grid-cols-2 gap-4">
+                <div>
+                    <label class="text-[10px] text-slate-500 uppercase block mb-1">BMI</label>
+                    <input type="number" id="bmi" step="0.1" value="24.1" class="cyber-input w-full p-3 rounded-lg text-sm">
+                </div>
+                <div>
+                    <label class="text-[10px] text-slate-500 uppercase block mb-1">Fat Percentage (%)</label>
+                    <input type="number" id="fat-percent" step="0.1" value="25.7" class="cyber-input w-full p-3 rounded-lg text-sm">
+                </div>
+            </div>
+            <div>
+                <label class="text-[10px] text-purple-400 uppercase block mb-1">Basal Metabolic Rate (kcal)</label>
+                <input type="number" id="bmr" value="1462" class="cyber-input w-full p-3 rounded-lg text-sm">
+            </div>
+        </div>
+
+        <button onclick="saveInbody()" class="w-full bg-blue-600 hover:bg-blue-500 text-white font-bold py-4 rounded-xl transition-all border-b-4 border-blue-800 active:border-b-0 active:translate-y-1 uppercase tracking-widest mt-4">
+            Sync Data (저장)
+        </button>
+    </div>
+
+    <script>
+        function saveInbody() {
+            const data = {
+                gender: document.getElementById('gender').value,
+                height: document.getElementById('height').value,
+                weight: document.getElementById('weight').value,
+                muscle: document.getElementById('muscle').value,
+                fatMass: document.getElementById('fat-mass').value,
+                bmi: document.getElementById('bmi').value,
+                fatPercent: document.getElementById('fat-percent').value,
+                bmr: document.getElementById('bmr').value,
+                syncDate: new Date().toLocaleDateString()
+            };
+
+            // 로컬 스토리지에 저장
+            localStorage.setItem('user_inbody', JSON.stringify(data));
+            
+            // 메인 화면에서 사용하는 몸무게 값 별도 업데이트
+            localStorage.setItem('user_weight', data.weight);
+
+            alert('BODY DATA SYNCHRONIZED!');
+            location.href = 'index.html';
+        }
+
+        // 페이지 로드 시 기존 데이터 불러오기
+        window.onload = function() {
+            const saved = JSON.parse(localStorage.getItem('user_inbody'));
+            if(saved) {
+                document.getElementById('gender').value = saved.gender || 'man';
+                document.getElementById('height').value = saved.height;
+                document.getElementById('weight').value = saved.weight;
+                document.getElementById('muscle').value = saved.muscle;
+                document.getElementById('fat-mass').value = saved.fatMass;
+                document.getElementById('bmi').value = saved.bmi;
+                document.getElementById('fat-percent').value = saved.fatPercent;
+                document.getElementById('bmr').value = saved.bmr;
+            }
+        }
+    </script>
+</body>
+</html>
