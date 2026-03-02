@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>QuestBody - Tactical North Defense</title>
+    <title>QuestBody - Tile Perfect Defense</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&display=swap');
@@ -14,46 +14,52 @@
             display: grid; grid-template-columns: repeat(20, 1fr); grid-template-rows: repeat(20, 1fr);
             width: 95vw; height: 95vw; max-width: 550px; max-height: 550px;
             background: #0f172a; border: 2px solid #334155; position: relative; margin: 5px auto;
-            background-image: radial-gradient(circle at center, #1e293b 0.5px, transparent 0.5px);
-            background-size: 5% 5%;
         }
-        .grid-cell { border: 0.1px solid rgba(56, 189, 248, 0.03); transition: background 0.3s; }
-        .path-tile { background: rgba(56, 189, 248, 0.08) !important; }
+        .grid-cell { border: 0.1px solid rgba(56, 189, 248, 0.05); width: 100%; height: 100%; box-sizing: border-box; }
+        .path-tile { background: rgba(56, 189, 248, 0.1) !important; }
 
-        /* 🏰 하단 성벽 디자인 (보내준 이미지 느낌) */
+        /* 🏰 하단 성벽 */
         #base { 
-            position: absolute; bottom: 0; left: 25%; width: 50%; height: 12%; 
-            background: linear-gradient(to bottom, #334155, #1e293b); 
-            border: 3px solid #38bdf8; z-index: 10; border-radius: 12px 12px 0 0;
-            display: flex; flex-direction: column; align-items: center; justify-content: center;
-            box-shadow: 0 -8px 30px rgba(56, 189, 248, 0.4);
+            position: absolute; bottom: 0; left: 25%; width: 50%; height: 10%; 
+            background: linear-gradient(to bottom, #1e293b, #0f172a); 
+            border: 3px solid #38bdf8; z-index: 10; border-radius: 8px 8px 0 0;
+            display: flex; align-items: center; justify-content: center; font-size: 0.7rem; font-weight: bold;
         }
-        .castle-tower { width: 100%; height: 4px; background: #38bdf8; position: absolute; top: 0; }
 
+        /* 🤺 캐릭터 (격자 1칸 크기) */
         #player { 
             position: absolute; width: 5%; height: 5%; z-index: 100; 
             background-size: contain; background-repeat: no-repeat; background-position: center;
-            transition: all 0.2s ease-out; cursor: pointer;
+            transition: all 0.2s; cursor: pointer;
         }
-        #player.active { filter: drop-shadow(0 0 10px #38bdf8); outline: 2px solid #38bdf8; border-radius: 50%; }
+        #player.active { outline: 2px solid #fbbf24; box-shadow: 0 0 10px #fbbf24; }
 
-        .range-circle { position: absolute; border: 1px dashed rgba(56, 189, 248, 0.3); border-radius: 50%; background: rgba(56, 189, 248, 0.03); pointer-events: none; z-index: 5; transform: translate(-50%, -50%); display: none; }
+        /* 👾 몬스터 (격자 1칸 꽉 채움) */
+        .monster { 
+            position: absolute; width: 5%; height: 5%; z-index: 30; 
+            display: flex; flex-direction: column; align-items: center; justify-content: center; 
+            transition: all 0.6s linear; visibility: hidden; 
+        }
+        .hp-bg { width: 90%; height: 3px; background: #450a0a; position: absolute; top: -4px; border-radius: 1px; }
+        .hp-fill { height: 100%; background: #22c55e; }
 
-        .monster { position: absolute; width: 5%; height: 5%; z-index: 30; display: flex; flex-direction: column; align-items: center; justify-content: center; transition: all 0.7s linear; visibility: hidden; }
-        .hp-bg { width: 85%; height: 3px; background: #450a0a; position: absolute; top: -6px; border-radius: 2px; }
-        .hp-fill { height: 100%; background: #22c55e; transition: width 0.2s; }
+        /* 🗼 타워 (격자 1칸 꽉 채움) */
+        .tower { 
+            position: absolute; width: 5%; height: 5%; z-index: 40; 
+            display: flex; align-items: center; justify-content: center; 
+            background: rgba(56, 189, 248, 0.2); border: 1px solid #38bdf8; box-sizing: border-box; 
+        }
+        #preview-tower { position: absolute; width: 5%; height: 5%; z-index: 45; display: none; background: rgba(251, 191, 36, 0.3); border: 1px solid #fbbf24; pointer-events: none; }
 
-        .tower { position: absolute; width: 5%; height: 5%; z-index: 40; display: flex; align-items: center; justify-content: center; background: rgba(56, 189, 248, 0.1); border-radius: 4px; border: 1px solid rgba(56, 189, 248, 0.3); }
-        #preview-tower { position: absolute; width: 5%; height: 5%; z-index: 45; display: none; filter: opacity(0.6); pointer-events: none; }
-
-        .projectile { position: absolute; width: 6px; height: 6px; border-radius: 50%; z-index: 80; pointer-events: none; }
-        .dmg-text { position: absolute; font-weight: bold; color: #fbbf24; font-size: 10px; z-index: 110; animation: up-fade 0.5s forwards; }
-        @keyframes up-fade { from { transform: translateY(0); opacity: 1; } to { transform: translateY(-15px); opacity: 0; } }
+        .range-circle { position: absolute; border: 1px dashed rgba(56, 189, 248, 0.4); border-radius: 50%; pointer-events: none; z-index: 5; transform: translate(-50%, -50%); display: none; }
+        .projectile { position: absolute; width: 4px; height: 4px; border-radius: 50%; z-index: 80; pointer-events: none; }
+        .dmg-text { position: absolute; font-weight: bold; color: #fbbf24; font-size: 9px; z-index: 110; animation: up-fade 0.4s forwards; }
+        @keyframes up-fade { from { transform: translateY(0); opacity: 1; } to { transform: translateY(-10px); opacity: 0; } }
 
         .ui-panel { background: #0f172a; border-top: 2px solid #334155; padding: 10px; }
-        .tower-btn { background: #1e293b; border: 1px solid #475569; border-radius: 8px; padding: 4px; text-align: center; transition: 0.2s; }
-        .tower-btn.selected { border-color: #38bdf8; background: #0f172a; box-shadow: inset 0 0 10px rgba(56, 189, 248, 0.2); }
-        .ctrl-btn { background: #1e293b; color: white; width: 38px; height: 38px; border-radius: 8px; font-size: 1rem; display: flex; align-items: center; justify-content: center; }
+        .tower-btn { background: #1e293b; border: 1px solid #475569; border-radius: 6px; padding: 4px; text-align: center; }
+        .tower-btn.selected { border-color: #38bdf8; background: #0f172a; color: #38bdf8; }
+        .ctrl-btn { background: #1e293b; color: white; width: 40px; height: 38px; border-radius: 6px; font-size: 1.2rem; display: flex; align-items: center; justify-content: center; }
     </style>
 </head>
 <body class="flex flex-col">
@@ -63,11 +69,11 @@
     <audio id="snd-tower"><source src="https://assets.mixkit.co/active_storage/sfx/2568/2568-preview.mp3" type="audio/mpeg"></audio>
 
     <header class="p-2 bg-slate-900 flex justify-between items-center border-b border-slate-700">
-        <button onclick="location.href='index.html'" class="text-slate-400 text-[9px] font-bold uppercase tracking-tighter">◀ Exit</button>
+        <button onclick="location.href='index.html'" class="text-slate-400 text-[9px] font-bold uppercase">◀ Exit</button>
         <div class="text-center flex-1 mx-4">
-            <span id="round-display" class="text-blue-400 text-[10px] font-bold uppercase">Round 1</span>
+            <span id="round-display" class="text-blue-400 text-[9px] font-bold uppercase tracking-widest">Round 1</span>
             <div class="w-full bg-slate-800 h-1 mt-0.5 rounded-full overflow-hidden border border-slate-700">
-                <div id="hp-bar" class="bg-emerald-500 h-full w-full"></div>
+                <div id="hp-bar" class="bg-emerald-500 h-full w-full transition-all"></div>
             </div>
         </div>
         <p id="d-coin" class="text-xs font-bold text-yellow-400">200 DG</p>
@@ -75,10 +81,7 @@
 
     <div class="flex-1 flex flex-col items-center justify-center bg-black relative">
         <div id="map" class="grid-map" onclick="handleMapClick(event)">
-            <div id="base">
-                <div class="castle-tower"></div>
-                <span class="text-[10px]">🛡️ VILLAGE</span>
-            </div>
+            <div id="base">🛡️ 성벽</div>
             <div id="p-range-circle" class="range-circle" style="border-color: #fbbf24;"></div>
             <div id="preview-range" class="range-circle" style="border-color: #38bdf8;"></div>
             <div id="preview-tower"></div>
@@ -90,17 +93,17 @@
         <div class="flex gap-1.5 mb-2">
             <button onclick="selectTowerType('arrow', 50)" id="btn-arrow" class="tower-btn flex-1">
                 <p class="text-[9px] font-bold">🏹 Arrow</p>
-                <p id="dmg-arrow" class="text-[7px] text-orange-400 font-bold">ATK: 0</p>
+                <p id="dmg-arrow" class="text-[7px] text-orange-400">ATK: 0</p>
             </button>
             <button onclick="selectTowerType('magic', 80)" id="btn-magic" class="tower-btn flex-1">
                 <p class="text-[9px] font-bold">⚡ Magic</p>
-                <p id="dmg-magic" class="text-[7px] text-blue-400 font-bold">ATK: 0</p>
+                <p id="dmg-magic" class="text-[7px] text-blue-400">ATK: 0</p>
             </button>
             <button onclick="selectTowerType('cannon', 120)" id="btn-cannon" class="tower-btn flex-1">
                 <p class="text-[9px] font-bold">💣 Cannon</p>
-                <p id="dmg-cannon" class="text-[7px] text-red-400 font-bold">ATK: 0</p>
+                <p id="dmg-cannon" class="text-[7px] text-red-400">ATK: 0</p>
             </button>
-            <button id="confirm-btn" onclick="confirmBuild()" class="flex-1 bg-emerald-700 rounded text-[9px] font-bold hidden shadow-lg animate-pulse">INSTALL</button>
+            <button id="confirm-btn" onclick="confirmBuild()" class="flex-1 bg-emerald-700 rounded text-[9px] font-bold hidden shadow-lg">BUILD</button>
         </div>
         
         <div class="flex justify-between items-center gap-2">
@@ -110,17 +113,10 @@
                 <button class="ctrl-btn" onclick="movePlayer(1, 0)">▼</button>
                 <button class="ctrl-btn" onclick="movePlayer(0, 1)">▶</button>
             </div>
-            
-            <div class="flex flex-col items-center gap-1.5 flex-1">
-                <button onclick="startWave()" id="start-btn" class="w-full py-3 bg-blue-600 rounded-md font-bold text-[10px] shadow-lg active:scale-95 transition-all">START WAVE</button>
-            </div>
-
+            <button onclick="startWave()" id="start-btn" class="flex-1 py-3 bg-blue-600 rounded-md font-bold text-[10px] active:scale-95">START WAVE</button>
             <div class="bg-slate-900/80 p-2 rounded border border-slate-700 min-w-[70px] text-center">
-                <p class="text-[7px] text-slate-500 uppercase mb-0.5 tracking-tighter">Hero ATK</p>
-                <p id="hero-atk-val" class="text-[11px] text-orange-400 font-bold">0</p>
-                <div class="h-[1px] bg-slate-700 my-1"></div>
-                <p class="text-[7px] text-slate-500 uppercase mb-0.5 tracking-tighter">INT (Mana)</p>
-                <p id="hero-int-val" class="text-[11px] text-blue-400 font-bold">0</p>
+                <p class="text-[7px] text-slate-500 uppercase">Hero ATK</p>
+                <p id="hero-atk-val" class="text-[10px] text-orange-400 font-bold">0</p>
             </div>
         </div>
     </div>
@@ -145,14 +141,10 @@
                 map.appendChild(cell);
             }
             updatePlayerUI();
-            
-            // 공격력 세팅
-            document.getElementById('hero-atk-val').innerText = Math.floor(30 + user_str / 4);
-            document.getElementById('hero-int-val').innerText = user_int;
+            document.getElementById('hero-atk-val').innerText = Math.floor(30 + user_str/4);
             document.getElementById('dmg-arrow').innerText = `ATK: ${Math.floor(35 + user_str/6)}`;
             document.getElementById('dmg-magic').innerText = `ATK: ${Math.floor(25 + user_str/8)}`;
             document.getElementById('dmg-cannon').innerText = `ATK: ${Math.floor(60 + user_str/4)}`;
-
             document.body.onclick = () => { document.getElementById('bgm').play().catch(e=>{}); };
             updateVisualPath();
         };
@@ -168,7 +160,7 @@
         function updatePlayerUI() {
             player.style.top = (playerPos.r * 5) + '%';
             player.style.left = (playerPos.c * 5) + '%';
-            const rangeVal = 1.8 + (user_int / 120); 
+            const rangeVal = 1.5 + (user_int / 100); 
             pRange.style.width = (rangeVal * 10 * 2) + '%';
             pRange.style.height = (rangeVal * 10 * 2) + '%';
             pRange.style.top = ((playerPos.r + 0.5) * 5) + '%';
@@ -179,9 +171,7 @@
             if (!playerActive) return;
             const nr = playerPos.r + dr, nc = playerPos.c + dc;
             if (nr >= 0 && nr < 20 && nc >= 0 && nc < 20 && !towers.some(t => t.r === nr && t.c === nc)) {
-                if (!(nr >= 18 && nc >= 5 && nc <= 14)) { 
-                    playerPos.r = nr; playerPos.c = nc; updatePlayerUI();
-                }
+                if (!(nr >= 18 && nc >= 5 && nc <= 14)) { playerPos.r = nr; playerPos.c = nc; updatePlayerUI(); }
             }
         }
 
@@ -201,6 +191,12 @@
             const r = Math.floor(((e.clientY - rect.top) / rect.height) * 20);
             if (towers.some(t => t.r === r && t.c === c) || (r >= 18 && c >= 5 && c <= 14)) return;
             
+            // 🛑 길막 방지 체크: 타워를 지었을 때 길이 막히는지 미리 확인
+            if (!isPathPossible(r, c)) {
+                alert("여기에 지으면 몬스터가 길을 못 찾아요!");
+                return;
+            }
+
             pendingBuild = { r, c, ...selectedType };
             previewTower.style.display = 'flex';
             previewTower.innerHTML = pendingBuild.type === 'arrow' ? '🏹' : pendingBuild.type === 'magic' ? '⚡' : '💣';
@@ -210,6 +206,28 @@
             previewRange.style.width = (tr * 10) + '%'; previewRange.style.height = (tr * 10) + '%';
             previewRange.style.top = ((r + 0.5) * 5) + '%'; previewRange.style.left = ((c + 0.5) * 5) + '%';
             document.getElementById('confirm-btn').classList.remove('hidden');
+        }
+
+        // 🧠 길막 방지 알고리즘 (BFS)
+        function isPathPossible(testR, testC) {
+            const queue = [{r: 0, c: 10}];
+            const visited = new Set(["0,10"]);
+            while(queue.length > 0) {
+                const cur = queue.shift();
+                if (cur.r >= 18) return true;
+                const nexts = [{r:cur.r+1, c:cur.c}, {r:cur.r, c:cur.c+1}, {r:cur.r, c:cur.c-1}, {r:cur.r-1, c:cur.c}];
+                for(let n of nexts) {
+                    const key = `${n.r},${n.c}`;
+                    if (n.r >= 0 && n.r < 20 && n.c >= 0 && n.c < 20 && !visited.has(key)) {
+                        const isBlocked = towers.some(t => t.r === n.r && t.c === n.c) || (n.r === testR && n.c === testC);
+                        if (!isBlocked) {
+                            visited.add(key);
+                            queue.push(n);
+                        }
+                    }
+                }
+            }
+            return false;
         }
 
         function confirmBuild() {
@@ -227,46 +245,37 @@
         function cancelBuild() {
             pendingBuild = null; previewTower.style.display = 'none'; previewRange.style.display = 'none'; 
             document.getElementById('confirm-btn').classList.add('hidden');
-            document.querySelectorAll('.tower-btn').forEach(b => b.classList.remove('selected'));
         }
 
-        // 🧠 우회 길찾기 로직 (A* 가중치 시스템)
-        function findBestMove(curR, curC, targetR, targetC) {
-            let options = [
-                {r: curR + 1, c: curC}, {r: curR, c: curC + 1}, {r: curR, c: curC - 1}, {r: curR - 1, c: curC}
-            ];
-            
-            // 맵 안이고 타워가 없는 칸만 필터링
-            options = options.filter(p => 
-                p.r >= 0 && p.r < 20 && p.c >= 0 && p.c < 20 && 
-                !towers.some(t => t.r === p.r && t.c === p.c)
-            );
-
-            if (options.length === 0) return {r: curR, c: curC}; // 갇힌 경우
-
-            // 타겟(마을)과의 최단 거리 계산
-            options.sort((a, b) => {
-                const distA = Math.abs(targetR - a.r) + Math.abs(targetC - a.c);
-                const distB = Math.abs(targetR - b.r) + Math.abs(targetC - b.c);
-                return distA - distB;
-            });
-
-            return options[0];
+        // 🛣️ 최단 거리 길찾기
+        function getNextMove(curR, curC) {
+            const targetR = 18, targetC = 10;
+            const queue = [{r: curR, c: curC, path: []}];
+            const visited = new Set([`${curR},${curC}`]);
+            while(queue.length > 0) {
+                const {r, c, path} = queue.shift();
+                if (r >= targetR) return path[0] || {r, c};
+                const neighbors = [{r:r+1, c}, {r:r, c:c+1}, {r, c:c-1}, {r:r-1, c}];
+                for(let n of neighbors) {
+                    const key = `${n.r},${n.c}`;
+                    if (n.r >=0 && n.r < 20 && n.c >= 0 && n.c < 20 && !towers.some(t => t.r === n.r && t.c === n.c) && !visited.has(key)) {
+                        visited.add(key);
+                        queue.push({r: n.r, c: n.c, path: [...path, {r: n.r, c: n.c}]});
+                    }
+                }
+            }
+            return {r: curR, c: curC};
         }
 
         function updateVisualPath() {
             document.querySelectorAll('.grid-cell').forEach(c => c.classList.remove('path-tile'));
-            let curR = 0, curC = 10;
-            const targetR = 18, targetC = 10;
-
+            let r = 0, c = 10;
             for(let i=0; i<60; i++) {
-                const cell = document.getElementById(`cell-${curR}-${curC}`);
+                const cell = document.getElementById(`cell-${r}-${c}`);
                 if(cell) cell.classList.add('path-tile');
-                if (curR >= targetR) break;
-                
-                const next = findBestMove(curR, curC, targetR, targetC);
-                if(next.r === curR && next.c === curC) break;
-                curR = next.r; curC = next.c;
+                if (r >= 18) break;
+                const next = getNextMove(r, c);
+                r = next.r; c = next.c;
             }
         }
 
@@ -288,18 +297,14 @@
             const hpCont = document.createElement('div'); hpCont.className = 'hp-bg';
             const hpFill = document.createElement('div'); hpFill.className = 'hp-fill';
             hpCont.appendChild(hpFill); m.appendChild(hpCont);
-            m.r = 0; m.c = 10;
-            m.maxHp = (isBoss ? 3000 : 300) + (currentRound * 100);
-            m.hp = m.maxHp;
-            m.style.top = (m.r * 5) + '%'; m.style.left = (m.c * 5) + '%';
-            m.style.visibility = 'visible';
+            m.r = 0; m.c = 10; m.maxHp = (isBoss ? 3000 : 300) + (currentRound * 100); m.hp = m.maxHp;
+            m.style.top = (m.r * 5) + '%'; m.style.left = (m.c * 5) + '%'; m.style.visibility = 'visible';
             map.appendChild(m); monsters.push(m);
         }
 
         function fireProjectile(fromR, fromC, target, color, dmg) {
             const p = document.createElement('div');
             p.className = 'projectile'; p.style.backgroundColor = color;
-            p.style.boxShadow = `0 0 10px ${color}`;
             const sX = fromC * 5 + 2.5, sY = fromR * 5 + 2.5;
             p.style.left = sX + '%'; p.style.top = sY + '%';
             map.appendChild(p);
@@ -308,19 +313,18 @@
                 p.remove();
                 if (monsters.includes(target)) {
                     target.hp -= dmg;
-                    const fill = target.querySelector('.hp-fill');
-                    if (fill) fill.style.width = Math.max(0, (target.hp/target.maxHp*100)) + '%';
+                    target.querySelector('.hp-fill').style.width = Math.max(0, (target.hp/target.maxHp*100)) + '%';
                     const t = document.createElement('div'); t.className = 'dmg-text'; t.innerText = `-${Math.floor(dmg)}`;
                     t.style.top = (target.r*5)+'%'; t.style.left = (target.c*5)+'%'; map.appendChild(t); setTimeout(() => t.remove(), 400);
                 }
             };
         }
 
-        // ⚙️ 몬스터 이동 엔진 (0.75초)
+        // ⚙️ 몬스터 엔진 (0.6초)
         setInterval(() => {
             if (!isWaveActive && monsters.length === 0) return;
             monsters.forEach((m, idx) => {
-                const next = findBestMove(m.r, m.c, 18, 10);
+                const next = getNextMove(m.r, m.c);
                 m.r = next.r; m.c = next.c;
                 m.style.top = (m.r * 5) + '%'; m.style.left = (m.c * 5) + '%';
 
@@ -328,42 +332,33 @@
                     villageHp -= (m.innerHTML === '👹' ? 60 : 15);
                     document.getElementById('hp-bar').style.width = Math.max(0, villageHp) + '%';
                     m.remove(); monsters.splice(idx, 1);
-                    if (villageHp <= 0) { alert("DEFENSE FAILED!"); location.reload(); }
+                    if (villageHp <= 0) { alert("VILLAGE DESTROYED!"); location.reload(); }
                 } else if (m.hp <= 0) {
                     m.remove(); monsters.splice(idx, 1); dCoin += 65;
                     document.getElementById('d-coin').innerText = dCoin + " DG";
                 }
             });
-
             if (isWaveActive && monsters.length === 0) {
                 isWaveActive = false; currentRound++;
                 document.getElementById('round-display').innerText = "ROUND " + currentRound;
                 document.getElementById('start-btn').classList.remove('opacity-50', 'pointer-events-none');
                 updateVisualPath();
             }
-        }, 750);
+        }, 600);
 
-        // ⚔️ 자동 공격 엔진 (0.1초)
+        // ⚔️ 자동 공격
         setInterval(() => {
             const now = Date.now();
             towers.forEach(t => {
                 if (now - t.lastShot > t.cooldown) {
                     const target = monsters.find(m => Math.abs(t.r-m.r) + Math.abs(t.c-m.c) <= t.range * 2.5);
-                    if (target) {
-                        sndTower.currentTime = 0; sndTower.play();
-                        fireProjectile(t.r, t.c, target, '#38bdf8', (40 + user_str/6));
-                        t.lastShot = now;
-                    }
+                    if (target) { sndTower.currentTime = 0; sndTower.play(); fireProjectile(t.r, t.c, target, '#38bdf8', (40 + user_str/6)); t.lastShot = now; }
                 }
             });
             if (playerActive && now - playerLastShot > 600) {
                 const pRangeVal = 1.6 + (user_int / 120);
                 const target = monsters.find(m => Math.abs(playerPos.r-m.r) + Math.abs(playerPos.c-m.c) <= pRangeVal * 2.5);
-                if (target) {
-                    sndAtk.currentTime = 0; sndAtk.play();
-                    fireProjectile(playerPos.r, playerPos.c, target, '#fbbf24', (30 + user_str/4));
-                    playerLastShot = now;
-                }
+                if (target) { sndAtk.currentTime = 0; sndAtk.play(); fireProjectile(playerPos.r, playerPos.c, target, '#fbbf24', (30 + user_str/4)); playerLastShot = now; }
             }
         }, 100);
     </script>
