@@ -12,7 +12,6 @@
         .title-card.unlocked { border-color: #38bdf8; background: rgba(56, 189, 248, 0.05); }
         .title-card.equipped { border-color: #fbbf24; box-shadow: 0 0 15px rgba(251, 191, 36, 0.2); }
         .locked-overlay { filter: grayscale(1) opacity(0.5); pointer-events: none; }
-        
         .btn-claim { background: linear-gradient(90deg, #0ea5e9, #38bdf8); }
         .btn-equip { background: #1e293b; border: 1px solid #38bdf8; color: #38bdf8; }
         .btn-equipped { background: #fbbf24; color: #000; font-weight: bold; }
@@ -22,24 +21,19 @@
     <header class="flex justify-between items-center mb-8">
         <button onclick="location.href='index.html'" class="text-slate-400 text-xs font-bold uppercase">◀ HUB</button>
         <h1 class="text-sm font-bold text-blue-400 tracking-widest uppercase text-center">Achievements<br><span class="text-[10px] text-slate-500">칭호 및 업적</span></h1>
-        <div class="flex flex-col items-end">
-            <span class="text-[8px] text-slate-500 uppercase">Current Coin</span>
-            <span id="display-coin" class="text-yellow-400 font-bold text-xs">--</span>
-        </div>
+        <div class="w-10"></div>
     </header>
 
-    <div id="title-list" class="space-y-4">
-        </div>
+    <div id="title-list" class="space-y-4"></div>
 
     <script>
-        // 🏆 칭호 데이터 정의
         const titleData = [
             { id: 'sudoku_1', name: 'Sudoku Novice', sub: '퍼즐 입문자', desc: '스도쿠 1회 클리어', reward: 100, type: 'coin' },
             { id: 'sudoku_all', name: 'Iron Brain', sub: '강철 두뇌', desc: '스도쿠 10단계 모두 클리어', reward: 500, type: 'coin' },
             { id: 'defense_1', name: 'Village Guard', sub: '마을 파수꾼', desc: '디펜스 1회 클리어 (20R)', reward: 100, type: 'coin' },
             { id: 'defense_tower', name: 'Tactical Master', sub: '전략의 거장', desc: '디펜스 누적 타워 건설 50개', reward: 300, type: 'coin' },
             { id: 'water_5000', name: 'Water Walker', sub: '수분 보충원', desc: '누적 수분 섭취 5000ml', reward: 1, type: 'mana' },
-            { id: 'water_3day', name: 'Pure Oasis', sub: '맑은 오아시스', desc: '누적 수분 섭취 10000ml 달성', reward: 500, type: 'coin' }
+            { id: 'water_10000', name: 'Pure Oasis', sub: '맑은 오아시스', desc: '누적 수분 섭취 10000ml 달성', reward: 500, type: 'coin' }
         ];
 
         function loadData() {
@@ -49,18 +43,12 @@
             const towerCount = localStorage.getItem('total_towers_built') || 0;
             const unlockedTitles = JSON.parse(localStorage.getItem('unlocked_titles') || "[]");
             const equippedTitle = localStorage.getItem('equipped_title') || "";
-            const coins = parseInt(localStorage.getItem('user_coin')) || 0;
-
-            // 누적 수분 계산
             const totalWater = (hydration.history.reduce((acc, cur) => acc + (cur.amount || 0), 0)) + (hydration.dailyIntake || 0);
-
-            document.getElementById('display-coin').innerText = coins.toLocaleString() + " G";
 
             const container = document.getElementById('title-list');
             container.innerHTML = "";
 
             titleData.forEach(title => {
-                // 해금 조건 체크
                 let canUnlock = false;
                 if(title.id === 'sudoku_1' && clearedStages.length >= 1) canUnlock = true;
                 if(title.id === 'sudoku_all' && clearedStages.length >= 10) canUnlock = true;
@@ -70,25 +58,20 @@
                 if(title.id === 'water_10000' && totalWater >= 10000) canUnlock = true;
 
                 const isOwned = unlockedTitles.includes(title.id);
-                const isEquipped = equippedTitle === title.name;
+                const fullTitleName = `${title.name} (${title.sub})`; // ⭐ 한/영 결합
+                const isEquipped = equippedTitle === fullTitleName;
 
                 const card = document.createElement('div');
                 card.className = `title-card p-4 rounded-xl flex justify-between items-center ${isOwned ? 'unlocked' : ''} ${isEquipped ? 'equipped' : ''}`;
-                
                 card.innerHTML = `
                     <div class="${!canUnlock && !isOwned ? 'locked-overlay' : ''}">
-                        <p class="text-[8px] text-blue-400 font-bold uppercase tracking-tighter">${title.id.split('_')[0]}</p>
-                        <h3 class="text-sm font-bold text-white">${title.name}</h3>
-                        <p class="text-[9px] text-slate-400">${title.sub} - ${title.desc}</p>
+                        <h3 class="text-sm font-bold text-white">${title.name} <span class="text-[10px] text-blue-300">(${title.sub})</span></h3>
+                        <p class="text-[9px] text-slate-400 mt-1">${title.desc}</p>
                     </div>
                     <div>
                         ${!isOwned ? 
-                            `<button onclick="claimReward('${title.id}', ${title.reward}, '${title.type}')" 
-                                class="px-3 py-2 rounded-lg text-[9px] font-bold uppercase ${canUnlock ? 'btn-claim shadow-lg' : 'bg-slate-800 text-slate-600 pointer-events-none'}"
-                             >${canUnlock ? 'Claim' : 'Locked'}</button>` :
-                            `<button onclick="equipTitle('${title.name}')" 
-                                class="px-3 py-2 rounded-lg text-[9px] font-bold uppercase ${isEquipped ? 'btn-equipped' : 'btn-equip'}"
-                             >${isEquipped ? 'Equipped' : 'Equip'}</button>`
+                            `<button onclick="claimReward('${title.id}', ${title.reward}, '${title.type}')" class="px-3 py-2 rounded-lg text-[9px] font-bold uppercase ${canUnlock ? 'btn-claim' : 'bg-slate-800 text-slate-600 pointer-events-none'}">${canUnlock ? 'Claim' : 'Locked'}</button>` :
+                            `<button onclick="equipTitle('${fullTitleName}')" class="px-3 py-2 rounded-lg text-[9px] font-bold uppercase ${isEquipped ? 'btn-equipped' : 'btn-equip'}">${isEquipped ? 'Equipped' : 'Equip'}</button>`
                         }
                     </div>
                 `;
@@ -101,22 +84,17 @@
             if(!unlocked.includes(id)) {
                 unlocked.push(id);
                 localStorage.setItem('unlocked_titles', JSON.stringify(unlocked));
-                
                 if(type === 'coin') {
                     let coins = parseInt(localStorage.getItem('user_coin')) || 0;
                     localStorage.setItem('user_coin', coins + amt);
-                } else if(type === 'mana') {
-                    // 마나 보상은 index.html에서 반영되도록 로직 연동
-                    alert("최대 마나가 상승했습니다!");
                 }
-                
-                alert(`칭호 획득! 보상으로 ${amt}${type === 'coin' ? '코인' : '마나'}을 받았습니다.`);
+                alert(`칭호 획득! 보상을 받았습니다.`);
                 loadData();
             }
         }
 
-        function equipTitle(name) {
-            localStorage.setItem('equipped_title', name);
+        function equipTitle(fullName) {
+            localStorage.setItem('equipped_title', fullName);
             loadData();
         }
 
