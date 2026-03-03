@@ -7,8 +7,8 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&display=swap');
-        body { background-color: #0f172a; color: white; font-family: 'Orbitron', sans-serif; margin: 0; padding: 0; height: 100dvh; width: 100vw; display: flex; flex-direction: column; overflow: hidden; }
+        @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Noto+Sans+KR:wght@400;700&display=swap');
+        body { background-color: #0f172a; color: white; font-family: 'Orbitron', 'Noto Sans KR', sans-serif; margin: 0; padding: 0; height: 100dvh; width: 100vw; display: flex; flex-direction: column; overflow: hidden; }
         * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
         
         .neon-glow { box-shadow: 0 0 15px rgba(56, 189, 248, 0.3); }
@@ -23,7 +23,6 @@
             transition: background-image 0.5s ease-in-out;
         }
 
-        /* 📊 차트 섹션 디자인 복구 */
         .chart-section {
             background: rgba(30, 41, 59, 0.3); border: 1px solid rgba(56, 189, 248, 0.15);
             border-radius: 24px; width: 100%; max-width: 320px; padding: 15px;
@@ -32,7 +31,6 @@
 
         .stat-card { background: rgba(15, 23, 42, 0.8); border-radius: 12px; padding: 8px; text-align: center; border: 1px solid #1e293b; }
         
-        /* 🌊 물 효과 복구 */
         .water-wave {
             position: relative; width: 100%; height: 120px; background: #020617; 
             border-radius: 12px; overflow: hidden; border: 1px solid #1e293b;
@@ -53,14 +51,14 @@
 
     <header class="p-4 bg-slate-900 border-b-2 border-slate-700 flex justify-between items-center z-20 shrink-0">
         <div class="flex flex-col">
-            <span class="text-[9px] text-slate-500 tracking-widest uppercase">Village HP</span>
+            <span class="text-[9px] text-slate-500 tracking-widest uppercase font-bold">Village HP (마을 체력)</span>
             <div class="w-20 bg-slate-800 h-1 mt-1 rounded-full overflow-hidden border border-slate-700">
                 <div id="village-hp" class="bg-emerald-500 h-full w-full status-bar"></div>
             </div>
         </div>
         <div class="flex gap-2 text-right items-center">
-            <div><span class="text-[9px] text-slate-500 uppercase">Coin</span><p id="user-coin" class="font-bold text-yellow-400 text-xs">100</p></div>
-            <div class="border-l border-slate-700 pl-2"><span class="text-[9px] text-slate-500 uppercase">Mana</span><p id="user-mana" class="font-bold text-blue-400 text-xs">10 / 10</p></div>
+            <div><span class="text-[9px] text-slate-500 uppercase font-bold text-[7px]">Coin (재화)</span><p id="user-coin" class="font-bold text-yellow-400 text-xs text-[10px]">0</p></div>
+            <div class="border-l border-slate-700 pl-2"><span class="text-[9px] text-slate-500 uppercase font-bold text-[7px]">Mana (마나)</span><p id="user-mana" class="font-bold text-blue-400 text-xs text-[10px]">10 / 10</p></div>
             <button onclick="location.href='title.html'" class="p-1.5 bg-blue-900/20 rounded border border-blue-900/40 text-blue-400 active:scale-95 ml-1 text-[10px]">🏅</button>
             <button onclick="resetCharacter()" class="p-1.5 bg-red-900/20 rounded border border-red-900/40 text-red-500 active:scale-95 ml-1 text-[10px]">🔄</button>
         </div>
@@ -75,25 +73,25 @@
                 <span id="user-lv" class="bg-blue-600 text-[10px] px-2 py-0.5 rounded-full font-bold uppercase">Lv. 1</span>
                 <p id="user-title" class="text-[9px] text-yellow-400 font-bold tracking-[0.1em] uppercase mt-2 mb-1">칭호 없음 (No Title)</p>
                 <h2 id="user-nickname" class="text-xl font-bold tracking-wider text-white uppercase italic">미등록 상태 (Unregistered)</h2>
-                <p id="user-weight" class="text-[10px] text-blue-400 font-bold mt-1 uppercase">Weight: -- kg</p>
+                <p id="user-weight" class="text-[10px] text-blue-400 font-bold mt-1 uppercase">Weight (체중): -- kg</p>
             </div>
         </div>
 
         <div class="chart-section z-10 space-y-4">
             <div class="flex justify-between items-center w-full">
-                <h3 class="text-[10px] font-bold text-blue-400 tracking-widest uppercase">Body Analysis</h3>
-                <div onclick="location.href='inbody.html'" class="p-1 px-3 rounded-full cursor-pointer text-[8px] text-emerald-400 font-bold uppercase border border-emerald-500/30">Sync ✓</div>
+                <h3 class="text-[10px] font-bold text-blue-400 tracking-widest uppercase">Body Analysis (신체 분석)</h3>
+                <div onclick="location.href='inbody.html'" class="p-1 px-3 rounded-full cursor-pointer text-[8px] text-emerald-400 font-bold uppercase border border-emerald-500/30">Sync (연동) ✓</div>
             </div>
             <div class="chart-container"><canvas id="bodyChart"></canvas></div>
-            <div class="grid grid-cols-3 gap-2 w-full">
-                <div class="stat-card"><p class="text-[7px] text-orange-400 font-bold">Muscle ▲</p><p id="stat-muscle" class="text-[10px] font-bold">--</p></div>
-                <div class="stat-card"><p class="text-[7px] text-blue-400 font-bold">Fat ▼</p><p id="stat-fat" class="text-[10px] font-bold">--</p></div>
-                <div class="stat-card"><p class="text-[7px] text-emerald-400 font-bold">BMI ▼</p><p id="stat-bmi" class="text-[10px] font-bold">--</p></div>
+            <div class="grid grid-cols-3 gap-2 w-full text-[8px]">
+                <div class="stat-card"><p class="text-orange-400 font-bold">Muscle (근육) ▲</p><p id="stat-muscle" class="text-[10px] font-bold">--</p></div>
+                <div class="stat-card"><p class="text-blue-400 font-bold">Fat (지방) ▼</p><p id="stat-fat" class="text-[10px] font-bold">--</p></div>
+                <div class="stat-card"><p class="text-emerald-400 font-bold">BMI (지수) ▼</p><p id="stat-bmi" class="text-[10px] font-bold">--</p></div>
             </div>
         </div>
 
         <div class="w-full max-w-xs bg-slate-900/70 p-5 rounded-2xl border border-slate-800 neon-glow z-10 space-y-4">
-            <div class="flex justify-between items-center"><h3 class="text-blue-400 font-bold text-xs tracking-widest uppercase">Hydration</h3><span class="text-[8px] text-slate-500 evaporating-text font-bold">Evaporating...</span></div>
+            <div class="flex justify-between items-center"><h3 class="text-blue-400 font-bold text-xs tracking-widest uppercase">Hydration (수분)</h3><span class="text-[8px] text-slate-500 evaporating-text font-bold">Evaporating (증발 중)...</span></div>
             <div class="water-wave">
                 <div id="water-fill" class="water-fill"></div>
                 <div class="absolute inset-0 flex flex-col items-center justify-center font-bold text-white">
@@ -101,41 +99,44 @@
                 </div>
             </div>
             <div class="grid grid-cols-3 gap-2">
-                <button onclick="drinkWater(100)" class="bg-slate-800 py-2 rounded-lg text-[9px] active:scale-95 transition-all">💧 100</button>
-                <button onclick="drinkWater(200)" class="bg-slate-800 py-2 rounded-lg text-[9px] active:scale-95 transition-all">🥛 200</button>
-                <button onclick="drinkWater(350)" class="bg-slate-800 py-2 rounded-lg text-[9px] active:scale-95 transition-all">🥤 350</button>
+                <button onclick="drinkWater(100)" class="bg-slate-800 py-2 rounded-lg text-[9px] font-bold active:scale-95 transition-all">💧 100</button>
+                <button onclick="drinkWater(200)" class="bg-slate-800 py-2 rounded-lg text-[9px] font-bold active:scale-95 transition-all">🥛 200</button>
+                <button onclick="drinkWater(350)" class="bg-slate-800 py-2 rounded-lg text-[9px] font-bold active:scale-95 transition-all">🥤 350</button>
             </div>
-            <div id="hydration-history" class="pt-2 border-t border-slate-800 space-y-1 text-[9px] text-slate-500">
+            <div id="hydration-history" class="pt-2 border-t border-slate-800 space-y-1 text-[8px] text-slate-500 font-bold uppercase tracking-tighter">
                 </div>
         </div>
 
         <div class="w-full max-w-xs space-y-3 z-10 pb-20">
             <div class="bg-slate-900/50 p-3 rounded border border-slate-800">
-                <div class="flex justify-between text-[10px] mb-1"><span class="text-orange-400 font-bold uppercase">Str (근력)</span><span id="str-val">0</span></div>
+                <div class="flex justify-between text-[10px] mb-1 font-bold uppercase"><span class="text-orange-400">Str (근력)</span><span id="str-val">0</span></div>
                 <div class="w-full bg-slate-800 h-1.5 rounded-full overflow-hidden"><div id="str-bar" class="status-bar bg-orange-500 h-full w-[0%]"></div></div>
             </div>
             <div class="bg-slate-900/50 p-3 rounded border border-slate-800">
-                <div class="flex justify-between text-[10px] mb-1"><span class="text-purple-400 font-bold uppercase">Int (지능)</span><span id="int-val">0</span></div>
+                <div class="flex justify-between text-[10px] mb-1 font-bold uppercase"><span class="text-purple-400">Int (지능)</span><span id="int-val">0</span></div>
                 <div class="w-full bg-slate-800 h-1.5 rounded-full overflow-hidden"><div id="int-bar" class="status-bar bg-purple-500 h-full w-[0%]"></div></div>
             </div>
         </div>
     </main>
 
     <nav class="bg-slate-950 border-t border-slate-800 grid grid-cols-4 h-20 z-20 shrink-0">
-        <button onclick="location.href='gym.html'" class="flex flex-col items-center justify-center text-slate-400"><span class="text-2xl">🏋️</span><span class="text-[8px] font-bold mt-1 uppercase">Gym</span></button>
-        <button onclick="location.href='brain.html'" class="flex flex-col items-center justify-center text-slate-400"><span class="text-2xl">🧩</span><span class="text-[8px] font-bold mt-1 uppercase">Brain</span></button>
-        <button onclick="location.href='defense.html'" class="flex flex-col items-center justify-center text-slate-400"><span class="text-2xl">🛡️</span><span class="text-[8px] font-bold mt-1 uppercase">Defense</span></button>
-        <button onclick="location.href='shop.html'" class="flex flex-col items-center justify-center text-slate-400"><span class="text-2xl">🏪</span><span class="text-[8px] font-bold mt-1 uppercase">Shop</span></button>
+        <button onclick="location.href='gym.html'" class="flex flex-col items-center justify-center text-slate-400"><span class="text-2xl">🏋️</span><span class="text-[8px] font-bold mt-1 uppercase">Gym (운동)</span></button>
+        <button onclick="location.href='brain.html'" class="flex flex-col items-center justify-center text-slate-400"><span class="text-2xl">🧩</span><span class="text-[8px] font-bold mt-1 uppercase">Brain (두뇌)</span></button>
+        <button onclick="location.href='defense.html'" class="flex flex-col items-center justify-center text-slate-400"><span class="text-2xl">🛡️</span><span class="text-[8px] font-bold mt-1 uppercase">Defense (방어)</span></button>
+        <button onclick="location.href='shop.html'" class="flex flex-col items-center justify-center text-slate-400"><span class="text-2xl">🏪</span><span class="text-[8px] font-bold mt-1 uppercase">Shop (상점)</span></button>
     </nav>
 
     <script>
         let bodyChart = null;
         const bgm = document.getElementById('main-bgm');
 
+        // 🎵 음악 재생: 사용자가 아무 곳이나 클릭하면 바로 재생 시작
+        document.body.addEventListener('click', () => { if (bgm.paused) bgm.play().catch(e => {}); }, { once: true });
+
         window.onload = () => {
             if (sessionStorage.getItem('isLoggedIn') !== 'true') location.href = 'login.html';
             updateUI();
-            setInterval(evaporateWater, 1000 * 60 * 60); // 1시간마다 증발
+            setInterval(evaporateWater, 1000 * 60 * 60); 
         };
 
         function drinkWater(ml) {
@@ -181,7 +182,7 @@
             if(inbody) {
                 document.getElementById('user-nickname').innerText = inbody.name || "미등록 상태 (Unregistered)";
                 document.getElementById('user-nickname').classList.remove('italic', 'text-slate-500');
-                document.getElementById('user-weight').innerText = `Weight: ${inbody.weight}kg`;
+                document.getElementById('user-weight').innerText = `Weight (체중): ${inbody.weight}kg`;
                 document.getElementById('stat-muscle').innerText = `${inbody.muscle}kg`;
                 document.getElementById('stat-fat').innerText = `${inbody.fatMass}kg`;
                 document.getElementById('stat-bmi').innerText = inbody.bmi;
@@ -194,7 +195,7 @@
                 document.getElementById('water-fill').style.height = (hyd.current / 2000 * 100) + '%';
                 document.getElementById('current-water').innerText = Math.floor(hyd.current);
                 const histDiv = document.getElementById('hydration-history');
-                histDiv.innerHTML = `<p>Today: ${hyd.dailyIntake}ml</p>` + hyd.history.reverse().map(h => `<p>${h.date}: ${h.amount}ml</p>`).join('');
+                histDiv.innerHTML = `<p class="text-emerald-400">Today (오늘): ${hyd.dailyIntake}ml</p>` + hyd.history.reverse().map(h => `<p>${h.date}: ${h.amount}ml</p>`).join('');
             }
         }
 
@@ -204,7 +205,7 @@
             bodyChart = new Chart(ctx, {
                 type: 'radar',
                 data: {
-                    labels: ['Muscle', 'Fat', 'BMI', 'Fat%', 'BMR'],
+                    labels: ['Muscle (근육)', 'Fat (지방)', 'BMI (지수)', 'Fat% (비율)', 'BMR (대사)'],
                     datasets: [{
                         data: [(data.muscle/45)*100, (data.fatMass/30)*100, (data.bmi/35)*100, (data.fatPercent/40)*100, (data.bmr/2000)*100],
                         backgroundColor: 'rgba(56, 189, 248, 0.15)', borderColor: '#38bdf8', borderWidth: 1.5, pointRadius: 0
@@ -212,13 +213,13 @@
                 },
                 options: {
                     responsive: true, maintainAspectRatio: false,
-                    scales: { r: { angleLines: { color: 'rgba(255,255,255,0.08)' }, grid: { color: 'rgba(255,255,255,0.08)' }, ticks: { display: false }, suggestedMin: 0, suggestedMax: 100, pointLabels: { color: '#94a3b8', font: { size: 8 } } } },
+                    scales: { r: { angleLines: { color: 'rgba(255,255,255,0.08)' }, grid: { color: 'rgba(255,255,255,0.08)' }, ticks: { display: false }, suggestedMin: 0, suggestedMax: 100, pointLabels: { color: '#94a3b8', font: { size: 8, weight: 'bold' } } } },
                     plugins: { legend: { display: false } }
                 }
             });
         }
 
-        function resetCharacter() { if(confirm('모든 데이터를 초기화할까?')) { localStorage.clear(); location.reload(); } }
+        function resetCharacter() { if(confirm('모든 데이터를 초기화할까? / Reset all data?')) { localStorage.clear(); location.reload(); } }
     </script>
 </body>
 </html>
