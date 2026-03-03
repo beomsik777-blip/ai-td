@@ -83,7 +83,7 @@
             <div id="character-sprite" class="w-64 h-64 bg-slate-800/20 rounded-xl pixel-border neon-glow flex items-center justify-center overflow-hidden"></div>
             <div class="mt-4 text-center">
                 <span id="user-lv" class="bg-blue-600 text-[10px] px-2 py-0.5 rounded-full font-bold uppercase">Lv. 1</span>
-                <h2 class="text-xl font-bold mt-1 tracking-wider text-white uppercase">Future Chaser</h2>
+                <h2 id="user-nickname" class="text-xl font-bold mt-1 tracking-wider text-white uppercase italic">미등록 상태 (Unregistered)</h2>
                 <p id="user-weight" class="text-[10px] text-blue-400 font-bold mt-1 uppercase">Weight (체중): -- kg</p>
             </div>
         </div>
@@ -159,25 +159,14 @@
             setInterval(evaporateWater, 1000 * 60 * 15);
         };
 
-        // 초기 수분 데이터 구조
-        let hydData = JSON.parse(localStorage.getItem('user_hydration')) || { 
-            current: 0, 
-            history: [], 
-            lastUpdate: Date.now(), 
-            dailyIntake: 0, 
-            lastDrinkDate: new Date().toLocaleDateString() 
-        };
+        let hydData = JSON.parse(localStorage.getItem('user_hydration')) || { current: 0, history: [], lastUpdate: Date.now(), dailyIntake: 0, lastDrinkDate: new Date().toLocaleDateString() };
 
         function checkAndResetDailyWater() {
             const today = new Date().toLocaleDateString();
             if (hydData.lastDrinkDate !== today) {
-                // 어제 기록을 history에 저장 (최대 3개)
                 hydData.history.push({ date: hydData.lastDrinkDate, amount: hydData.dailyIntake });
                 if (hydData.history.length > 3) hydData.history.shift();
-                
-                // 오늘 데이터 초기화
-                hydData.dailyIntake = 0; 
-                hydData.lastDrinkDate = today;
+                hydData.dailyIntake = 0; hydData.lastDrinkDate = today;
                 saveHydData();
             }
         }
@@ -202,30 +191,21 @@
             }
         }
 
-        function saveHydData() { 
-            localStorage.setItem('user_hydration', JSON.stringify(hydData)); 
-            updateHydUI(); 
-        }
-
+        function saveHydData() { localStorage.setItem('user_hydration', JSON.stringify(hydData)); updateHydUI(); }
         function updateWaterBarOnly() {
             const pct = (hydData.current / 2000) * 100;
             document.getElementById('water-fill').style.height = pct + '%';
             document.getElementById('current-water').innerText = Math.floor(hydData.current);
         }
 
-        // ⭐ 3일치 기록 출력 로직 복구
         function updateHydUI() {
             updateWaterBarOnly();
             const histDiv = document.getElementById('hydration-history');
             histDiv.innerHTML = "";
-            
-            // 1. 오늘 섭취량 표시
             const todayItem = document.createElement('div');
             todayItem.className = "flex justify-between p-2 bg-slate-800/60 rounded border-l-2 border-emerald-500 text-[10px]";
             todayItem.innerHTML = `<span class="text-emerald-400 font-bold">Today (오늘 총량)</span><span class="text-emerald-400 font-bold">${hydData.dailyIntake}ml</span>`;
             histDiv.appendChild(todayItem);
-            
-            // 2. 과거 3일 기록 표시 (역순)
             [...hydData.history].reverse().forEach(h => {
                 const item = document.createElement('div');
                 item.className = "flex justify-between p-2 bg-slate-800/40 rounded border-l-2 border-slate-700 text-[10px] text-slate-500";
@@ -245,20 +225,32 @@
             document.getElementById('str-bar').style.width = Math.min(sStr, 100) + '%';
             document.getElementById('user-coin').innerText = sCoin.toLocaleString();
             document.getElementById('user-mana').innerText = `${10 + sInt} / ${10 + sInt}`;
-            
-            const level = (sStr + sInt) + 1;
-            document.getElementById('user-lv').innerText = `LV. ${level}`;
+            document.getElementById('user-lv').innerText = `LV. ${ (sStr + sInt) + 1 }`;
 
             const inbody = JSON.parse(localStorage.getItem('user_inbody'));
             const sprite = document.getElementById('character-sprite');
+            const nickDisplay = document.getElementById('user-nickname');
+
             if (inbody) {
                 sprite.style.backgroundImage = inbody.gender === 'woman' ? "url('image/woman.png')" : "url('image/man/man.png')";
                 document.getElementById('user-weight').innerText = `Weight (체중): ${inbody.weight} kg`;
                 document.getElementById('stat-muscle').innerText = `${inbody.muscle}kg`;
                 document.getElementById('stat-fat').innerText = `${inbody.fatMass}kg`;
                 document.getElementById('stat-bmi').innerText = inbody.bmi;
+                
+                // ⭐ 닉네임 연동: 이름이 있으면 표시, 없으면 미등록
+                if(inbody.name && inbody.name.trim() !== "") {
+                    nickDisplay.innerText = inbody.name;
+                    nickDisplay.classList.remove('italic', 'text-slate-500'); // 미등록 스타일 제거
+                } else {
+                    nickDisplay.innerText = "미등록 상태 (Unregistered)";
+                }
+                
                 renderRadarChart(inbody);
-            } else { sprite.style.backgroundImage = "url('image/nocheck.png')"; }
+            } else { 
+                sprite.style.backgroundImage = "url('image/nocheck.png')"; 
+                nickDisplay.innerText = "미등록 상태 (Unregistered)";
+            }
             updateHydUI();
         }
 
@@ -268,13 +260,7 @@
             bodyChart = new Chart(ctx, {
                 type: 'radar',
                 data: {
-                    labels: [
-                        `Muscle (근육) ▲ ${data.muscle}kg`, 
-                        `Fat (지방) ▼ ${data.fatMass}kg`, 
-                        `BMI (지수) ▼ ${data.bmi}`, 
-                        `Fat% (지방%) ▼ ${data.fatPercent}%`, 
-                        `BMR (대사량) ▲ ${data.bmr}kcal`
-                    ],
+                    labels: [`Muscle (근육) ▲ ${data.muscle}kg`, `Fat (지방) ▼ ${data.fatMass}kg`, `BMI (지수) ▼ ${data.bmi}`, `Fat% (지방%) ▼ ${data.fatPercent}%`, `BMR (대사량) ▲ ${data.bmr}kcal`],
                     datasets: [{
                         data: [(data.muscle/45)*100, (data.fatMass/30)*100, (data.bmi/35)*100, (data.fatPercent/40)*100, (data.bmr/2000)*100],
                         backgroundColor: 'rgba(56, 189, 248, 0.15)', borderColor: '#38bdf8', borderWidth: 1.5, pointRadius: 0
