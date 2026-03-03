@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="ko" class="notranslate" translate="no">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>QuestBody - Training Center</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Noto+Sans+KR:wght@400;700&display=swap');
+        body { background-color: #020617; color: white; font-family: 'Orbitron', 'Noto Sans KR', sans-serif; margin: 0; padding: 0; height: 100dvh; overflow: hidden; }
+        .neon-border { border: 1px solid rgba(249, 115, 22, 0.3); box-shadow: 0 0 15px rgba(249, 115, 22, 0.1); }
+        .workout-card { background: rgba(15, 23, 42, 0.8); border: 1px solid #1e293b; border-radius: 16px; padding: 15px; }
+        .input-field { background: #0f172a; border: 1px solid #334155; border-radius: 8px; color: #fb923c; font-weight: bold; text-align: center; width: 60px; }
+        .main-content { height: calc(100dvh - 80px); overflow-y: auto; scrollbar-width: none; }
+        .main-content::-webkit-scrollbar { display: none; }
+    </style>
+</head>
+<body class="flex flex-col">
+
+    <audio id="bgm" loop preload="auto"><source src="music/loginbgm.mp3" type="audio/mpeg"></audio>
+
+    <header class="p-4 bg-slate-900 border-b border-orange-500/30 flex justify-between items-center shrink-0">
+        <button onclick="location.href='index.html'" class="text-orange-500 font-bold text-xs uppercase">◀ Back (뒤로)</button>
+        <h1 class="text-sm font-bold tracking-widest text-orange-400 uppercase">Training Center (훈련소)</h1>
+        <div class="text-[10px] text-right"><span class="text-slate-500 uppercase">Str Exp</span><p id="current-str" class="text-orange-500 font-bold">0</p></div>
+    </header>
+
+    <main class="main-content p-5 space-y-6">
+        <div class="text-center space-y-1">
+            <p class="text-[10px] text-slate-500 uppercase tracking-[0.2em]">Record Your Effort (노력을 기록하라)</p>
+            <h2 class="text-xl font-bold text-white uppercase italic">Daily Workout (오늘의 운동)</h2>
+        </div>
+
+        <div class="workout-card space-y-4">
+            <div class="flex justify-between items-center border-b border-slate-800 pb-2">
+                <span class="text-sm font-bold text-orange-400">Treadmill / Running (러닝)</span>
+                <span class="text-[10px] text-slate-500 uppercase">Minutes (분)</span>
+            </div>
+            <div class="flex items-center justify-around">
+                <div class="flex flex-col items-center">
+                    <input type="number" id="run-time" class="input-field p-2" placeholder="0">
+                    <span class="text-[8px] mt-1 text-slate-400">Total Time (시간)</span>
+                </div>
+                <div class="text-slate-700">|</div>
+                <div class="flex flex-col items-center">
+                    <input type="number" id="run-speed" class="input-field p-2" placeholder="0">
+                    <span class="text-[8px] mt-1 text-slate-400">Speed (속도 km/h)</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="workout-card space-y-5">
+            <div class="flex justify-between items-center border-b border-slate-800 pb-2">
+                <span class="text-sm font-bold text-orange-400">Strength Training (근력 운동)</span>
+                <span class="text-[10px] text-slate-500 uppercase">Reps / Sets (회수/세트)</span>
+            </div>
+            
+            <div class="flex justify-between items-center">
+                <span class="text-[11px] font-bold">Sit-ups (윗몸일으키기)</span>
+                <div class="flex gap-2">
+                    <input type="number" id="situps" class="input-field text-xs" placeholder="0">
+                    <span class="text-[10px] self-center text-slate-500 font-bold">REPS</span>
+                </div>
+            </div>
+
+            <div class="flex justify-between items-center">
+                <span class="text-[11px] font-bold">Pull-ups (풀업)</span>
+                <div class="flex gap-2">
+                    <input type="number" id="pullups" class="input-field text-xs" placeholder="0">
+                    <span class="text-[10px] self-center text-slate-500 font-bold">REPS</span>
+                </div>
+            </div>
+
+            <div class="flex justify-between items-center">
+                <span class="text-[11px] font-bold">Butterfly (버터플라이)</span>
+                <div class="flex gap-2">
+                    <input type="number" id="butterfly" class="input-field text-xs" placeholder="0">
+                    <span class="text-[10px] self-center text-slate-500 font-bold">REPS</span>
+                </div>
+            </div>
+        </div>
+
+        <button onclick="completeWorkout()" class="w-full bg-orange-600 hover:bg-orange-500 text-white font-bold py-4 rounded-xl shadow-lg shadow-orange-900/20 active:scale-95 transition-all uppercase tracking-widest">
+            Complete Training (훈련 완료)
+        </button>
+        
+        <div class="pb-10"></div>
+    </main>
+
+    <script>
+        const bgm = document.getElementById('bgm');
+        document.body.addEventListener('click', () => { if (bgm.paused) bgm.play().catch(e => {}); }, { once: true });
+
+        window.onload = () => {
+            const currentStr = localStorage.getItem('user_str') || 0;
+            document.getElementById('current-str').innerText = currentStr;
+        };
+
+        function completeWorkout() {
+            // 입력값 가져오기
+            const run = parseInt(document.getElementById('run-time').value) || 0;
+            const situps = parseInt(document.getElementById('situps').value) || 0;
+            const pullups = parseInt(document.getElementById('pullups').value) || 0;
+            const butterfly = parseInt(document.getElementById('butterfly').value) || 0;
+
+            if (run === 0 && situps === 0 && pullups === 0 && butterfly === 0) {
+                alert('훈련 내용을 입력해주세요! / Please enter training data!');
+                return;
+            }
+
+            // 경험치 계산 (예: 10분 러닝당 1 STR, 20회당 1 STR 등 마스터 마음대로 조절 가능)
+            let gainedStr = Math.floor(run / 10) + Math.floor(situps / 20) + Math.floor(pullups / 5) + Math.floor(butterfly / 20);
+            if (gainedStr === 0) gainedStr = 1; // 최소 1 상승
+
+            // 데이터 저장
+            let currentStr = parseInt(localStorage.getItem('user_str')) || 0;
+            let newStr = currentStr + gainedStr;
+            localStorage.setItem('user_str', newStr);
+
+            // 마을 체력(HP) 회복 효과 (마을 체력도 조금 오르게 설정)
+            let villageHp = parseInt(localStorage.getItem('village_hp')) || 100;
+            localStorage.setItem('village_hp', Math.min(100, villageHp + 5));
+
+            alert(`훈련 완료! STR이 ${gainedStr}만큼 상승했습니다! \nTraining Complete! STR +${gainedStr}`);
+            location.href = 'index.html';
+        }
+    </script>
+</body>
+</html>
