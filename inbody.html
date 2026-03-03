@@ -10,7 +10,6 @@
         body { background-color: #0f172a; color: white; font-family: 'Orbitron', sans-serif; overflow-x: hidden; }
         .input-card { background: rgba(30, 41, 59, 0.7); border: 1px solid #334155; backdrop-filter: blur(10px); }
         
-        /* 입력창 정렬 고정 스타일 */
         .cyber-input { 
             background: #0f172a; 
             border: 1px solid #475569; 
@@ -34,6 +33,11 @@
     </header>
 
     <div class="input-card rounded-2xl p-6 space-y-6 shadow-2xl">
+        <div class="flex flex-col">
+            <label class="input-label text-blue-400">Character Name <span class="text-[8px] opacity-70">(캐릭터 이름/닉네임)</span></label>
+            <input type="text" id="user-name" placeholder="ENTER NAME" class="cyber-input w-full rounded-lg text-sm font-bold tracking-widest">
+        </div>
+
         <div class="grid grid-cols-2 gap-4">
             <div class="flex flex-col">
                 <label class="input-label text-slate-500">Gender <span class="text-[8px] opacity-70">(성별)</span></label>
@@ -88,6 +92,7 @@
     <script>
         function saveInbody() {
             const data = {
+                name: document.getElementById('user-name').value, // ⭐ 이름 데이터 추가
                 gender: document.getElementById('gender').value,
                 height: document.getElementById('height').value,
                 weight: document.getElementById('weight').value,
@@ -110,6 +115,7 @@
         window.onload = function() {
             const saved = JSON.parse(localStorage.getItem('user_inbody'));
             if(saved) {
+                document.getElementById('user-name').value = saved.name || ""; // ⭐ 이름 불러오기
                 document.getElementById('gender').value = saved.gender || 'man';
                 document.getElementById('height').value = saved.height;
                 document.getElementById('weight').value = saved.weight;
