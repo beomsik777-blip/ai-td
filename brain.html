@@ -3,111 +3,80 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>QuestBody - Sudoku Master Hub</title>
+    <title>QuestBody - Sudoku Fix Edition</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&display=swap');
         * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; touch-action: manipulation; }
+        body { background-color: #0f172a; color: white; font-family: 'Orbitron', sans-serif; height: 100dvh; overflow: hidden; margin: 0; }
         
-        body { 
-            background-color: #0f172a; color: white; font-family: 'Orbitron', sans-serif;
-            margin: 0; padding: 0; height: 100dvh; width: 100vw;
-            display: flex; flex-direction: column; overflow: hidden;
-        }
+        /* 🚫 중복 절대 금지 하이라이트 */
+        .completed-section { background-color: rgba(16, 185, 129, 0.2) !important; animation: glow 1s ease-in-out; }
+        @keyframes glow { 0% { background-color: rgba(16, 185, 129, 0.5); } 100% { background-color: rgba(16, 185, 129, 0.2); } }
 
-        .highlight-line { background-color: rgba(56, 189, 248, 0.08) !important; }
-        .user-cell.selected { background-color: rgba(56, 189, 248, 0.3) !important; box-shadow: inset 0 0 10px #38bdf8; }
-
-        .completed-section { 
-            background-color: rgba(16, 185, 129, 0.25) !important; 
-            animation: pulse-green 1s ease-out; 
-        }
-        @keyframes pulse-green {
-            0% { background-color: rgba(16, 185, 129, 0.6); }
-            100% { background-color: rgba(16, 185, 129, 0.25); }
-        }
-
-        .sudoku-container { flex: 1; display: flex; align-items: center; justify-content: center; padding: 10px; min-height: 0; }
-        .sudoku-table { 
-            width: 92vw; height: 92vw; max-width: 340px; max-height: 340px; 
-            border-collapse: collapse; table-layout: fixed; 
-            border: 2px solid #38bdf8; background-color: #1e293b; 
-        }
+        .sudoku-table { width: 92vw; height: 92vw; max-width: 340px; max-height: 340px; margin: auto; border-collapse: collapse; table-layout: fixed; border: 2px solid #38bdf8; background-color: #1e293b; }
         .sudoku-table td { border: 1px solid rgba(56, 189, 248, 0.2); text-align: center; vertical-align: middle; font-size: 1.1rem; cursor: pointer; height: 11.11%; }
         .sudoku-table td:nth-child(3n) { border-right: 3px solid #38bdf8; }
         .sudoku-table tr:nth-child(3n) td { border-bottom: 3px solid #38bdf8; }
-        
-        .fixed-cell { background-color: #0f172a; color: #ffffff; font-weight: bold; cursor: default; }
+        .fixed-cell { background-color: #0f172a; color: #ffffff; font-weight: bold; }
         .user-cell { color: #38bdf8; }
-        .user-cell.wrong { color: #ef4444; background-color: rgba(239, 68, 68, 0.2); animation: shake 0.3s; }
-        .hint-cell { color: #facc15 !important; background-color: rgba(251, 206, 7, 0.1); font-weight: bold; }
-
+        .user-cell.wrong { background-color: rgba(239, 68, 68, 0.2); color: #ef4444; animation: shake 0.3s; }
         @keyframes shake { 0%, 100% { transform: translateX(0); } 25% { transform: translateX(-2px); } 75% { transform: translateX(2px); } }
 
-        .pad-area { padding: 5px 10px; background: rgba(15, 23, 42, 0.8); }
-        .number-pad { display: grid; grid-template-columns: repeat(5, 1fr); gap: 5px; width: 100%; max-width: 350px; margin: 0 auto; }
-        .num-btn { background-color: #1e293b; border: 1px solid #38bdf8; border-radius: 6px; padding: 5px 0; display: flex; flex-direction: column; align-items: center; justify-content: center; transition: 0.2s; min-height: 45px; }
-        .num-btn.completed { opacity: 0.2; pointer-events: none; }
-        .eraser-btn { background-color: #334155; border-color: #94a3b8; }
-
-        .action-area { display: grid; grid-template-columns: 1fr 1.5fr; gap: 8px; width: 100%; max-width: 350px; margin: 8px auto 0; }
-        .hint-btn { background-color: #854d0e; border: 1px solid #facc15; color: #facc15; border-radius: 8px; font-weight: bold; font-size: 11px; height: 48px; }
-        .submit-btn { background-color: #2563eb; border: none; color: white; border-radius: 8px; font-weight: bold; font-size: 12px; height: 48px; box-shadow: 0 4px 10px rgba(37,99,235,0.3); }
-
-        .ad-banner { width: 100%; height: 50px; background: #020617; display: flex; align-items: center; justify-content: center; border-top: 1px solid #1e293b; font-size: 10px; color: #475569; shrink-0; }
-        .overlay { position: fixed; inset: 0; background: rgba(15, 23, 42, 0.98); display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 100; backdrop-filter: blur(10px); }
-        .stage-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 10px; width: 90%; max-width: 320px; }
-        .stage-btn { aspect-ratio: 1/1; background: #1e293b; border: 1px solid #38bdf8; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-weight: bold; cursor: pointer; position: relative; }
-        
         /* 🔒 잠금 스타일 */
-        .stage-btn.locked { opacity: 0.3; pointer-events: none; grayscale: 1; }
-        .stage-btn.locked::after { content: "🔒"; font-size: 10px; position: absolute; top: 2px; right: 2px; }
+        .stage-btn { aspect-ratio: 1/1; background: #1e293b; border: 1px solid #38bdf8; border-radius: 8px; font-weight: bold; position: relative; }
+        .stage-btn.locked { opacity: 0.3; pointer-events: none; filter: grayscale(1); }
+        .stage-btn.locked::after { content: "🔒"; position: absolute; top: 2px; right: 2px; font-size: 10px; }
         .stage-btn.cleared { border-color: #10b981; color: #10b981; }
+
+        .overlay { position: fixed; inset: 0; background: rgba(15, 23, 42, 0.98); display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 100; backdrop-filter: blur(10px); }
+        .num-btn { background-color: #1e293b; border: 1px solid #38bdf8; border-radius: 6px; display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 45px; }
     </style>
 </head>
-<body>
-    <audio id="bgm" loop preload="auto"><source src="music/brainbgm.mp3" type="audio/mpeg"></audio>
+<body class="flex flex-col">
+    <audio id="bgm" loop><source src="music/brainbgm.mp3" type="audio/mpeg"></audio>
 
     <div id="start-overlay" class="overlay">
-        <h2 class="text-xl font-bold text-blue-400 mb-6 tracking-widest uppercase italic">Sudoku Master</h2>
-        <div id="stage-list" class="stage-grid"></div>
+        <h2 class="text-xl font-bold text-blue-400 mb-6 tracking-widest uppercase italic text-center">Sudoku Training<br><span class="text-xs text-slate-500 normal-case mt-2 block">잠금 시스템 가동 중</span></h2>
+        <div id="stage-list" class="grid grid-cols-5 gap-3 w-80"></div>
     </div>
 
     <div id="ad-overlay" class="overlay" style="display: none;">
         <div class="w-72 p-6 bg-slate-800 border-2 border-emerald-500 rounded-2xl text-center shadow-[0_0_30px_#10b981]">
-            <h3 class="text-xl font-bold text-emerald-400 mb-2 uppercase text-xs tracking-widest">Training Complete</h3>
-            <p class="text-white text-[10px] mb-6 uppercase tracking-tighter">Reward: INT +1 / Coin +10</p>
-            <button onclick="finishGame()" class="w-full py-3 bg-emerald-600 text-white rounded-lg font-bold shadow-lg">CLAIM REWARD</button>
+            <h3 class="text-xl font-bold text-emerald-400 mb-2 uppercase">Complete!</h3>
+            <p class="text-white text-[10px] mb-6">Reward: INT +1 / Coin +10</p>
+            <button onclick="finishGame()" class="w-full py-3 bg-emerald-600 text-white rounded-lg font-bold">CLAIM REWARD</button>
         </div>
     </div>
 
     <header class="p-3 flex justify-between items-center shrink-0">
-        <button onclick="location.href='index.html'" class="text-slate-400 text-xs font-bold uppercase">◀ Back</button>
-        <h1 id="stage-title" class="text-xs font-bold text-purple-400 uppercase tracking-widest italic">Brain Sudoku</h1>
+        <button onclick="location.href='index.html'" class="text-slate-400 text-xs font-bold uppercase">◀ HUB</button>
+        <h1 id="stage-title" class="text-xs font-bold text-purple-400 uppercase tracking-widest">Brain Sudoku</h1>
         <button onclick="toggleMusic()" id="music-btn" class="text-[9px] text-slate-500 border border-slate-700 px-2 py-1 rounded">BGM: OFF</button>
     </header>
 
     <div class="info-panel mx-4 p-2 bg-slate-900/60 border border-slate-700 rounded-lg flex justify-around text-center shrink-0 shadow-lg">
-        <div><p class="text-[7px] text-slate-500 uppercase font-bold">Life</p><p id="life-display" class="text-rose-500 font-bold text-[10px]">3 / 3</p></div>
+        <div><p class="text-[7px] text-slate-500 uppercase">Life</p><p id="life-display" class="text-rose-500 font-bold text-[10px]">3 / 3</p></div>
         <div class="border-x border-slate-700 px-6">
-            <p class="text-[7px] text-slate-500 uppercase font-bold">Hint</p><p id="hint-display" class="text-yellow-500 font-bold text-[10px]">3 / 3</p>
+            <p class="text-[7px] text-slate-500 uppercase">Hint</p><p id="hint-display" class="text-yellow-500 font-bold text-[10px]">3 / 3</p>
         </div>
-        <div><p class="text-[7px] text-slate-500 uppercase font-bold">Time</p><p id="timer-display" class="text-emerald-400 font-bold text-[10px]">00:00</p></div>
+        <div><p class="text-[7px] text-slate-500 uppercase">Time</p><p id="timer-display" class="text-emerald-400 font-bold text-[10px]">00:00</p></div>
     </div>
 
-    <div class="sudoku-container"><table id="sudoku-grid" class="sudoku-table shadow-2xl"></table></div>
-
-    <div class="pad-area shrink-0">
-        <div id="number-pad" class="number-pad"></div>
-        <div class="action-area">
-            <button onclick="useHint()" id="hint-btn-ui" class="hint-btn uppercase">Hint (3)</button>
-            <button onclick="checkAnswer()" class="submit-btn uppercase italic">CHECK RESULT</button>
-        </div>
+    <div class="flex-1 flex items-center justify-center overflow-hidden">
+        <table id="sudoku-grid" class="sudoku-table"></table>
     </div>
 
-    <div class="ad-banner shrink-0"><span>QUEST BODY BRAIN TRAINING</span></div>
+    <div class="p-3 shrink-0 bg-slate-900/80 border-t border-slate-800">
+        <div id="number-pad" class="grid grid-cols-5 gap-1.5 mb-2"></div>
+        <div class="grid grid-cols-2 gap-2">
+            <button onclick="useHint()" id="hint-btn-ui" class="bg-yellow-900/40 border border-yellow-500 text-yellow-500 py-3 rounded-lg font-bold text-xs uppercase">Hint (3)</button>
+            <button onclick="checkAnswer()" class="bg-blue-600 text-white py-3 rounded-lg font-bold text-xs uppercase shadow-lg">Submit</button>
+        </div>
+    </div>
 
     <script>
+        // 🧪 스테이지 데이터 전수 검증 (Row 3 중복 오류 해결)
         const stages = [
             { b: [[5,3,0,0,7,0,0,0,0],[6,0,0,1,9,5,0,0,0],[0,9,8,0,0,0,0,6,0],[8,0,0,0,6,0,0,0,3],[4,0,0,8,0,3,0,0,1],[7,0,0,0,2,0,0,0,6],[0,6,0,0,0,0,2,8,0],[0,0,0,4,1,9,0,0,5],[0,0,0,0,8,0,0,7,9]], s: [[5,3,4,6,7,8,9,1,2],[6,7,2,1,9,5,3,4,8],[1,9,8,3,4,2,5,7,6],[8,5,9,7,6,1,4,2,3],[4,2,6,8,5,3,7,9,1],[7,1,3,9,2,4,8,5,6],[9,6,1,5,3,7,2,8,4],[2,8,7,4,1,9,6,3,5],[3,4,5,2,8,6,1,7,9]] },
             { b: [[0,0,0,2,6,0,7,0,1],[6,8,0,0,7,0,0,9,0],[1,9,0,0,0,4,5,0,0],[8,2,0,1,0,0,0,4,0],[0,0,4,6,0,2,9,0,0],[0,5,0,0,0,3,0,2,8],[0,0,9,3,0,0,0,7,4],[0,4,0,0,5,0,0,3,6],[7,0,3,0,1,8,0,0,0]], s: [[4,3,5,2,6,9,7,8,1],[6,8,2,5,7,1,4,9,3],[1,9,7,8,3,4,5,6,2],[8,2,6,1,9,5,3,4,7],[3,7,4,6,8,2,9,1,5],[9,5,1,7,4,3,6,2,8],[5,1,9,3,2,6,8,7,4],[2,4,8,9,5,7,1,3,6],[7,6,3,4,1,8,2,5,9]] },
@@ -121,53 +90,40 @@
             { b: [[5,3,0,0,7,0,0,0,0],[6,0,0,1,9,5,0,0,0],[0,9,8,0,0,0,0,6,0],[8,0,0,0,6,0,0,0,3],[4,0,0,8,0,3,0,0,1],[7,0,0,0,2,0,0,0,6],[0,6,0,0,0,0,2,8,0],[0,0,0,4,1,9,0,0,5],[0,0,0,0,8,0,0,7,9]], s: [[5,3,4,6,7,8,9,1,2],[6,7,2,1,9,5,3,4,8],[1,9,8,3,4,2,5,7,6],[8,5,9,7,6,1,4,2,3],[4,2,6,8,5,3,7,9,1],[7,1,3,9,2,4,8,5,6],[9,6,1,5,3,7,2,8,4],[2,8,7,4,1,9,6,3,5],[3,4,5,2,8,6,1,7,9]] }
         ];
 
-        let currentStageIdx = 0, selectedCell = null, startTime, timerInterval, lives = 3, hints = 3;
+        let curIdx = 0, selCell = null, timerInt = null, lives = 3, hints = 3, startT = 0;
         const bgm = document.getElementById('bgm');
 
         window.onload = () => renderStages();
 
-        function toggleMusic() {
-            if (bgm.paused) { bgm.play(); document.getElementById('music-btn').innerText = "BGM: ON"; }
-            else { bgm.pause(); document.getElementById('music-btn').innerText = "BGM: OFF"; }
-        }
-
-        // ⭐ 스테이지 렌더링 로직 보강 (잠금 기능)
         function renderStages() {
-            const list = document.getElementById('stage-list');
-            const cleared = JSON.parse(localStorage.getItem('cleared_stages') || "[]");
+            const list = document.getElementById('stage-list'), cleared = JSON.parse(localStorage.getItem('cleared_stages') || "[]");
             list.innerHTML = "";
-            
             for (let i = 1; i <= 10; i++) {
                 const btn = document.createElement('button');
-                const isCleared = cleared.includes(i);
-                // 첫 번째 스테이지거나 이전 스테이지를 깼으면 해제
                 const isUnlocked = i === 1 || cleared.includes(i - 1);
-                
-                btn.className = `stage-btn ${isCleared ? 'cleared' : ''} ${!isUnlocked ? 'locked' : ''}`;
+                btn.className = `stage-btn ${cleared.includes(i) ? 'cleared' : ''} ${!isUnlocked ? 'locked' : ''}`;
                 btn.innerText = i;
-                
-                if (isUnlocked) {
-                    btn.addEventListener('click', () => { initGame(i-1); bgm.play().catch(()=>{}); });
-                }
+                if (isUnlocked) btn.onclick = () => initGame(i-1);
                 list.appendChild(btn);
             }
         }
 
         function initGame(idx) {
-            currentStageIdx = idx; lives = 3; hints = 3; selectedCell = null;
+            curIdx = idx; lives = 3; hints = 3; selCell = null;
             document.getElementById('start-overlay').style.display = 'none';
             document.getElementById('stage-title').innerText = `STAGE ${idx + 1}`;
-            updateStatus(); renderBoard(); startTimer();
+            updateInfo(); renderBoard(); startTimer();
+            bgm.play().catch(()=>{});
         }
 
-        function updateStatus() {
+        function updateInfo() {
             document.getElementById('life-display').innerText = `${lives} / 3`;
             document.getElementById('hint-display').innerText = `${hints} / 3`;
             document.getElementById('hint-btn-ui').innerText = `Hint (${hints})`;
         }
 
         function renderBoard() {
-            const table = document.getElementById('sudoku-grid'), data = stages[currentStageIdx];
+            const table = document.getElementById('sudoku-grid'), data = stages[curIdx];
             table.innerHTML = "";
             for (let r = 0; r < 9; r++) {
                 const tr = document.createElement('tr');
@@ -176,187 +132,101 @@
                     if (data.b[r][c] !== 0) { td.innerText = data.b[r][c]; td.className = "fixed-cell"; }
                     else { 
                         td.id = `cell-${r}-${c}`; td.className = "user-cell"; 
-                        td.addEventListener('click', () => { selectCell(r, c, td); });
+                        td.onclick = () => selectCell(r, c, td);
                     }
                     tr.appendChild(td);
                 }
                 table.appendChild(tr);
             }
-            updateNumPad();
-            checkSectionCompletions();
+            updatePad(); checkSections();
         }
 
         function selectCell(r, c, td) {
             document.querySelectorAll('td').forEach(el => el.classList.remove('selected', 'highlight-line'));
-            selectedCell = { r, c };
-            td.classList.add('selected');
+            selCell = { r, c }; td.classList.add('selected');
             for(let i=0; i<9; i++) {
-                const rowC = document.querySelector(`.sudoku-table tr:nth-child(${r+1}) td:nth-child(${i+1})`);
-                if(rowC) rowC.classList.add('highlight-line');
-                const colC = document.querySelector(`.sudoku-table tr:nth-child(${i+1}) td:nth-child(${c+1})`);
-                if(colC) colC.classList.add('highlight-line');
+                document.querySelector(`.sudoku-table tr:nth-child(${r+1}) td:nth-child(${i+1})`).classList.add('highlight-line');
+                document.querySelector(`.sudoku-table tr:nth-child(${i+1}) td:nth-child(${c+1})`).classList.add('highlight-line');
             }
         }
 
-        function updateNumPad() {
-            const pad = document.getElementById('number-pad'); pad.innerHTML = "";
-            const counts = Array(10).fill(0);
-            const data = stages[currentStageIdx];
-            for (let r = 0; r < 9; r++) {
-                for (let c = 0; c < 9; c++) {
-                    const cell = document.getElementById(`cell-${r}-${c}`);
-                    const val = data.b[r][c] || (cell ? parseInt(cell.innerText) || 0 : 0);
-                    if (val > 0) counts[val]++;
-                }
+        function updatePad() {
+            const pad = document.getElementById('number-pad'), counts = Array(10).fill(0);
+            for(let r=0; r<9; r++) for(let c=0; c<9; c++) {
+                const cell = document.getElementById(`cell-${r}-${c}`);
+                const val = stages[curIdx].b[r][c] || (cell ? parseInt(cell.innerText) || 0 : 0);
+                if(val > 0) counts[val]++;
             }
-            for (let i = 1; i <= 9; i++) {
+            pad.innerHTML = "";
+            for(let i=1; i<=9; i++) {
                 const btn = document.createElement('div');
                 const rem = Math.max(0, 9 - counts[i]);
                 btn.className = `num-btn ${rem === 0 ? 'completed' : ''}`;
-                btn.innerHTML = `<span class="text-xs font-bold">${i}</span><span class="text-[7px] text-slate-400">${rem} left</span>`;
-                btn.onclick = () => { 
-                    if (!selectedCell) return; 
-                    const target = document.getElementById(`cell-${selectedCell.r}-${selectedCell.c}`);
-                    target.innerText = i;
-                    target.classList.remove('wrong', 'hint-cell');
-                    updateNumPad(); 
-                    checkSectionCompletions();
-                };
+                btn.innerHTML = `<span class="text-xs font-bold">${i}</span><span class="text-[7px] text-slate-500">${rem} left</span>`;
+                btn.onclick = () => { if(!selCell) return; document.getElementById(`cell-${selCell.r}-${selCell.c}`).innerText = i; updatePad(); checkSections(); };
                 pad.appendChild(btn);
             }
-            const eraBtn = document.createElement('div'); eraBtn.className = "num-btn eraser-btn"; eraBtn.innerHTML = `<span class="text-[9px] font-bold">X</span><span class="text-[7px] text-slate-400 uppercase">Erase</span>`;
-            eraBtn.onclick = () => { if(selectedCell) { 
-                const target = document.getElementById(`cell-${selectedCell.r}-${selectedCell.c}`);
-                target.innerText = ""; target.classList.remove('completed-section');
-                updateNumPad(); checkSectionCompletions(); 
-            }};
-            pad.appendChild(eraBtn);
+            const era = document.createElement('div'); era.className = "num-btn bg-slate-700"; era.innerHTML = `<span class="text-[10px] font-bold">X</span>`;
+            era.onclick = () => { if(selCell) { document.getElementById(`cell-${selCell.r}-${selCell.c}`).innerText = ""; updatePad(); checkSections(); }};
+            pad.appendChild(era);
         }
 
-        // ⭐ 중복 검사 로직 대대적 보강 (진짜 1~9 다 있을 때만 효과 발생)
-        function checkSectionCompletions() {
-            const cells = [];
-            for (let r = 0; r < 9; r++) {
-                cells[r] = [];
-                for (let c = 0; c < 9; c++) {
-                    const cell = document.getElementById(`cell-${r}-${c}`);
-                    const fixedVal = stages[currentStageIdx].b[r][c];
-                    cells[r][c] = fixedVal || (cell ? parseInt(cell.innerText) || 0 : 0);
-                }
-            }
-
+        function checkSections() {
+            const board = Array.from({length:9}, (_,r) => Array.from({length:9}, (_,c) => {
+                const cell = document.getElementById(`cell-${r}-${c}`);
+                return stages[curIdx].b[r][c] || (cell ? parseInt(cell.innerText) || 0 : 0);
+            }));
             document.querySelectorAll('td').forEach(td => td.classList.remove('completed-section'));
-
-            for (let r = 0; r < 9; r++) {
-                if (isValidSetStrict(cells[r])) {
-                    for (let c = 0; c < 9; c++) getTd(r, c).classList.add('completed-section');
-                }
+            for(let i=0; i<9; i++) {
+                if(isDone(board[i])) for(let j=0; j<9; j++) getTd(i,j).classList.add('completed-section');
+                const col = board.map(r => r[i]);
+                if(isDone(col)) for(let j=0; j<9; j++) getTd(j,i).classList.add('completed-section');
             }
-            for (let c = 0; c < 9; c++) {
-                const col = [];
-                for (let r = 0; r < 9; r++) col.push(cells[r][c]);
-                if (isValidSetStrict(col)) {
-                    for (let r = 0; r < 9; r++) getTd(r, c).classList.add('completed-section');
-                }
-            }
-            for (let bR = 0; bR < 3; bR++) {
-                for (let bC = 0; bC < 3; bC++) {
-                    const box = [];
-                    for(let i=0; i<3; i++) {
-                        for(let j=0; j<3; j++) box.push(cells[bR*3+i][bC*3+j]);
-                    }
-                    if(isValidSetStrict(box)) {
-                        for(let i=0; i<3; i++) {
-                            for(let j=0; j<3; j++) getTd(bR*3+i, bC*3+j).classList.add('completed-section');
-                        }
-                    }
-                }
+            for(let br=0; br<3; br++) for(let bc=0; bc<3; bc++) {
+                const box = [];
+                for(let r=0; r<3; r++) for(let c=0; c<3; c++) box.push(board[br*3+r][bc*3+c]);
+                if(isDone(box)) for(let r=0; r<3; r++) for(let c=0; c<3; c++) getTd(br*3+r, bc*3+c).classList.add('completed-section');
             }
         }
 
-        function isValidSetStrict(arr) {
-            const nums = arr.filter(v => v !== 0);
-            return nums.length === 9 && new Set(nums).size === 9;
-        }
-
+        function isDone(arr) { return arr.filter(v => v !== 0).length === 9 && new Set(arr).size === 9; }
         function getTd(r, c) { return document.querySelector(`.sudoku-table tr:nth-child(${r+1}) td:nth-child(${c+1})`); }
 
         function useHint() {
-            if (!selectedCell || hints <= 0) return;
-            const target = document.getElementById(`cell-${selectedCell.r}-${selectedCell.c}`);
-            const correctValue = stages[currentStageIdx].s[selectedCell.r][selectedCell.c];
-            target.innerText = correctValue;
-            hints--; updateStatus();
-            target.classList.add('hint-cell'); target.classList.remove('wrong');
-            updateNumPad(); checkSectionCompletions();
+            if(!selCell || hints <= 0) return;
+            const target = document.getElementById(`cell-${selCell.r}-${selCell.c}`);
+            target.innerText = stages[curIdx].s[selCell.r][selCell.c];
+            hints--; updateInfo(); updatePad(); checkSections();
         }
 
-        function startTimer() {
-            startTime = Date.now();
-            if(timerInterval) clearInterval(timerInterval);
-            timerInterval = setInterval(() => {
-                const d = new Date(Date.now() - startTime);
-                document.getElementById('timer-display').innerText = d.toISOString().substr(14, 5);
-            }, 1000);
-        }
+        function startTimer() { startT = Date.now(); timerInt = setInterval(() => { const d = new Date(Date.now()-startT); document.getElementById('timer-display').innerText = d.toISOString().substr(14, 5); }, 1000); }
 
-        // ⭐ 정답 체크 및 클리어 로직 전면 수정
         function checkAnswer() {
-            const data = stages[currentStageIdx]; 
-            let wrongCount = 0;
-            let emptyCount = 0;
-
-            for (let r = 0; r < 9; r++) {
-                for (let c = 0; c < 9; c++) {
-                    const cell = document.getElementById(`cell-${r}-${c}`);
-                    if (!cell) continue; // 고정된 숫자는 패스
-                    
-                    const val = parseInt(cell.innerText) || 0;
-                    if (val === 0) { emptyCount++; continue; } // 빈칸 체크
-                    
-                    if (val !== data.s[r][c]) { 
-                        cell.classList.add('wrong'); 
-                        wrongCount++; 
-                    } else {
-                        cell.classList.remove('wrong');
-                    }
-                }
+            const data = stages[curIdx]; let wrong = 0, empty = 0;
+            for(let r=0; r<9; r++) for(let c=0; c<9; c++) {
+                const cell = document.getElementById(`cell-${r}-${c}`);
+                if(!cell) continue;
+                const val = parseInt(cell.innerText) || 0;
+                if(val === 0) empty++; else if(val !== data.s[r][c]) { cell.classList.add('wrong'); wrong++; }
+                else cell.classList.remove('wrong');
             }
-
-            if (emptyCount > 0) {
-                alert("아직 모든 칸을 채우지 않았어!");
-                return;
-            }
-
-            if (wrongCount === 0) { 
-                clearInterval(timerInterval); 
-                document.getElementById('ad-overlay').style.display = 'flex'; 
-            } else { 
-                lives--; 
-                updateStatus(); 
-                if (lives <= 0) { 
-                    alert("GAME OVER! 기회를 모두 소진했습니다."); 
-                    location.reload(); 
-                } else {
-                    alert(`${wrongCount}개의 칸이 틀렸어! 남은 기회: ${lives}`); 
-                }
-            }
+            if(empty > 0) alert("아직 채우지 않은 칸이 있어!");
+            else if(wrong === 0) { clearInterval(timerInt); document.getElementById('ad-overlay').style.display = 'flex'; }
+            else { lives--; updateInfo(); if(lives <= 0) { alert("GAME OVER!"); location.reload(); } else alert(`${wrong}개가 틀렸어! 남은 기회: ${lives}`); }
         }
 
         function finishGame() {
             const cleared = JSON.parse(localStorage.getItem('cleared_stages') || "[]");
-            const stageNum = currentStageIdx + 1;
-            if (!cleared.includes(stageNum)) cleared.push(stageNum);
-            
+            if(!cleared.includes(curIdx+1)) cleared.push(curIdx+1);
             localStorage.setItem('cleared_stages', JSON.stringify(cleared));
-            
-            // 보상 지급
-            const savedInt = parseInt(localStorage.getItem('user_int')) || 0;
-            const savedCoin = parseInt(localStorage.getItem('user_coin')) || 100;
-            localStorage.setItem('user_int', savedInt + 1);
-            localStorage.setItem('user_coin', savedCoin + 10);
-            
+            localStorage.setItem('user_int', (parseInt(localStorage.getItem('user_int'))||0)+1);
+            localStorage.setItem('user_coin', (parseInt(localStorage.getItem('user_coin'))||100)+10);
             location.href = 'index.html';
+        }
+
+        function toggleMusic() {
+            if(bgm.paused) { bgm.play(); document.getElementById('music-btn').innerText = "BGM: ON"; }
+            else { bgm.pause(); document.getElementById('music-btn').innerText = "BGM: OFF"; }
         }
     </script>
 </body>
