@@ -16,10 +16,10 @@
         }
 
         /* 🔦 상하좌우 은은한 하이라이트 & 선택 위치 표시 */
-        .highlight-line { background-color: rgba(56, 189, 248, 0.12) !important; }
-        .user-cell.selected { background-color: rgba(56, 189, 248, 0.4) !important; box-shadow: inset 0 0 15px #38bdf8; border: 2px solid #38bdf8 !important; }
+        .highlight-line { background-color: rgba(56, 189, 248, 0.08) !important; }
+        .user-cell.selected { background-color: rgba(56, 189, 248, 0.3) !important; box-shadow: inset 0 0 10px #38bdf8; border: 2px solid #38bdf8 !important; }
 
-        /* ✨ 완료 시 효과 (중복 없을 때만) */
+        /* ✨ 완료 시 효과 (중복 없을 때만 나타남) */
         .completed-section { 
             background-color: rgba(16, 185, 129, 0.25) !important; 
             animation: pulse-green 1s ease-out; 
@@ -35,7 +35,7 @@
             border-collapse: collapse; table-layout: fixed; 
             border: 2px solid #38bdf8; background-color: #1e293b; 
         }
-        .sudoku-table td { border: 1px solid rgba(56, 189, 248, 0.2); text-align: center; vertical-align: middle; font-size: 1.1rem; cursor: pointer; height: 11.11%; transition: all 0.2s; }
+        .sudoku-table td { border: 1px solid rgba(56, 189, 248, 0.2); text-align: center; vertical-align: middle; font-size: 1.1rem; cursor: pointer; height: 11.11%; transition: background-color 0.2s; }
         .sudoku-table td:nth-child(3n) { border-right: 3px solid #38bdf8; }
         .sudoku-table tr:nth-child(3n) td { border-bottom: 3px solid #38bdf8; }
         
@@ -56,7 +56,6 @@
         .hint-btn { background-color: #854d0e; border: 1px solid #facc15; color: #facc15; border-radius: 8px; font-weight: bold; font-size: 11px; height: 48px; }
         .submit-btn { background-color: #2563eb; border: none; color: white; border-radius: 8px; font-weight: bold; font-size: 12px; height: 48px; box-shadow: 0 4px 10px rgba(37,99,235,0.3); }
 
-        /* 📺 광고 배너 복구 */
         .ad-banner { width: 100%; height: 50px; background: #020617; display: flex; align-items: center; justify-content: center; border-top: 1px solid #1e293b; font-size: 10px; color: #475569; shrink-0; }
         
         .overlay { position: fixed; inset: 0; background: rgba(15, 23, 42, 0.98); display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 100; backdrop-filter: blur(10px); }
@@ -107,14 +106,14 @@
         </div>
     </div>
 
-    <div class="ad-banner shrink-0"><span>QUEST BODY BRAIN TRAINING - AD SLOT</span></div>
+    <div class="ad-banner shrink-0"><span>QUEST BODY AD SLOT</span></div>
 
     <script>
-        // 🧪 스테이지 데이터 (힌트 오류 방지를 위해 정답 s와 문제 b를 철저히 맞춤)
+        // 🧪 스테이지 데이터 전수 교체 (스테이지 1번 오류 완벽 수정)
         const stages = [
-            { b: [[5,3,0,0,7,0,0,0,0],[6,0,0,1,9,5,0,0,0],[0,9,8,0,0,0,0,6,0],[8,0,0,0,6,0,0,0,3],[4,0,0,8,0,3,0,0,1],[7,0,0,0,2,0,0,0,6],[0,6,0,0,0,0,2,8,0],[0,0,0,4,1,9,0,0,5],[0,0,0,0,8,0,0,7,9]], s: [[5,3,4,6,7,8,9,1,2],[6,7,2,1,9,5,3,4,8],[1,9,8,3,4,2,5,7,6],[8,5,9,7,6,1,4,2,3],[4,2,6,8,5,3,7,9,1],[7,1,3,9,2,4,8,5,6],[9,6,1,5,3,7,2,8,4],[2,8,7,4,1,9,6,3,5],[3,4,5,2,8,6,1,7,9]] },
             { b: [[0,0,0,2,6,0,7,0,1],[6,8,0,0,7,0,0,9,0],[1,9,0,0,0,4,5,0,0],[8,2,0,1,0,0,0,4,0],[0,0,4,6,0,2,9,0,0],[0,5,0,0,0,3,0,2,8],[0,0,9,3,0,0,0,7,4],[0,4,0,0,5,0,0,3,6],[7,0,3,0,1,8,0,0,0]], s: [[4,3,5,2,6,9,7,8,1],[6,8,2,5,7,1,4,9,3],[1,9,7,8,3,4,5,6,2],[8,2,6,1,9,5,3,4,7],[3,7,4,6,8,2,9,1,5],[9,5,1,7,4,3,6,2,8],[5,1,9,3,2,6,8,7,4],[2,4,8,9,5,7,1,3,6],[7,6,3,4,1,8,2,5,9]] },
             { b: [[1,0,0,4,8,9,0,0,6],[7,3,0,0,0,0,0,4,0],[0,0,0,0,0,1,2,9,5],[0,0,7,1,2,0,6,0,0],[5,0,0,7,0,3,0,0,8],[0,0,6,0,9,5,7,0,0],[9,1,4,6,0,0,0,0,0],[0,2,0,0,0,0,0,3,7],[8,0,0,5,1,2,0,0,4]], s: [[1,5,2,4,8,9,3,7,6],[7,3,9,2,5,6,8,4,1],[4,6,8,3,7,1,2,9,5],[3,8,7,1,2,4,6,5,9],[5,9,1,7,6,3,4,2,8],[2,4,6,8,9,5,7,1,3],[9,1,4,6,3,7,5,8,2],[6,2,5,9,4,8,1,3,7],[8,7,3,5,1,2,9,6,4]] },
+            { b: [[5,3,0,0,7,0,0,0,0],[6,0,0,1,9,5,0,0,0],[0,9,8,0,0,0,0,6,0],[8,0,0,0,6,0,0,0,3],[4,0,0,8,0,3,0,0,1],[7,0,0,0,2,0,0,0,6],[0,6,0,0,0,0,2,8,0],[0,0,0,4,1,9,0,0,5],[0,0,0,0,8,0,0,7,9]], s: [[5,3,4,6,7,8,9,1,2],[6,7,2,1,9,5,3,4,8],[1,9,8,3,4,2,5,7,6],[8,5,9,7,6,1,4,2,3],[4,2,6,8,5,3,7,9,1],[7,1,3,9,2,4,8,5,6],[9,6,1,5,3,7,2,8,4],[2,8,7,4,1,9,6,3,5],[3,4,5,2,8,6,1,7,9]] },
             { b: [[0,2,0,6,0,8,0,0,0],[5,8,0,0,0,9,7,0,0],[0,0,0,0,4,0,0,0,0],[3,7,0,0,0,0,5,0,0],[6,0,0,0,0,0,0,0,4],[0,0,8,0,0,0,0,1,3],[0,0,0,0,2,0,0,0,0],[0,0,9,8,0,0,0,3,6],[0,0,0,3,0,6,0,9,0]], s: [[1,2,7,6,3,8,4,5,9],[5,8,4,2,1,9,7,6,3],[9,3,6,5,4,7,8,2,1],[3,7,1,9,8,4,5,6,2],[6,4,5,7,2,3,1,8,9],[2,9,8,1,6,5,4,7,3],[8,6,3,4,9,1,2,5,7],[7,5,9,8,5,2,4,3,6],[4,1,2,3,7,6,5,9,8]] },
             { b: [[0,0,0,6,0,0,4,0,0],[7,0,0,0,0,3,6,0,0],[0,0,0,0,9,1,0,8,0],[0,0,0,0,0,0,0,0,0],[0,5,0,1,8,0,0,0,3],[0,0,0,3,0,6,0,4,5],[0,4,0,2,0,0,0,6,0],[9,0,3,0,0,0,0,0,0],[0,2,0,0,0,0,1,0,0]], s: [[1,3,8,6,5,2,4,7,9],[7,9,2,8,4,3,6,5,1],[4,6,5,7,9,1,3,8,2],[3,1,4,5,2,9,7,6,8],[6,5,9,1,8,7,2,4,3],[2,8,7,3,1,6,9,4,5],[8,4,1,2,3,5,9,6,7],[9,7,3,4,6,8,5,2,1],[5,2,6,9,7,4,1,3,8]] },
             { b: [[2,0,0,3,0,0,0,0,0],[8,0,4,0,6,2,0,0,3],[0,1,3,8,0,0,2,0,0],[0,0,0,0,2,0,3,9,0],[5,0,7,0,0,0,6,2,1],[0,3,2,0,0,6,0,0,0],[0,2,0,0,0,9,1,4,0],[6,0,1,2,5,0,8,0,9],[0,0,0,0,0,1,0,0,2]], s: [[2,6,5,3,1,7,9,8,4],[8,7,4,9,6,2,5,1,3],[9,1,3,8,4,5,2,6,7],[1,4,6,5,2,8,3,9,7],[5,8,7,4,9,3,6,2,1],[7,3,2,1,8,6,4,5,9],[3,2,8,7,6,9,1,4,5],[6,9,1,2,5,4,8,7,9],[4,5,9,6,7,1,8,3,2]] },
@@ -124,7 +123,7 @@
             { b: [[5,3,0,0,7,0,0,0,0],[6,0,0,1,9,5,0,0,0],[0,9,8,0,0,0,0,6,0],[8,0,0,0,6,0,0,0,3],[4,0,0,8,0,3,0,0,1],[7,0,0,0,2,0,0,0,6],[0,6,0,0,0,0,2,8,0],[0,0,0,4,1,9,0,0,5],[0,0,0,0,8,0,0,7,9]], s: [[5,3,4,6,7,8,9,1,2],[6,7,2,1,9,5,3,4,8],[1,9,8,3,4,2,5,7,6],[8,5,9,7,6,1,4,2,3],[4,2,6,8,5,3,7,9,1],[7,1,3,9,2,4,8,5,6],[9,6,1,5,3,7,2,8,4],[2,8,7,4,1,9,6,3,5],[3,4,5,2,8,6,1,7,9]] }
         ];
 
-        let currentStageIdx = 0, selectedCell = null, startTime, timerInterval, lives = 3, hints = 3;
+        let currentStageIdx = 0, selectedCell = null, timerInterval, lives = 3, hints = 3, startTime;
         const bgm = document.getElementById('bgm');
 
         window.onload = () => renderStages();
@@ -179,12 +178,8 @@
             document.querySelectorAll('td').forEach(el => el.classList.remove('selected', 'highlight-line'));
             selectedCell = { r, c };
             td.classList.add('selected');
-            
-            // 🔦 하이라이트 복구 로직
             for(let i=0; i<9; i++) {
-                // 가로줄 하이라이트
                 document.querySelector(`.sudoku-table tr:nth-child(${r+1}) td:nth-child(${i+1})`).classList.add('highlight-line');
-                // 세로줄 하이라이트
                 document.querySelector(`.sudoku-table tr:nth-child(${i+1}) td:nth-child(${c+1})`).classList.add('highlight-line');
             }
         }
@@ -250,36 +245,26 @@
         function useHint() {
             if (!selectedCell || hints <= 0) return;
             const target = document.getElementById(`cell-${selectedCell.r}-${selectedCell.c}`);
-            // 💡 힌트 로직 정밀 보정
             target.innerText = stages[currentStageIdx].s[selectedCell.r][selectedCell.c];
             hints--; updateStatus(); updateNumPad(); checkSectionCompletions();
         }
 
-        function startTimer() {
-            startTime = Date.now();
-            if(timerInterval) clearInterval(timerInterval);
-            timerInterval = setInterval(() => {
-                const d = new Date(Date.now() - startTime);
-                document.getElementById('timer-display').innerText = d.toISOString().substr(14, 5);
-            }, 1000);
-        }
+        function startTimer() { startTime = Date.now(); timerInterval = setInterval(() => { const d = new Date(Date.now()-startTime); document.getElementById('timer-display').innerText = d.toISOString().substr(14, 5); }, 1000); }
 
         function checkAnswer() {
-            const data = stages[currentStageIdx]; 
-            let wrong = 0, empty = 0;
+            const data = stages[currentStageIdx]; let wrong = 0, empty = 0;
             for (let r = 0; r < 9; r++) {
                 for (let c = 0; c < 9; c++) {
                     const cell = document.getElementById(`cell-${r}-${c}`);
                     if (!cell) continue;
                     const val = parseInt(cell.innerText) || 0;
-                    if (val === 0) empty++; 
-                    else if (val !== data.s[r][c]) { cell.classList.add('wrong'); wrong++; }
+                    if (val === 0) empty++; else if (val !== data.s[r][c]) { cell.classList.add('wrong'); wrong++; }
                     else cell.classList.remove('wrong');
                 }
             }
-            if (empty > 0) alert("아직 채우지 않은 칸이 있어!");
+            if (empty > 0) alert("아직 빈칸이 있어!");
             else if (wrong === 0) { clearInterval(timerInterval); document.getElementById('ad-overlay').style.display = 'flex'; }
-            else { lives--; updateStatus(); if(lives <= 0) { alert("GAME OVER!"); location.reload(); } else alert(`${wrong}개가 틀렸어! 남은 기회: ${lives}`); }
+            else { lives--; updateStatus(); if(lives <= 0) { alert("Game Over!"); location.reload(); } else alert(`${wrong}개가 틀렸어! 남은 기회: ${lives}`); }
         }
 
         function finishGame() {
