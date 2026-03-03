@@ -72,6 +72,7 @@
         <div class="flex gap-2 text-right items-center">
             <div><span class="text-[9px] text-slate-500 uppercase">Coin (재화)</span><p id="user-coin" class="font-bold text-yellow-400 text-xs">100</p></div>
             <div class="border-l border-slate-700 pl-2"><span class="text-[9px] text-slate-500 uppercase">Mana (마나)</span><p id="user-mana" class="font-bold text-blue-400 text-xs">10 / 10</p></div>
+            <button onclick="goToPage('title.html')" class="p-1.5 bg-blue-900/20 rounded border border-blue-900/40 text-blue-400 active:scale-95 ml-1 text-[10px]">🏅</button>
             <button onclick="resetCharacter()" class="p-1.5 bg-red-900/20 rounded border border-red-900/40 text-red-500 active:scale-95 ml-1 text-[10px]">🔄</button>
         </div>
     </header>
@@ -83,7 +84,11 @@
             <div id="character-sprite" class="w-64 h-64 bg-slate-800/20 rounded-xl pixel-border neon-glow flex items-center justify-center overflow-hidden"></div>
             <div class="mt-4 text-center">
                 <span id="user-lv" class="bg-blue-600 text-[10px] px-2 py-0.5 rounded-full font-bold uppercase">Lv. 1</span>
-                <h2 id="user-nickname" class="text-xl font-bold mt-1 tracking-wider text-white uppercase italic">미등록 상태 (Unregistered)</h2>
+                
+                <p id="user-title" class="text-[9px] text-yellow-400 font-bold tracking-[0.2em] uppercase mt-2 mb-1">칭호 없음 (No Title)</p>
+                
+                <h2 id="user-nickname" class="text-xl font-bold tracking-wider text-white uppercase italic">미등록 상태 (Unregistered)</h2>
+                
                 <p id="user-weight" class="text-[10px] text-blue-400 font-bold mt-1 uppercase">Weight (체중): -- kg</p>
             </div>
         </div>
@@ -120,8 +125,7 @@
             </div>
             <div class="pt-2 border-t border-slate-800">
                 <p class="text-[8px] text-slate-600 uppercase mb-2">Record (최근 3일 기록)</p>
-                <div id="hydration-history" class="space-y-1.5">
-                    </div>
+                <div id="hydration-history" class="space-y-1.5"></div>
             </div>
         </div>
 
@@ -230,6 +234,19 @@
             const inbody = JSON.parse(localStorage.getItem('user_inbody'));
             const sprite = document.getElementById('character-sprite');
             const nickDisplay = document.getElementById('user-nickname');
+            
+            // ⭐ 칭호 표시 연동
+            const titleDisplay = document.getElementById('user-title');
+            const equippedTitle = localStorage.getItem('equipped_title');
+            
+            if(equippedTitle) {
+                titleDisplay.innerText = equippedTitle;
+                titleDisplay.classList.remove('text-slate-500');
+                titleDisplay.classList.add('text-yellow-400');
+            } else {
+                titleDisplay.innerText = "칭호 없음 (No Title)";
+                titleDisplay.classList.add('text-slate-500');
+            }
 
             if (inbody) {
                 sprite.style.backgroundImage = inbody.gender === 'woman' ? "url('image/woman.png')" : "url('image/man/man.png')";
@@ -238,10 +255,9 @@
                 document.getElementById('stat-fat').innerText = `${inbody.fatMass}kg`;
                 document.getElementById('stat-bmi').innerText = inbody.bmi;
                 
-                // ⭐ 닉네임 연동: 이름이 있으면 표시, 없으면 미등록
                 if(inbody.name && inbody.name.trim() !== "") {
                     nickDisplay.innerText = inbody.name;
-                    nickDisplay.classList.remove('italic', 'text-slate-500'); // 미등록 스타일 제거
+                    nickDisplay.classList.remove('italic', 'text-slate-500');
                 } else {
                     nickDisplay.innerText = "미등록 상태 (Unregistered)";
                 }
