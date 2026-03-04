@@ -43,6 +43,16 @@
         
         .evaporating-text { animation: blink 1.5s infinite; }
         @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0.3; } }
+
+        /* ✨ 퀘스트 알림판 스타일 */
+        .quest-banner {
+            border-radius: 12px;
+            padding: 10px 20px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            transition: all 0.5s ease;
+        }
+        .quest-pending { background: rgba(249, 115, 22, 0.1); border-color: rgba(249, 115, 22, 0.3); }
+        .quest-complete { background: rgba(16, 185, 129, 0.1); border-color: rgba(16, 185, 129, 0.5); box-shadow: 0 0 10px rgba(16, 185, 129, 0.2); }
     </style>
 </head>
 <body class="flex flex-col h-screen overflow-hidden">
@@ -75,6 +85,11 @@
                 <h2 id="user-nickname" class="text-xl font-bold tracking-wider text-white uppercase italic">미등록 상태 (Unregistered)</h2>
                 <p id="user-weight" class="text-[10px] text-blue-400 font-bold mt-1 uppercase">Weight (체중): -- kg</p>
             </div>
+        </div>
+
+        <div id="quest-status" class="quest-banner z-10 w-full max-w-[280px] text-center flex flex-col items-center gap-1 quest-pending">
+            <span id="quest-label-en" class="text-[10px] font-bold tracking-[0.3em] uppercase text-orange-400">Today's Quest</span>
+            <span id="quest-label-ko" class="text-[11px] font-bold text-white">오늘의 훈련이 필요합니다!</span>
         </div>
 
         <div class="chart-section z-10 space-y-4">
@@ -209,6 +224,32 @@
                     historyHTML += `<div class="flex justify-between border-b border-slate-800/50 py-1 px-1"><span>${h.date}</span><span>${h.amount}ml</span></div>`;
                 });
                 histDiv.innerHTML = historyHTML;
+            }
+
+            // ⭐ 운동 완료 여부 체크 (Update Quest Status)
+            updateQuestUI();
+        }
+
+        function updateQuestUI() {
+            const monthlyLog = JSON.parse(localStorage.getItem('monthly_workout_log')) || [];
+            const today = new Date();
+            const dateStr = `${today.getMonth()+1}/${today.getDate()} (${['일','월','화','수','목','금','토'][today.getDay()]})`;
+            
+            const isDone = monthlyLog.some(log => log.date === dateStr);
+            const banner = document.getElementById('quest-status');
+            const labelEn = document.getElementById('quest-label-en');
+            const labelKo = document.getElementById('quest-label-ko');
+
+            if (isDone) {
+                banner.className = "quest-banner z-10 w-full max-w-[280px] text-center flex flex-col items-center gap-1 quest-complete";
+                labelEn.innerText = "Mission Complete";
+                labelEn.className = "text-[10px] font-bold tracking-[0.3em] uppercase text-emerald-400";
+                labelKo.innerText = "오늘의 한계를 넘었습니다! (Excellent)";
+            } else {
+                banner.className = "quest-banner z-10 w-full max-w-[280px] text-center flex flex-col items-center gap-1 quest-pending";
+                labelEn.innerText = "Today's Quest";
+                labelEn.className = "text-[10px] font-bold tracking-[0.3em] uppercase text-orange-400";
+                labelKo.innerText = "오늘의 훈련이 필요합니다! (Pending)";
             }
         }
 
