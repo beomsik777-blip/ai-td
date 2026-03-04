@@ -44,7 +44,6 @@
         .evaporating-text { animation: blink 1.5s infinite; }
         @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0.3; } }
 
-        /* ✨ 퀘스트 알림판 스타일 */
         .quest-banner {
             border-radius: 12px;
             padding: 10px 20px;
@@ -53,6 +52,16 @@
         }
         .quest-pending { background: rgba(249, 115, 22, 0.1); border-color: rgba(249, 115, 22, 0.3); }
         .quest-complete { background: rgba(16, 185, 129, 0.1); border-color: rgba(16, 185, 129, 0.5); box-shadow: 0 0 10px rgba(16, 185, 129, 0.2); }
+
+        /* ✨ 주간 보너스 요약창 스타일 */
+        .bonus-summary {
+            background: rgba(56, 189, 248, 0.05);
+            border: 1px dashed rgba(56, 189, 248, 0.2);
+            border-radius: 12px;
+            padding: 12px;
+            width: 100%;
+            max-width: 280px;
+        }
     </style>
 </head>
 <body class="flex flex-col h-screen overflow-hidden">
@@ -90,6 +99,16 @@
         <div id="quest-status" class="quest-banner z-10 w-full max-w-[280px] text-center flex flex-col items-center gap-1 quest-pending">
             <span id="quest-label-en" class="text-[10px] font-bold tracking-[0.3em] uppercase text-orange-400">Today's Quest</span>
             <span id="quest-label-ko" class="text-[11px] font-bold text-white">오늘의 훈련이 필요합니다!</span>
+        </div>
+
+        <div class="bonus-summary z-10 space-y-2">
+            <p class="text-[8px] text-blue-400 font-bold uppercase tracking-widest text-center">Weekly Bonus (주간 보너스 현황)</p>
+            <div class="grid grid-cols-2 gap-x-4 gap-y-1 text-[9px]">
+                <div class="flex justify-between"><span>Atk Spd (공속)</span><span id="bonus-atk" class="text-yellow-400">+0</span></div>
+                <div class="flex justify-between"><span>Move Spd (이속)</span><span id="bonus-move" class="text-emerald-400">+0</span></div>
+                <div class="flex justify-between"><span>Max HP (체력)</span><span id="bonus-hp" class="text-red-400">+0</span></div>
+                <div class="flex justify-between"><span>Defense (방어)</span><span id="bonus-def" class="text-blue-400">+0</span></div>
+            </div>
         </div>
 
         <div class="chart-section z-10 space-y-4">
@@ -140,14 +159,13 @@
         </div>
     </main>
 
-    <nav class="bg-slate-950 border-t border-slate-800 grid grid-cols-4 h-20 z-20 shrink-0">
+    <nav class="bg-slate-950 border-t border-slate-800 grid grid-cols-5 h-20 z-20 shrink-0">
         <button onclick="location.href='gym.html'" class="flex flex-col items-center justify-center text-slate-400"><span class="text-2xl">🏋️</span><span class="text-[8px] font-bold mt-1 uppercase">Gym (운동)</span></button>
         <button onclick="location.href='brain.html'" class="flex flex-col items-center justify-center text-slate-400"><span class="text-2xl">🧩</span><span class="text-[8px] font-bold mt-1 uppercase">Brain (두뇌)</span></button>
-        <button onclick="location.href='defense.html'" class="flex flex-col items-center justify-center text-slate-400"><span class="text-2xl">🛡️</span><span class="text-[8px] font-bold mt-1 uppercase">Defense (방어)</span></button>
+        <button onclick="location.href='exploration.html'" class="flex flex-col items-center justify-center text-blue-400"><span class="text-2xl">⚔️</span><span class="text-[8px] font-bold mt-1 uppercase">Exp (탐험)</span></button>
+        <button onclick="location.href='defense.html'" class="flex flex-col items-center justify-center text-slate-400"><span class="text-2xl">🛡️</span><span class="text-[8px] font-bold mt-1 uppercase">Def (방어)</span></button>
         <button onclick="location.href='shop.html'" class="flex flex-col items-center justify-center text-slate-400"><span class="text-2xl">🏪</span><span class="text-[8px] font-bold mt-1 uppercase">Shop (상점)</span></button>
     </nav>
-
-    <div class="ad-banner shrink-0 flex items-center justify-center bg-slate-950 border-t border-slate-900 text-[8px] text-slate-600 uppercase h-10">QUEST BODY - SYSTEM AD TERMINAL</div>
 
     <script>
         let bodyChart = null;
@@ -226,7 +244,13 @@
                 histDiv.innerHTML = historyHTML;
             }
 
-            // ⭐ 운동 완료 여부 체크 (Update Quest Status)
+            // ⭐ 주간 보너스 수치 업데이트 (Gym 데이터 연동)
+            const weekly = JSON.parse(localStorage.getItem('weekly_workout_data')) || { totalHpBonus: 0, totalAtkSpd: 0, totalMoveSpd: 0, totalDef: 0 };
+            document.getElementById('bonus-atk').innerText = `+${weekly.totalAtkSpd || 0}`;
+            document.getElementById('bonus-move').innerText = `+${weekly.totalMoveSpd || 0}`;
+            document.getElementById('bonus-hp').innerText = `+${weekly.totalHpBonus || 0}`;
+            document.getElementById('bonus-def').innerText = `+${weekly.totalDef || 0}`;
+
             updateQuestUI();
         }
 
