@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="ko" class="notranslate" translate="no">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>QuestBody - Exploration</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Noto+Sans+KR:wght@400;700&display=swap');
+        body { background-color: #020617; color: white; font-family: 'Orbitron', 'Noto Sans KR', sans-serif; margin: 0; padding: 0; height: 100dvh; overflow: hidden; }
+        .area-card { background: rgba(15, 23, 42, 0.8); border: 2px solid #1e293b; transition: all 0.3s ease; }
+        .area-card:active { transform: scale(0.98); border-color: #38bdf8; }
+        .battle-log { background: rgba(0, 0, 0, 0.5); border-radius: 8px; font-size: 10px; height: 120px; overflow-y: auto; }
+        .hp-bar { transition: width 0.3s ease; }
+        .combat-power { text-shadow: 0 0 10px #ef4444; }
+    </style>
+</head>
+<body class="flex flex-col h-screen">
+
+    <header class="p-4 bg-slate-900 border-b border-blue-500/30 flex justify-between items-center shrink-0">
+        <button onclick="location.href='index.html'" class="text-blue-400 font-bold text-[10px] uppercase text-left">◀ HUB<br>마을로</button>
+        <h1 class="text-xs font-bold tracking-widest text-blue-400 uppercase text-center">Exploration Mode<br>외곽 탐험</h1>
+        <div id="combat-cp" class="text-[10px] text-red-500 font-bold text-right uppercase">CP: 0</div>
+    </header>
+
+    <main class="flex-1 overflow-y-auto p-5 space-y-6 pb-20">
+        <div id="battle-screen" class="hidden space-y-4">
+            <div class="area-card p-6 rounded-2xl border-red-500/50 relative overflow-hidden">
+                <div class="flex justify-between items-end mb-4">
+                    <div class="text-left">
+                        <p id="enemy-name" class="text-xs font-bold text-red-500 uppercase">Monster</p>
+                        <div class="w-32 bg-slate-800 h-2 mt-1 rounded-full"><div id="enemy-hp-bar" class="bg-red-500 h-full hp-bar w-full"></div></div>
+                    </div>
+                    <div class="text-right">
+                        <p class="text-xs font-bold text-blue-400 uppercase">You (Player)</p>
+                        <div class="w-32 bg-slate-800 h-2 mt-1 rounded-full"><div id="player-hp-bar" class="bg-blue-500 h-full hp-bar w-full"></div></div>
+                    </div>
+                </div>
+                <div id="battle-log" class="battle-log p-3 text-slate-400 font-mono">
+                    탐험을 시작합니다...
+                </div>
+            </div>
+            <p class="text-center text-[10px] animate-pulse text-red-400 font-bold uppercase">Battle in Progress (전투 진행 중)...</p>
+        </div>
+
+        <div id="area-selection" class="space-y-4">
+            <div class="text-center mb-6">
+                <h2 class="text-lg font-bold uppercase italic tracking-wider">Select Area (구역 선택)</h2>
+                <p class="text-[9px] text-slate-500 uppercase">Clear the outposts to protect the village</p>
+            </div>
+
+            <div onclick="startBattle('Forest', 100, 10, 50)" class="area-card p-5 rounded-2xl flex justify-between items-center border-emerald-500/20">
+                <div>
+                    <h3 class="text-sm font-bold text-emerald-400 uppercase">Greenwood Forest (그린우드 숲)</h3>
+                    <p class="text-[9px] text-slate-400 mt-1">Difficulty: ★☆☆☆☆<br>Reward: 100 Coin</p>
+                </div>
+                <span class="text-xl">🌲</span>
+            </div>
+
+            <div onclick="startBattle('Cave', 300, 25, 250)" class="area-card p-5 rounded-2xl flex justify-between items-center border-slate-500/20">
+                <div>
+                    <h3 class="text-sm font-bold text-slate-300 uppercase">Silent Cave (침묵의 동굴)</h3>
+                    <p class="text-[9px] text-slate-400 mt-1">Difficulty: ★★★☆☆<br>Reward: 300 Coin</p>
+                </div>
+                <span class="text-xl">🦇</span>
+            </div>
+
+            <div onclick="startBattle('Volcano', 1000, 60, 800)" class="area-card p-5 rounded-2xl flex justify-between items-center border-red-500/20">
+                <div>
+                    <h3 class="text-sm font-bold text-red-500 uppercase">Fire Mountain (화염 산맥)</h3>
+                    <p class="text-[9px] text-slate-400 mt-1">Difficulty: ★★★★★<br>Reward: 1000 Coin</p>
+                </div>
+                <span class="text-xl">🌋</span>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        // 1. 스탯 불러오기
+        const sStr = parseInt(localStorage.getItem('user_str')) || 0;
+        const sInt = parseInt(localStorage.getItem('user_int')) || 0;
+        const weekly = JSON.parse(localStorage.getItem('weekly_workout_data')) || { totalHpBonus: 0, totalAtkSpd: 0, totalMoveSpd: 0 };
+        
+        const playerHpMax = 100 + weekly.totalHpBonus;
+        const playerAtk = 10 + Math.floor(sStr / 2);
+        const playerSkill = 5 + Math.floor(sInt / 2);
+        const playerSpeed = 1 + (weekly.totalAtkSpd * 0.05); // 공속 반영
+
+        let playerHp = playerHpMax;
+        let combatInterval;
+
+        window.onload = () => {
+            const cp = (playerAtk * 2) + (playerSkill * 3) + (playerHpMax / 5);
+            document.getElementById('combat-cp').innerText = `CP: ${Math.floor(cp)}`;
+        };
+
+        function startBattle(areaName, mHp, mAtk, reward) {
+            document.getElementById('area-selection').classList.add('hidden');
+            document.getElementById('battle-screen').classList.remove('hidden');
+            document.getElementById('enemy-name').innerText = areaName + " Monster";
+            
+            let enemyHpMax = mHp;
+            let enemyHp = mHp;
+            playerHp = playerHpMax;
+            
+            const logDiv = document.getElementById('battle-log');
+            logDiv.innerHTML = `<p class="text-white">[!] ${areaName}에 진입했습니다.</p>`;
+
+            combatInterval = setInterval(() => {
+                // 플레이어 공격
+                const dmg = Math.floor(playerAtk * (0.8 + Math.random() * 0.4));
+                enemyHp -= dmg;
+                logDiv.innerHTML += `<p>⚔️ 적에게 ${dmg}의 데미지!</p>`;
+                
+                // 적 공격
+                if(enemyHp > 0) {
+                    const eDmg = Math.floor(mAtk * (0.8 + Math.random() * 0.4));
+                    playerHp -= eDmg;
+                    logDiv.innerHTML += `<p class="text-red-400">💥 ${eDmg}의 피해를 입었습니다!</p>`;
+                }
+
+                // UI 업데이트
+                document.getElementById('enemy-hp-bar').style.width = (enemyHp / enemyHpMax * 100) + "%";
+                document.getElementById('player-hp-bar').style.width = (playerHp / playerHpMax * 100) + "%";
+                logDiv.scrollTop = logDiv.scrollHeight;
+
+                // 결과 체크
+                if(enemyHp <= 0) {
+                    clearInterval(combatInterval);
+                    alert(`탐험 성공! ${reward} 코인을 획득했습니다.`);
+                    let coins = parseInt(localStorage.getItem('user_coin')) || 0;
+                    localStorage.setItem('user_coin', coins + reward);
+                    location.href = 'index.html';
+                } else if(playerHp <= 0) {
+                    clearInterval(combatInterval);
+                    alert(`탐험 실패... 마을로 후퇴합니다.`);
+                    location.href = 'index.html';
+                }
+            }, 1000 / playerSpeed);
+        }
+    </script>
+</body>
+</html>
