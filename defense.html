@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>QuestBody - Maze Defense Elite</title>
+    <title>QuestBody - Ultimate Maze Defense</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Noto+Sans+KR:wght@300;400;700&display=swap');
@@ -18,6 +18,7 @@
         }
         .grid-cell { border: 0.1px solid rgba(56, 189, 248, 0.05); position: relative; z-index: 1; }
         .grid-cell.selected { background: rgba(251, 146, 60, 0.3); box-shadow: inset 0 0 15px #fb923c; }
+        
         .wall-cell { background: #1e293b; border: 1px solid #475569; z-index: 2; position: relative; }
         .wall-cell::after { content: '🧱'; position: absolute; font-size: 8px; opacity: 0.4; top: 50%; left: 50%; transform: translate(-50%, -50%); }
         .range-highlight { background: rgba(56, 189, 248, 0.2); border: 1px solid #38bdf8; z-index: 5; }
@@ -29,7 +30,7 @@
 
         .unit { position: absolute; width: 9.09%; height: 9.09%; z-index: 100; display: flex; align-items: center; justify-content: center; background-size: contain; background-repeat: no-repeat; background-position: center; transition: all 0.3s; pointer-events: none; }
         .unit-click-area { position: absolute; width: 9.09%; height: 9.09%; z-index: 110; cursor: pointer; }
-        .unit.wait { filter: grayscale(1) brightness(0.4); opacity: 0.5; }
+        .unit.wait { filter: grayscale(1) brightness(0.6); opacity: 0.7; }
         
         .monster { position: absolute; width: 9.09%; height: 9.09%; z-index: 50; display: flex; flex-direction: column; align-items: center; justify-content: center; font-size: 22px; transition: none; pointer-events: none; }
         .monster.stunned { filter: hue-rotate(180deg) brightness(1.5); }
@@ -41,6 +42,10 @@
         .dmg-text { position: absolute; color: #ff4d4d; font-weight: 800; font-size: 12px; z-index: 200; pointer-events: none; animation: popUp 0.6s forwards; text-shadow: 1px 1px 2px black; }
         .crit { color: #facc15 !important; font-size: 16px !important; }
         @keyframes popUp { 0% { transform: translateY(0) scale(1); opacity: 1; } 100% { transform: translateY(-20px) scale(1.2); opacity: 0; } }
+        
+        /* ⏱️ 이동 쿨타임 텍스트 */
+        .wait-timer-text { position: absolute; top: -15px; width: 100%; text-align: center; color: #38bdf8; font-weight: bold; font-size: 9px; text-shadow: 0 0 4px #000; z-index: 120; }
+
         .projectile { position: absolute; width: 6px; height: 6px; border-radius: 50%; z-index: 120; pointer-events: none; box-shadow: 0 0 10px currentColor; }
         .flash-screen { position: absolute; inset: 0; background: white; opacity: 0; pointer-events: none; z-index: 300; }
         .flash { animation: flashAnim 0.5s ease-out; }
@@ -67,7 +72,7 @@
                 <span id="round-text" class="text-blue-400 text-[9px] font-bold uppercase">ROUND 1/20</span>
                 <span id="level-display" class="text-purple-400 text-[9px] font-bold uppercase">LV. 1</span>
             </div>
-            <div class="w-full bg-slate-800 h-1.5 rounded-full overflow-hidden mb-1"><div id="village-hp-bar" class="bg-emerald-500 h-full w-full transition-all"></div></div>
+            <div class="w-full bg-slate-800 h-1.5 rounded-full overflow-hidden mb-1"><div id="village-hp-bar" class="bg-emerald-500 h-full w-full"></div></div>
             <div class="w-full bg-slate-800 h-0.5 rounded-full overflow-hidden"><div id="exp-fill" class="bg-purple-600 h-full w-0 transition-all"></div></div>
         </div>
         <div class="text-right">
@@ -79,10 +84,10 @@
     <main class="flex-1 flex flex-col items-center justify-center bg-black relative">
         <div class="info-tab">
             <p class="text-blue-300 font-bold mb-1 underline text-[8px] uppercase">Probability & Skill</p>
-            <p>🛡️ Knight(50%): Stun Chance</p>
-            <p class="text-orange-400">🏹 Archer(25%): Super Range</p>
-            <p class="text-blue-400">🧙 Mage(20%): Multi-Target</p>
-            <p class="text-purple-500 font-bold">🐉 Dragon(5%): Critical Hit</p>
+            <p>🛡️ Knight: Stun Chance</p>
+            <p class="text-orange-400">🏹 Archer: Long Range</p>
+            <p class="text-blue-400">🧙 Mage: Multi-Hit</p>
+            <p class="text-purple-500 font-bold">🐉 Dragon: Critical</p>
             <p class="mt-1 text-emerald-400 border-t border-slate-700 pt-1">Regen: <span id="regen-val">0.1</span>/s</p>
         </div>
 
@@ -160,8 +165,9 @@
 
         let user_str = parseInt(localStorage.getItem('user_str')) || 0;
         let user_int = parseInt(localStorage.getItem('user_int')) || 0;
-        let playerHpMax = 100 + (parseInt(JSON.parse(localStorage.getItem('weekly_workout_data'))?.totalHpBonus) || 0);
-        let playerHp = playerHpMax, playerDef = (parseInt(JSON.parse(localStorage.getItem('weekly_workout_data'))?.totalDef) || 0);
+        let weekly = JSON.parse(localStorage.getItem('weekly_workout_data')) || { totalHpBonus: 0 };
+        let playerHpMax = 100 + (weekly.totalHpBonus || 0);
+        let playerHp = playerHpMax;
         let manaMax = 10 + user_int, currentMana = 0;
 
         window.onload = () => {
@@ -178,7 +184,7 @@
                 osc.type = type === 'player' ? 'sine' : 'triangle';
                 osc.frequency.setValueAtTime(type === 'player' ? 330 : 180, audioCtx.currentTime);
                 osc.frequency.exponentialRampToValueAtTime(50, audioCtx.currentTime + 0.1);
-                gain.gain.setValueAtTime(0.05, audioCtx.currentTime);
+                gain.gain.setValueAtTime(0.06, audioCtx.currentTime);
                 gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.1);
                 osc.start(); osc.stop(audioCtx.currentTime + 0.1);
             } catch(e) {}
@@ -204,7 +210,16 @@
                 activeUnit.r = r; activeUnit.c = c;
                 activeUnit.el.style.top = (r*9.09)+'%'; activeUnit.el.style.left = (c*9.09)+'%';
                 activeUnit.area.style.top = (r*9.09)+'%'; activeUnit.area.style.left = (c*9.09)+'%';
-                activeUnit.wait = 10; activeUnit.el.classList.add('wait');
+                activeUnit.wait = 10000; // 10초
+                activeUnit.el.classList.add('wait');
+                
+                // 쿨타임 텍스트 생성
+                const timerTxt = document.createElement('div');
+                timerTxt.className = 'wait-timer-text';
+                timerTxt.innerText = '10s';
+                activeUnit.el.appendChild(timerTxt);
+                activeUnit.timerTxt = timerTxt;
+
                 isMoveMode = false; closeUnitPanel(); return;
             }
             const existing = guardians.find(g => g.r === r && g.c === c);
@@ -254,9 +269,7 @@
             const rand = Math.random();
             const type = rand < 0.05 ? "Dragon" : rand < 0.25 ? "Mage" : rand < 0.55 ? "Archer" : "Knight";
             const g = { r: selectedGrid.r, c: selectedGrid.c, lv: 1, type, wait: 0, lShot: 0 };
-            
-            // 유닛 초기 스탯 세팅
-            g.atk = type==="Dragon"?120 : type==="Archer"?35 : 28;
+            g.atk = type==="Dragon"?100 : type==="Archer"?35 : 28;
             g.range = type==="Archer"?4.5 : type==="Mage"?3.2 : 2.5;
             g.cd = type==="Archer"?400 : type==="Mage"?1500 : 1200;
             
@@ -278,6 +291,7 @@
         }
 
         function openUnitPanel(g) {
+            if(g.wait > 0) return;
             activeUnit = g; 
             document.getElementById('unit-control-panel').style.display='block'; 
             document.getElementById('ui-name').innerText = g.type;
@@ -286,18 +300,7 @@
             showRange(g.r, g.c, g.range); 
         }
         function closeUnitPanel() { activeUnit = null; document.getElementById('unit-control-panel').style.display='none'; clearRange(); }
-        
-        function upgradeUnit() {
-            const cost = activeUnit.lv * 100;
-            if(dCoin < cost) return;
-            dCoin -= cost;
-            activeUnit.lv++;
-            activeUnit.atk += 25;
-            // 아쳐 사거리 증가
-            if(activeUnit.type === "Archer") activeUnit.range += 0.3;
-            activeUnit.el.innerHTML = getUnitVisual(activeUnit.type, activeUnit.lv);
-            updateStats(); openUnitPanel(activeUnit);
-        }
+        function upgradeUnit() { const cost = activeUnit.lv * 100; if(dCoin < cost) return; dCoin -= cost; activeUnit.lv++; activeUnit.atk += 25; activeUnit.el.innerHTML = getUnitVisual(activeUnit.type, activeUnit.lv); if(activeUnit.type === "Archer") activeUnit.range += 0.3; updateStats(); openUnitPanel(activeUnit); }
         function startMoveMode() { if(!activeUnit) return; isMoveMode = true; closeUnitPanel(); }
 
         function moveHero(dr, dc) {
@@ -327,7 +330,6 @@
             document.getElementById('south-gate').style.display = "flex";
             document.getElementById('start-btn').classList.add('opacity-50', 'pointer-events-none');
             audioBgm.src = (currentRound % 5 === 0) ? 'music/bossbgm.mp3' : 'music/defensebgm.mp3'; audioBgm.play();
-            
             let count = (currentRound % 5 === 0) ? 1 : 5 + currentRound;
             const spawnInterval = setInterval(() => {
                 if(count-- <= 0) { clearInterval(spawnInterval); return; }
@@ -343,6 +345,7 @@
                 mb.appendChild(mf); el.appendChild(mb); el.appendChild(hpt);
                 document.getElementById('map-container').appendChild(el);
                 m.el = el; m.mf = mf; m.hpt = hpt; monsters.push(m);
+                document.getElementById('monster-count').innerText = `Enemies: ${monsters.length}`;
             }, 1000);
             timerInterval = setInterval(() => {
                 waveTimer--; document.getElementById('timer-text').innerText = `00:${waveTimer<10?'0'+waveTimer:waveTimer}`;
@@ -384,7 +387,15 @@
             });
 
             [...guardians, {r:playerPos.r, c:playerPos.c, atk:Math.floor(25+user_str/4+(dLevel-1)*15), isP:true, type:'Hero'}].forEach(u => {
-                if(u.wait > 0) { u.wait -= 0.016; if(u.wait<=0) u.el.classList.remove('wait'); return; }
+                if(u.wait > 0) { 
+                    u.wait -= 16; 
+                    if(u.timerTxt) u.timerTxt.innerText = Math.ceil(u.wait/1000) + 's';
+                    if(u.wait<=0) {
+                        u.el.classList.remove('wait');
+                        if(u.timerTxt) u.timerTxt.remove();
+                    }
+                    return; 
+                }
                 const cd = u.isP ? playerAtkSpeed : u.cd;
                 const lt = u.isP ? playerLastShot : u.lShot;
                 if (now - lt > cd) {
@@ -412,24 +423,17 @@
             playHitSound(isP ? 'player' : 'unit');
             let actualDmg = dmg;
             let isCrit = false;
-
-            // 드래곤 크리티컬 (15%)
             if(unit.type === "Dragon" && Math.random() < 0.15) { actualDmg *= 2; isCrit = true; }
-
             const p = document.createElement('div'); p.className = 'projectile'; p.style.backgroundColor = color; p.style.color = color;
             p.style.top = (sr*9.09+4.5)+'%'; p.style.left = (sc*9.09+4.5)+'%';
             document.getElementById('map-container').appendChild(p);
             p.animate([{top:p.style.top, left:p.style.left},{top:(t.r*9.09+4.5)+'%', left:(t.c*9.09+4.5)+'%'}], 120).onfinish = () => {
                 p.remove(); t.hp -= actualDmg; if(t.mf) t.mf.style.width = (t.hp/t.maxHp*100)+'%';
                 if(t.hpt) t.hpt.innerText = Math.max(0, Math.floor(t.hp));
-                
-                // 나이트 스턴 (확률: 10% + 레벨*2%)
                 if(unit.type === "Knight" && Math.random() < (0.1 + unit.lv * 0.02)) { t.stun = 1000; }
-
                 const d = document.createElement('div'); d.className=`dmg-text ${isCrit?'crit':''}`; d.innerText=isCrit ? 'CRIT '+actualDmg : actualDmg; 
                 d.style.top=(t.r*9.09)+'%'; d.style.left=(t.c*9.09)+'%';
                 document.getElementById('map-container').appendChild(d); setTimeout(()=>d.remove(), 400);
-                
                 if(t.hp<=0 && monsters.includes(t)) { monsters.splice(monsters.indexOf(t),1); t.el.remove(); dCoin+=50; dExp+=35; checkLvUp(); updateStats(); }
             };
         }
