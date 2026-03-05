@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>QuestBody - Maze Defense Final Elite</title>
+    <title>QuestBody - Maze Defense Elite</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Noto+Sans+KR:wght@300;400;700&display=swap');
@@ -44,10 +44,10 @@
         
         .dmg-text { position: absolute; color: #ff4d4d; font-weight: 800; font-size: 12px; z-index: 200; pointer-events: none; animation: popUp 0.6s forwards; text-shadow: 1px 1px 2px black; }
         .crit { color: #facc15 !important; font-size: 16px !important; }
-        @keyframes popUp { 0% { transform: translateY(0) scale(1); opacity: 1; } 100% { transform: translateY(-20px) scale(1.2); opacity: 0; } }
+        @keyframes popUp { 0% { transform: translateY(0); opacity: 1; } 100% { transform: translateY(-20px) scale(1.2); opacity: 0; } }
         
         .projectile { position: absolute; width: 6px; height: 6px; border-radius: 50%; z-index: 120; pointer-events: none; box-shadow: 0 0 10px currentColor; }
-        .flash-screen { position: absolute; inset: 0; background: white; opacity: 0; pointer-events: none; z-index: 1000; transition: opacity 0.5s; }
+        .flash-screen { position: fixed; inset: 0; background: white; opacity: 0; pointer-events: none; z-index: 1000; transition: opacity 0.5s; }
 
         .info-tab { margin: 5px auto; width: 95vw; background: rgba(15, 23, 42, 0.95); border: 1px solid #334155; padding: 8px; border-radius: 6px; font-size: 8px; z-index: 70; }
         #unit-control-panel { position: absolute; top: 12%; left: 50%; transform: translateX(-50%); background: rgba(15, 23, 42, 0.98); border: 2px solid #fb923c; padding: 12px; border-radius: 12px; z-index: 250; display: none; min-width: 220px; box-shadow: 0 0 30px #000; text-align: center; }
@@ -57,12 +57,17 @@
         .ctrl-btn { background: #1e293b; color: white; width: 44px; height: 44px; border-radius: 8px; display: flex; align-items: center; justify-content: center; border-bottom: 3px solid #000; font-size: 18px; }
         .start-hint { position: absolute; top: -16px; white-space: nowrap; font-size: 8px; color: #facc15; font-weight: bold; letter-spacing: 1px; text-shadow: 0 0 8px #ca8a04; animation: glow 2s infinite ease-in-out; width: 100%; text-align: center; }
         @keyframes glow { 0%, 100% { opacity: 0.4; } 50% { opacity: 1; } }
+
+        /* 🆙 레벨업 텍스트 연출 */
+        #lv-up-text { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%) scale(0.5); font-size: 40px; font-weight: 800; color: #facc15; text-shadow: 0 0 20px #ca8a04; z-index: 1100; pointer-events: none; opacity: 0; transition: all 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
+        #lv-up-text.show { opacity: 1; transform: translate(-50%, -50%) scale(1.2); }
     </style>
 </head>
 <body>
 
     <audio id="audio-bgm" loop></audio>
     <div id="flash-overlay" class="flash-screen"></div>
+    <div id="lv-up-text">LEVEL UP!</div>
     <div id="game-msg">MESSAGE</div>
 
     <header class="p-2 bg-slate-900 flex justify-between items-center border-b border-slate-700 shrink-0">
@@ -72,7 +77,7 @@
                 <span id="round-text" class="text-blue-400 text-[9px] font-bold uppercase">ROUND 1/20</span>
                 <span id="level-display" class="text-purple-400 text-[9px] font-bold uppercase">LV. 1</span>
             </div>
-            <div class="w-full bg-slate-800 h-1.5 rounded-full overflow-hidden mb-1"><div id="village-hp-bar" class="bg-emerald-500 h-full w-full"></div></div>
+            <div class="w-full bg-slate-800 h-1.5 rounded-full overflow-hidden mb-1"><div id="village-hp-bar" class="bg-emerald-500 h-full w-full transition-all"></div></div>
             <div class="w-full bg-slate-800 h-0.5 rounded-full overflow-hidden"><div id="exp-fill" class="bg-purple-600 h-full w-0 transition-all"></div></div>
         </div>
         <div class="text-right">
@@ -139,19 +144,19 @@
                 <button class="ctrl-btn" onclick="moveHero(0, 1)">▶</button>
             </div>
             <div class="bg-slate-900/80 p-2 rounded border border-slate-700 flex-1 ml-4 grid grid-cols-2 gap-1 text-center">
-                <div><p class="text-[6px] text-slate-500 uppercase">Hero INT 지능</p><p id="hero-int-val" class="text-[9px] text-emerald-400 font-bold">0</p></div>
+                <div><p class="text-[6px] text-slate-500 uppercase">Hero INT 지능</p><p id="hero-int-val" class="text-[9px] text-emerald-400 font-bold">2</p></div>
                 <div><p class="text-[6px] text-slate-500 uppercase">Limit 설치한도</p><p id="guardian-limit" class="text-[9px] text-blue-400 font-bold">0/0</p></div>
-                <div class="col-span-2 border-t border-slate-800 pt-1 text-[10px] font-bold text-orange-400 uppercase tracking-tighter">Mana Regen 마력회복: <span id="regen-val-display">0.00</span>/s</div>
+                <div class="col-span-2 border-t border-slate-800 pt-1 text-[10px] font-bold text-orange-400 uppercase tracking-tighter">Mana Regen 마력회복: <span id="regen-val-display">0.12</span>/s</div>
             </div>
         </div>
-        <div id="hero-atk-display" class="w-full text-center mt-1 text-[10px] font-bold text-orange-500 uppercase tracking-widest">Hero ATK: 30</div>
+        <div id="hero-atk-display" class="w-full text-center mt-2 py-1 bg-slate-800/50 rounded-full border border-slate-700 text-[10px] font-bold text-orange-500 uppercase tracking-widest">Hero ATK 공격력: 30</div>
     </div>
 
     <script>
-        // 🛠️ 데이터 연동 최우선 실행
+        // 🛠️ 지능(INT) 데이터 연동 강제 고정
         const raw_int = localStorage.getItem('user_int');
         const user_int = (raw_int !== null && raw_int !== undefined) ? parseInt(raw_int) : 2;
-        const manaRegenRate = 0.1 * (1 + user_int / 10); // 1초당 회복량 미리 계산
+        const manaRegenRate = 0.1 * (1 + user_int / 10); 
 
         const audioBgm = document.getElementById('audio-bgm');
         const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
@@ -160,7 +165,7 @@
         
         let user_str = parseInt(localStorage.getItem('user_str')) || 0;
         let manaMax = 10.0 + user_int; 
-        let currentMana = 5.0; // 5.0으로 고정 시작
+        let currentMana = 5.0; 
 
         window.onload = () => {
             const inbody = JSON.parse(localStorage.getItem('user_inbody'));
@@ -168,10 +173,8 @@
             updatePlayerUI(); 
             updateStats();
             
-            // 🔄 핵심 엔진: 1초 단위 업데이트
             setInterval(() => { 
                 if(gameStarted) { 
-                    // 마나 회복 강제 계산
                     currentMana = parseFloat((currentMana + manaRegenRate).toFixed(2));
                     if (currentMana > manaMax) currentMana = manaMax;
                     
@@ -181,7 +184,7 @@
                         if(magicActive <= 0) removeBurstTimer(); else updateBurstTimer();
                     }
                     updateStats();
-                    checkWaveFinish(); // 매 프레임보다 확실한 1초 단위 체크
+                    checkWaveFinish(); 
                 } 
             }, 1000);
         };
@@ -257,27 +260,31 @@
                 if(count-- <= 0) { clearInterval(spawnInterval); return; }
                 const m = { r:0, c:0, hp:(currentRound%5===0?6000:350)+(currentRound*180), charge:false, lAtk:0, stun:0 };
                 const pos = Math.random(); if(pos<0.25){m.r=0; m.c=Math.floor(Math.random()*11);} else if(pos<0.5){m.r=10; m.c=Math.floor(Math.random()*11);} else if(pos<0.75){m.c=0; m.r=Math.floor(Math.random()*11);} else {m.c=10; m.r=Math.floor(Math.random()*11);}
-                m.maxHp = m.hp; m.atk = 20 + currentRound*5;
-                m.offX = (Math.random()-0.5)*3; m.offY = (Math.random()-0.5)*3;
+                m.maxHp = m.hp; m.atk = 20 + currentRound*5; m.offX = (Math.random()-0.5)*3; m.offY = (Math.random()-0.5)*3;
                 const el = document.createElement('div'); el.className='monster'; el.innerHTML=(currentRound%5===0)?'👹':'👾';
                 const mb = document.createElement('div'); mb.className='hp-bar-bg'; const mf=document.createElement('div'); mf.className='hp-bar-fill w-full';
                 const hpt = document.createElement('div'); hpt.className='monster-hp-text'; hpt.innerText = Math.floor(m.hp);
                 mb.appendChild(mf); el.appendChild(mb); el.appendChild(hpt); document.getElementById('map-container').appendChild(el);
                 m.el = el; m.mf = mf; m.hpt = hpt; monsters.push(m); updateEnemiesCount();
             }, 1000);
-            timerInterval = setInterval(() => { waveTimer--; document.getElementById('timer-text').innerText = `00:${waveTimer<10?'0'+waveTimer:waveTimer}`; if(waveTimer <= 0) { clearInterval(timerInterval); monsters.forEach(m => m.charge = true); } }, 1000);
+            
+            // ⏰ 타이머 음수 방지 로직 보강
+            timerInterval = setInterval(() => { 
+                waveTimer = Math.max(0, waveTimer - 1); 
+                document.getElementById('timer-text').innerText = `00:${waveTimer<10?'0'+waveTimer:waveTimer}`; 
+                if(waveTimer <= 0) { clearInterval(timerInterval); monsters.forEach(m => m.charge = true); } 
+            }, 1000);
         }
 
         function updateEnemiesCount() { document.getElementById('enemies-count-display').innerText = `Enemies 적: ${monsters.length}`; }
-        
-        function checkWaveFinish() { 
-            if(isWaveActive && monsters.length === 0 && waveTimer < 25) {
-                isWaveActive = false; currentRound++; dCoin += 250; 
-                updateStats();
-                document.getElementById('start-btn').classList.remove('opacity-50', 'pointer-events-none');
-                audioBgm.src = 'music/townbgm.mp3'; audioBgm.play();
-                showMsg(`ROUND ${currentRound} READY!`);
-            }
+        function checkWaveFinish() { if(isWaveActive && monsters.length === 0 && waveTimer <= 0) endRound(); }
+
+        function endRound() {
+            isWaveActive = false; currentRound++; dCoin += 250; 
+            updateStats();
+            document.getElementById('start-btn').classList.remove('opacity-50', 'pointer-events-none');
+            audioBgm.src = 'music/townbgm.mp3'; audioBgm.play();
+            showMsg(`ROUND ${currentRound} READY!`);
         }
 
         function gameLoop() {
@@ -285,10 +292,10 @@
             monsters.forEach((m, idx) => {
                 if(m.stun > 0) { m.stun -= 16; m.el.classList.add('stunned'); return; } else { m.el.classList.remove('stunned'); }
                 if (m.charge) {
-                    const step = 0.045;
+                    const step = 0.045; let tR = gateHp > 0 ? 10 : 5; let tC = 5;
                     if (gateHp > 0) { if (Math.abs(m.r - 10) > 0.1 && (m.c === 0 || m.c === 10)) { m.r += step; } else if (Math.abs(m.c - 5) > 0.1) { m.r = 10; if (m.c < 5) m.c += step; else m.c -= step; } } 
                     else { if (m.r > 5) m.r -= step; if (Math.abs(m.c - 5) > 0.1) { if (m.c < 5) m.c += step; else m.c -= step; } }
-                    if (gateHp > 0 && Math.abs(m.r-10) < 0.3 && Math.abs(m.c-5) < 0.3) { if(now - m.lAtk > 1500) { gateHp -= m.atk; m.lAtk = now; document.getElementById('gate-hp-fill').style.width = (gateHp/(500 + currentRound*150)*100)+'%'; if(gateHp<=0) document.getElementById('south-gate').style.display='none'; } } 
+                    if (gateHp > 0 && Math.abs(m.r-10) < 0.3 && Math.abs(m.c-5) < 0.3) { if(now - m.lAtk > 1500) { gateHp -= m.atk; m.lAtk = now; document.getElementById('gate-hp-fill').style.width = (gateHp/(gateHpMax+currentRound*150)*100)+'%'; if(gateHp<=0) document.getElementById('south-gate').style.display='none'; } } 
                     else if (gateHp <= 0 && Math.hypot(m.r-5, m.c-5) < 0.2) { villageHp -= 10; document.getElementById('village-hp-bar').style.width = villageHp+'%'; m.el.remove(); monsters.splice(idx, 1); updateEnemiesCount(); if(villageHp <= 0) { showMsg("VILLAGE DESTROYED!"); location.reload(); } }
                 } else { const step = 0.06; if(Math.abs(m.r) <= 0.1 && m.c < 10) m.c += step; else if(Math.abs(m.c - 10) <= 0.1 && m.r < 10) m.r += step; else if(Math.abs(m.r - 10) <= 0.1 && m.c > 0.1) m.c -= step; else if(Math.abs(m.c) <= 0.1 && m.r > 0.1) m.r -= step; }
                 m.el.style.top = (m.r * 9.09 + m.offY) + '%'; m.el.style.left = (m.c * 9.09 + m.offX) + '%';
@@ -309,11 +316,10 @@
 
         function fire(sr, sc, t, color, dmg, isP, unit) {
             playHitSound(isP ? 'player' : 'unit'); 
-            let actDmg = dmg; 
-            let isCrit = false;
+            let actDmg = dmg; let isCrit = false;
             if(unit.type === "Dragon" && unit.lv >= 3 && Math.random() < 0.15) { actDmg *= 2; isCrit = true; }
             
-            // 🚀 투사체 생성 (생략 없이 복구)
+            // 🚀 [완벽 복원] 투사체 연출 엔진
             const p = document.createElement('div');
             p.className = 'projectile';
             p.style.backgroundColor = color;
@@ -321,31 +327,27 @@
             p.style.left = (sc * 9.09 + 4.5) + '%';
             document.getElementById('map-container').appendChild(p);
 
-            p.animate([
-                { top: p.style.top, left: p.style.left },
-                { top: (t.r * 9.09 + 4.5) + '%', left: (t.c * 9.09 + 4.5) + '%' }
-            ], 120).onfinish = () => {
+            p.animate([{ top: p.style.top, left: p.style.left }, { top: (t.r * 9.09 + 4.5) + '%', left: (t.c * 9.09 + 4.5) + '%' }], 120).onfinish = () => {
                 p.remove();
                 if(!monsters.includes(t)) return;
-
-                t.hp -= actDmg; 
-                if(t.mf) t.mf.style.width = (t.hp/t.maxHp*100)+'%'; 
-                if(t.hpt) t.hpt.innerText = Math.max(0, Math.floor(t.hp));
+                t.hp -= actDmg; if(t.mf) t.mf.style.width = (t.hp/t.maxHp*100)+'%'; if(t.hpt) t.hpt.innerText = Math.max(0, Math.floor(t.hp));
                 if(unit.type === "Knight" && unit.lv >= 3 && Math.random() < (0.1 + unit.lv * 0.02)) t.stun = 1000;
-                
-                const d = document.createElement('div'); 
-                d.className = `dmg-text ${isCrit ? 'crit' : ''}`; 
-                d.innerText = isCrit ? 'CRIT ' + actDmg : actDmg; 
-                d.style.top = (t.r * 9.09) + '%'; 
-                d.style.left = (t.c * 9.09) + '%'; 
-                document.getElementById('map-container').appendChild(d); 
-                setTimeout(() => d.remove(), 400);
-
+                const d = document.createElement('div'); d.className = `dmg-text ${isCrit ? 'crit' : ''}`; d.innerText = isCrit ? 'CRIT ' + actDmg : actDmg; d.style.top = (t.r * 9.09) + '%'; d.style.left = (t.c * 9.09) + '%'; document.getElementById('map-container').appendChild(d); setTimeout(() => d.remove(), 400);
                 if(t.hp <= 0) { monsters.splice(monsters.indexOf(t), 1); t.el.remove(); dCoin += 50; dExp += 35; updateEnemiesCount(); checkLvUp(); updateStats(); }
             };
         }
 
-        function checkLvUp() { if(dExp >= dExpNext){ dLevel++; dExp=0; dExpNext=Math.floor(dExpNext*1.5); document.getElementById('flash-overlay').style.opacity = '1'; setTimeout(()=>document.getElementById('flash-overlay').style.opacity = '0', 500); } }
+        function checkLvUp() { 
+            if(dExp >= dExpNext){ 
+                dLevel++; dExp=0; dExpNext=Math.floor(dExpNext*1.5); 
+                document.getElementById('flash-overlay').style.opacity = '1'; 
+                document.getElementById('lv-up-text').classList.add('show');
+                setTimeout(() => { 
+                    document.getElementById('flash-overlay').style.opacity = '0'; 
+                    document.getElementById('lv-up-text').classList.remove('show');
+                }, 1500); 
+            } 
+        }
         
         function updateStats() { 
             const hAtk = Math.floor(25 + user_str/4 + (dLevel-1)*15);
