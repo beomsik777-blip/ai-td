@@ -3,62 +3,54 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>QuestBody - Elite Defense Final</title>
+    <title>QuestBody - Ultimate Maze Defense</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Noto+Sans+KR:wght@300;400;700&display=swap');
         * { touch-action: manipulation; -webkit-tap-highlight-color: transparent; box-sizing: border-box; }
         body { background-color: #020617; color: white; font-family: 'Orbitron', 'Noto Sans KR', sans-serif; overflow: hidden; height: 100dvh; width: 100vw; margin: 0; display: flex; flex-direction: column; }
         
-        /* 🗺️ 정방형 격자 맵 (좌표 100% 고정) */
         #map-container {
             width: 95vw; height: 95vw; max-width: 460px; max-height: 460px;
             background: radial-gradient(circle, #1e293b 0%, #0f172a 100%); 
             border: 2px solid #334155; position: relative; margin: 5px auto;
             display: grid; grid-template-columns: repeat(11, 1fr); grid-template-rows: repeat(11, 1fr);
         }
-        .grid-cell { border: 0.1px solid rgba(56, 189, 248, 0.05); position: relative; z-index: 1; transition: background 0.3s; }
+        .grid-cell { border: 0.1px solid rgba(56, 189, 248, 0.05); position: relative; z-index: 1; }
         .grid-cell.selected { background: rgba(251, 146, 60, 0.3); box-shadow: inset 0 0 15px #fb923c; }
         
+        /* 🧱 성벽: 절대 방어선 */
         .wall-cell { background: #1e293b; border: 1px solid #475569; z-index: 2; position: relative; }
         .wall-cell::after { content: '🧱'; position: absolute; font-size: 8px; opacity: 0.4; top: 50%; left: 50%; transform: translate(-50%, -50%); }
-        .range-highlight { background: rgba(56, 189, 248, 0.15); border: 1px solid #38bdf8; z-index: 5; }
+        .range-highlight { background: rgba(56, 189, 248, 0.2); border: 1px solid #38bdf8; z-index: 5; }
 
-        #village { position: absolute; top: 36.36%; left: 36.36%; width: 27.27%; height: 27.27%; background: #0f172a; border: 2px solid #38bdf8; z-index: 10; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 24px; box-shadow: 0 0 20px rgba(56, 189, 248, 0.2); }
-        #south-gate { position: absolute; bottom: 9.09%; left: 45.45%; width: 9.09%; height: 9.09%; background: #451a03; border: 2px solid #f59e0b; z-index: 20; display: flex; align-items: center; justify-content: center; transition: opacity 0.5s; }
+        #village { position: absolute; top: 36.36%; left: 36.36%; width: 27.27%; height: 27.27%; background: #0f172a; border: 2px solid #38bdf8; z-index: 10; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 24px; }
+        #south-gate { position: absolute; bottom: 9.09%; left: 45.45%; width: 9.09%; height: 9.09%; background: #451a03; border: 2px solid #f59e0b; z-index: 20; display: flex; align-items: center; justify-content: center; }
         #gate-hp-container { position: absolute; top: -5px; width: 100%; height: 3px; background: #450a0a; border-radius: 1px; overflow: hidden; }
         #gate-hp-fill { height: 100%; background: #eab308; width: 100%; transition: width 0.3s; }
 
-        .unit { position: absolute; width: 9.09%; height: 9.09%; z-index: 100; display: flex; align-items: center; justify-content: center; background-size: contain; background-repeat: no-repeat; background-position: center; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); pointer-events: none; }
+        .unit { position: absolute; width: 9.09%; height: 9.09%; z-index: 100; display: flex; align-items: center; justify-content: center; background-size: contain; background-repeat: no-repeat; background-position: center; transition: all 0.3s; pointer-events: none; }
         .unit-click-area { position: absolute; width: 9.09%; height: 9.09%; z-index: 110; cursor: pointer; }
         .unit.wait { filter: grayscale(1) brightness(0.6); }
         
         .monster { position: absolute; width: 9.09%; height: 9.09%; z-index: 50; display: flex; align-items: center; justify-content: center; font-size: 22px; transition: none; pointer-events: none; }
-        
-        .hp-bar-bg { width: 80%; height: 3px; background: #450a0a; position: absolute; top: -5px; border-radius: 1px; }
+        .hp-bar-bg { width: 80%; height: 3px; background: #450a0a; position: absolute; top: -5px; }
         .hp-bar-fill { height: 100%; background: #22c55e; transition: width 0.2s; }
         
-        /* 🎇 타격 & 데미지 연출 */
-        .dmg-text { position: absolute; color: #ff4d4d; font-weight: 800; font-size: 12px; z-index: 200; pointer-events: none; animation: popUp 0.6s forwards; text-shadow: 1px 1px 2px black; }
-        @keyframes popUp { 0% { transform: translateY(0) scale(1); opacity: 1; } 100% { transform: translateY(-25px) scale(1.2); opacity: 0; } }
-        
-        /* 🚀 투사체 효과 */
+        .dmg-text { position: absolute; color: #ff4d4d; font-weight: 800; font-size: 12px; z-index: 200; pointer-events: none; animation: popUp 0.6s forwards; }
+        @keyframes popUp { 0% { transform: translateY(0); opacity: 1; } 100% { transform: translateY(-20px); opacity: 0; } }
         .projectile { position: absolute; width: 6px; height: 6px; border-radius: 50%; z-index: 120; pointer-events: none; box-shadow: 0 0 10px currentColor; }
-
-        /* ✨ 화면 효과 */
         .flash-screen { position: absolute; inset: 0; background: white; opacity: 0; pointer-events: none; z-index: 300; }
         .flash { animation: flashAnim 0.5s ease-out; }
         @keyframes flashAnim { 0% { opacity: 0.6; } 100% { opacity: 0; } }
 
         .ui-panel { background: #0f172a; border-top: 2px solid #334155; padding: 10px; flex-shrink: 0; }
         .ctrl-btn { background: #1e293b; color: white; width: 44px; height: 44px; border-radius: 8px; display: flex; align-items: center; justify-content: center; border-bottom: 3px solid #000; font-size: 18px; }
-        .ctrl-btn:active { border-bottom: 0; transform: translateY(2px); background: #334155; }
         
-        #unit-control-panel { position: absolute; bottom: 22%; left: 50%; transform: translateX(-50%); background: rgba(15, 23, 42, 0.98); border: 2px solid #fb923c; padding: 12px; border-radius: 12px; z-index: 250; display: none; min-width: 210px; box-shadow: 0 0 30px #000; }
-        .info-tab { position: absolute; top: 45px; left: 5px; background: rgba(15, 23, 42, 0.85); border: 1px solid #334155; padding: 6px; border-radius: 4px; font-size: 7px; z-index: 70; line-height: 1.4; }
-
-        /* 🤺 히어로 텍스트 스타일 */
-        .start-hint { position: absolute; top: -14px; white-space: nowrap; font-size: 7px; color: #fbbf24; animation: bounce 1.5s infinite; font-weight: 300; letter-spacing: 1px; opacity: 0.9; width: 100%; text-align: center; }
+        /* 📜 유닛 컨트롤 패널: 상단 배치로 가림 방지 */
+        #unit-control-panel { position: absolute; top: 15%; left: 50%; transform: translateX(-50%); background: rgba(15, 23, 42, 0.98); border: 2px solid #fb923c; padding: 12px; border-radius: 12px; z-index: 250; display: none; min-width: 220px; box-shadow: 0 0 30px #000; }
+        .info-tab { position: absolute; top: 45px; left: 5px; background: rgba(15, 23, 42, 0.85); border: 1px solid #334155; padding: 6px; border-radius: 4px; font-size: 7px; z-index: 70; }
+        .start-hint { position: absolute; top: -14px; white-space: nowrap; font-size: 7px; color: #fbbf24; animation: bounce 1.5s infinite; font-weight: 300; width: 100%; text-align: center; }
         @keyframes bounce { 0%, 100% { transform: translateY(0); opacity: 0.5; } 50% { transform: translateY(-3px); opacity: 1; } }
     </style>
 </head>
@@ -68,10 +60,10 @@
     <div id="flash-overlay" class="flash-screen"></div>
 
     <header class="p-2 bg-slate-900 flex justify-between items-center border-b border-slate-700 shrink-0">
-        <button onclick="location.href='index.html'" class="text-slate-400 text-[10px] font-bold uppercase tracking-tighter">◀ HUB</button>
+        <button onclick="location.href='index.html'" class="text-slate-400 text-[10px] font-bold uppercase">◀ HUB</button>
         <div class="text-center flex-1 mx-4">
             <div class="flex justify-between items-center mb-0.5">
-                <span id="round-text" class="text-blue-400 text-[9px] font-bold">ROUND 1/20</span>
+                <span id="round-text" class="text-blue-400 text-[9px] font-bold uppercase">ROUND 1/20</span>
                 <span id="level-display" class="text-purple-400 text-[9px] font-bold uppercase">LV. 1</span>
             </div>
             <div class="w-full bg-slate-800 h-1.5 rounded-full overflow-hidden mb-1"><div id="village-hp-bar" class="bg-emerald-500 h-full w-full"></div></div>
@@ -85,19 +77,18 @@
 
     <main class="flex-1 flex flex-col items-center justify-center bg-black relative">
         <div class="info-tab">
-            <p class="text-blue-300 font-bold mb-1 underline text-[8px]">STRATEGY GUIDE</p>
-            <p>🛡️ Knight: Balanced | 🏹 Archer: Rapid</p>
-            <p>🧙 Mage: AOE Fire | 🐉 Dragon: Ultimate</p>
-            <p class="mt-1 text-emerald-400">Mana: <span id="regen-val">0.1</span>/s Regen</p>
+            <p class="text-blue-300 font-bold mb-1 underline text-[8px]">MAZE DEFENSE</p>
+            <p>🛡️ Knight | 🏹 Archer | 🧙 Mage | 🐉 Dragon</p>
+            <p class="mt-1 text-emerald-400">Mana Regen: <span id="regen-val">0.1</span>/s</p>
         </div>
 
         <div id="unit-control-panel">
-            <p id="ui-name" class="text-sm font-bold text-white mb-1 uppercase">Unit</p>
+            <p id="ui-name" class="text-sm font-bold text-white mb-0.5 uppercase">Unit</p>
             <p id="ui-lv" class="text-[10px] text-orange-400 mb-3 font-bold">Level 1</p>
             <div class="grid grid-cols-2 gap-2">
-                <button onclick="upgradeUnit()" class="py-2 bg-emerald-700 rounded text-[10px] font-bold uppercase border-b-2 border-emerald-900 active:border-0 active:translate-y-1">Upgrade</button>
-                <button onclick="startMoveMode()" class="py-2 bg-blue-700 rounded text-[10px] font-bold uppercase border-b-2 border-blue-900 active:border-0 active:translate-y-1">Move Unit</button>
-                <button onclick="closeUnitPanel()" class="col-span-2 py-1 bg-slate-700 rounded text-[10px] font-bold uppercase mt-1">Close Info</button>
+                <button onclick="upgradeUnit()" class="py-2 bg-emerald-700 rounded text-[10px] font-bold uppercase border-b-2 border-emerald-900 shadow-md">Upgrade (<span id="ui-cost">100</span>G)</button>
+                <button onclick="startMoveMode()" class="py-2 bg-blue-700 rounded text-[10px] font-bold uppercase border-b-2 border-blue-900 shadow-md">Relocate</button>
+                <button onclick="closeUnitPanel()" class="col-span-2 py-1 bg-slate-700 rounded text-[10px] font-bold uppercase mt-1">Close Menu</button>
             </div>
         </div>
 
@@ -129,11 +120,11 @@
 
     <div class="ui-panel">
         <div class="flex justify-between items-center gap-2 mb-2">
-            <button id="install-btn" onclick="installGuardian()" class="flex-1 py-3 bg-orange-600 rounded font-bold text-[10px] uppercase hidden border-b-4 border-orange-800 shadow-lg">Install Unit (150G)</button>
+            <button id="install-btn" onclick="installGuardian()" class="flex-1 py-3 bg-orange-600 rounded font-bold text-[10px] uppercase hidden border-b-4 border-orange-800 shadow-lg">Deploy (150G)</button>
             <button id="start-btn" onclick="startWave()" class="flex-1 py-3 bg-blue-600 rounded font-bold text-[11px] uppercase opacity-50 pointer-events-none border-b-4 border-blue-800">Start Wave</button>
             <div class="flex flex-col flex-1 gap-1 items-center">
-                <p id="mana-display" class="text-[9px] text-blue-400 font-bold uppercase tracking-tighter">Mana: 0/10</p>
-                <button onclick="castMagic()" class="w-full py-2 bg-indigo-600 rounded text-[8px] font-bold uppercase border-b-4 border-indigo-800">Burst Mode</button>
+                <p id="mana-display" class="text-[9px] text-blue-400 font-bold uppercase">Mana: 0/10</p>
+                <button onclick="castMagic()" class="w-full py-2 bg-indigo-600 rounded text-[8px] font-bold uppercase border-b-4 border-indigo-800">Mana Burst</button>
             </div>
         </div>
         
@@ -146,8 +137,8 @@
             </div>
             <div class="bg-slate-900/80 p-2 rounded border border-slate-700 flex-1 ml-4 grid grid-cols-2 gap-1 text-center">
                 <div><p class="text-[6px] text-slate-500 uppercase">Hero HP</p><p id="hero-hp-val" class="text-[9px] text-emerald-400 font-bold">100/100</p></div>
-                <div><p class="text-[6px] text-slate-500 uppercase">Units</p><p id="guardian-limit" class="text-[9px] text-blue-400 font-bold">0/0</p></div>
-                <div class="col-span-2 border-t border-slate-800 pt-1 text-[10px] font-bold text-orange-400 uppercase tracking-widest">Hero ATK: <span id="hero-atk">0</span></div>
+                <div><p class="text-[6px] text-slate-500 uppercase">Limit</p><p id="guardian-limit" class="text-[9px] text-blue-400 font-bold">0/0</p></div>
+                <div class="col-span-2 border-t border-slate-800 pt-1 text-[10px] font-bold text-orange-400 uppercase">Hero ATK: <span id="hero-atk">0</span></div>
             </div>
         </div>
     </div>
@@ -197,7 +188,7 @@
                 document.getElementById('start-btn').classList.remove('opacity-50', 'pointer-events-none');
                 audioBgm.src = 'music/townbgm.mp3'; audioBgm.play();
                 updateStats();
-            } else { showRange(playerPos.r, playerPos.c, 2.8); }
+            } else { showRange(playerPos.r, playerPos.c, 2.5); }
         }
 
         function onCellClick(r, c) {
@@ -213,7 +204,10 @@
             const existing = guardians.find(g => g.r === r && g.c === c);
             if (existing) { openUnitPanel(existing); } 
             else {
-                if(selectedGrid) document.getElementById(`grid-${selectedGrid.r}-${selectedGrid.c}`).classList.remove('selected');
+                if(selectedGrid) {
+                    const prev = document.getElementById(`grid-${selectedGrid.r}-${selectedGrid.c}`);
+                    if(prev) prev.classList.remove('selected');
+                }
                 if(isPosBlocked(r, c, true)) return;
                 selectedGrid = {r, c};
                 document.getElementById(`grid-${r}-${c}`).classList.add('selected');
@@ -222,9 +216,9 @@
         }
 
         function isPosBlocked(r, c, isInstall) {
-            if (isInstall && (r===0 || r===10 || c===0 || c===10)) return true; // 궤도 설치 금지
-            if (r===1 || r===9 || c===1 || c===9) return true; // 성벽
-            if (r >= 4 && r <= 6 && c >= 4 && c <= 6) return true; // 마을
+            if (isInstall && (r===0 || r===10 || c===0 || c===10)) return true;
+            if (r===1 || r===9 || c===1 || c===9) return true;
+            if (r >= 4 && r <= 6 && c >= 4 && c <= 6) return true;
             if (guardians.some(g => g.r === r && g.c === c)) return true;
             if (playerPos.r === r && playerPos.c === c) return true;
             return false;
@@ -232,13 +226,12 @@
 
         function installGuardian() {
             const limit = Math.floor(user_int/5) + currentRound;
-            if (guardians.length >= limit) { alert("Max unit limit reached!"); return; }
-            if (dCoin < 150) { alert("Need 150 Gold!"); return; }
+            if (guardians.length >= limit || dCoin < 150) return;
             dCoin -= 150;
             const rand = Math.random();
-            const type = rand < 0.05 ? "Dragon" : rand < 0.2 ? "Mage" : rand < 0.45 ? "Archer" : "Knight";
+            const type = rand < 0.05 ? "Dragon" : rand < 0.25 ? "Mage" : rand < 0.55 ? "Archer" : "Knight";
             const g = { r: selectedGrid.r, c: selectedGrid.c, lv: 1, type, wait: 0, lShot: 0 };
-            g.atk = type==="Dragon"?120 : type==="Archer"?35 : 28;
+            g.atk = type==="Dragon"?100 : type==="Archer"?35 : 28;
             g.range = type==="Archer"?4.2 : type==="Mage"?3.2 : 2.5;
             g.cd = type==="Archer"?450 : 1200;
             const el = document.createElement('div'); el.className = 'unit guardian';
@@ -255,10 +248,17 @@
             selectedGrid = null; updateStats();
         }
 
-        function openUnitPanel(g) { activeUnit = g; document.getElementById('unit-control-panel').style.display='block'; document.getElementById('ui-name').innerText = g.type; document.getElementById('ui-lv').innerText = `Lv.${g.lv} (Atk:${g.atk})`; showRange(g.r, g.c, g.range); }
+        function openUnitPanel(g) {
+            activeUnit = g; 
+            document.getElementById('unit-control-panel').style.display='block'; 
+            document.getElementById('ui-name').innerText = g.type;
+            document.getElementById('ui-lv').innerText = `Lv.${g.lv} (Atk:${g.atk})`; 
+            document.getElementById('ui-cost').innerText = g.lv * 100;
+            showRange(g.r, g.c, g.range); 
+        }
         function closeUnitPanel() { document.getElementById('unit-control-panel').style.display='none'; clearRange(); }
         function upgradeUnit() { const cost = activeUnit.lv * 100; if(dCoin < cost) return; dCoin -= cost; activeUnit.lv++; activeUnit.atk += 20; updateStats(); openUnitPanel(activeUnit); }
-        function startMoveMode() { isMoveMode = true; alert("Click an empty cell to relocate."); }
+        function startMoveMode() { isMoveMode = true; alert("Click empty space to relocate."); closeUnitPanel(); }
 
         function moveHero(dr, dc) {
             if (!gameStarted) return;
@@ -288,13 +288,14 @@
             document.getElementById('start-btn').classList.add('opacity-50', 'pointer-events-none');
             audioBgm.src = (currentRound % 5 === 0) ? 'music/bossbgm.mp3' : 'music/defensebgm.mp3'; audioBgm.play();
             let count = (currentRound % 5 === 0) ? 1 : 5 + currentRound;
-            const spawn = setInterval(() => {
-                if(count-- <= 0) { clearInterval(spawn); return; }
+            const spawnInterval = setInterval(() => {
+                if(count-- <= 0) { clearInterval(spawnInterval); return; }
                 const m = { r:0, c:0, hp:(currentRound%5===0?5000:350)+(currentRound*160), charge:false, lAtk:0 };
                 const pos = Math.random();
                 if(pos<0.25){m.r=0; m.c=Math.floor(Math.random()*11);} else if(pos<0.5){m.r=10; m.c=Math.floor(Math.random()*11);}
                 else if(pos<0.75){m.c=0; m.r=Math.floor(Math.random()*11);} else {m.c=10; m.r=Math.floor(Math.random()*11);}
-                m.maxHp = m.hp; m.atk = 20 + currentRound*5; m.offX = (Math.random()-0.5)*3; m.offY = (Math.random()-0.5)*3;
+                m.maxHp = m.hp; m.atk = 20 + currentRound*5;
+                m.offX = (Math.random()-0.5)*3; m.offY = (Math.random()-0.5)*3;
                 const el = document.createElement('div'); el.className='monster'; el.innerHTML=(currentRound%5===0)?'👹':'👾';
                 const mb = document.createElement('div'); mb.className='hp-bar-bg'; const mf=document.createElement('div'); mf.className='hp-bar-fill w-full';
                 mb.appendChild(mf); el.appendChild(mb); document.getElementById('map-container').appendChild(el);
@@ -310,12 +311,28 @@
             const now = Date.now();
             monsters.forEach((m, idx) => {
                 if (m.charge) {
-                    let tr = gateHp > 0 ? 10 : 5, tc = 5;
-                    const step = 0.04;
-                    // 6시 입구(10, 5)를 향해 최외곽 궤도(0 or 10) 이동 강제
-                    if (Math.abs(m.c - 5) > 0.1 && m.r > 8.5) { if (m.c < 5) m.c += step; else m.c -= step; }
-                    else { if (m.r < tr) m.r += step; else if (m.r > tr) m.r -= step; if (m.c < tc) m.c += step; else if (m.c > tc) m.c -= step; }
-                    if (gateHp > 0 && Math.hypot(m.r-10, m.c-5) < 0.3) {
+                    // 미로 로직: 무조건 외곽 -> 6시 성문 통로(10, 5) -> 마을 중심으로 고정
+                    const step = 0.045;
+                    let targetR = gateHp > 0 ? 10 : 5;
+                    let targetC = 5;
+
+                    // 1단계: 성문 앞(10, 5)으로 이동하기 위해 테두리(0 or 10)에서 각 정렬
+                    if (gateHp > 0) {
+                        if (Math.abs(m.r - 10) > 0.1 && (m.c === 0 || m.c === 10)) {
+                            // 현재 옆 벽에 붙어있다면 아래(10)로 먼저 이동
+                            m.r += step;
+                        } else if (Math.abs(m.c - 5) > 0.1) {
+                            // 아래 벽(10)에 도착했다면 가로로 성문(5)까지 이동
+                            m.r = 10; // 높이 고정 (성벽 침범 방지)
+                            if (m.c < 5) m.c += step; else m.c -= step;
+                        }
+                    } else {
+                        // 2단계: 성문 파괴 후 마을 진입
+                        if (m.r > 5) m.r -= step;
+                        if (Math.abs(m.c - 5) > 0.1) { if (m.c < 5) m.c += step; else m.c -= step; }
+                    }
+
+                    if (gateHp > 0 && Math.abs(m.r-10) < 0.3 && Math.abs(m.c-5) < 0.3) {
                         if(now - m.lAtk > 1500) { gateHp -= m.atk; m.lAtk = now; 
                             document.getElementById('gate-hp-fill').style.width = (gateHp/(500 + currentRound*150)*100)+'%';
                             if(gateHp<=0) document.getElementById('south-gate').style.display='none';
@@ -364,7 +381,7 @@
             };
         }
 
-        function checkLvUp() { if(dExp >= dExpNext){ dLevel++; dExp=0; dExpNext=Math.floor(dExpNext*1.5); document.getElementById('lv-up-flash').classList.add('flash'); setTimeout(()=>document.getElementById('lv-up-flash').classList.remove('flash'), 500); } }
+        function checkLvUp() { if(dExp >= dExpNext){ dLevel++; dExp=0; dExpNext=Math.floor(dExpNext*1.5); document.getElementById('flash-overlay').classList.add('flash'); setTimeout(()=>document.getElementById('flash-overlay').classList.remove('flash'), 500); } }
         function updateStats() {
             document.getElementById('hero-atk').innerText = Math.floor(25 + user_str/4 + (dLevel-1)*15);
             document.getElementById('mana-display').innerText = `Mana: ${Math.floor(currentMana)}/${manaMax}`;
