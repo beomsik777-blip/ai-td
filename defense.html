@@ -55,7 +55,6 @@
         
         .ui-panel { background: #0f172a; border-top: 2px solid #334155; padding: 10px; flex-shrink: 0; }
         .ctrl-btn { background: #1e293b; color: white; width: 44px; height: 44px; border-radius: 8px; display: flex; align-items: center; justify-content: center; border-bottom: 3px solid #000; font-size: 18px; }
-        
         .start-hint { position: absolute; top: -16px; white-space: nowrap; font-size: 8px; color: #facc15; font-weight: bold; letter-spacing: 1px; text-shadow: 0 0 8px #ca8a04; animation: glow 2s infinite ease-in-out; width: 100%; text-align: center; }
         @keyframes glow { 0%, 100% { opacity: 0.4; } 50% { opacity: 1; } }
     </style>
@@ -148,9 +147,9 @@
     </div>
 
     <script>
-        // 🛠️ 지능(INT) 데이터를 즉시 로드
+        // 🛠️ 데이터 로드 핵심부
         const raw_int = localStorage.getItem('user_int');
-        const user_int = (raw_int !== null && raw_int !== undefined) ? parseInt(raw_int) : 2; // 데이터 없으면 기본 2
+        const user_int = (raw_int !== null && raw_int !== undefined) ? parseInt(raw_int) : 2;
 
         const audioBgm = document.getElementById('audio-bgm');
         const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
@@ -158,14 +157,16 @@
         let villageHp = 100, gateHp = 500, gateHpMax = 500, playerPos = { r: 8, c: 5 }, guardians = [], monsters = [], selectedGrid = null, activeUnit = null, isMoveMode = false, playerLastShot = 0, playerAtkSpeed = 650, magicActive = 0;
         
         let user_str = parseInt(localStorage.getItem('user_str')) || 0;
-        let playerHpMax = 100 + (parseInt(JSON.parse(localStorage.getItem('weekly_workout_data'))?.totalHpBonus) || 0), playerHp = playerHpMax, manaMax = 10.0 + user_int, currentMana = 5.0;
+        let manaMax = 10.0 + user_int; 
+        let currentMana = 5.0;
 
         window.onload = () => {
             const inbody = JSON.parse(localStorage.getItem('user_inbody'));
             document.getElementById('player').style.backgroundImage = inbody?.gender === 'woman' ? "url('image/woman.png')" : "url('image/man/man.png')";
-            updatePlayerUI(); updateStats();
+            updatePlayerUI(); 
+            updateStats();
             
-            // 🔄 핵심 엔진: 1초 단위 타이머
+            // 🔄 핵심 엔진: 1초 단위 타이머 (마나 회복 포함)
             setInterval(() => { 
                 if(gameStarted) { 
                     currentMana = Math.min(manaMax, currentMana + 0.1 * (1 + user_int/10)); 
@@ -241,10 +242,10 @@
         function startMoveMode() { if(!activeUnit) return; isMoveMode = true; document.getElementById('unit-control-panel').style.display='none'; showMsg("SELECT EMPTY CELL (빈 칸 선택)"); }
 
         function moveHero(dr, dc) { if (!gameStarted) return; const nr = playerPos.r + dr, nc = playerPos.c + dc; if (nr >= 0 && nr < 11 && nc >= 0 && nc < 11) { if (nr >= 4 && nr <= 6 && nc >= 4 && nc <= 6) return; const cell = document.getElementById(`grid-${nr}-${nc}`); if (cell.classList.contains('wall-cell')) return; playerPos.r = nr; playerPos.c = nc; updatePlayerUI(); } }
-        function updatePlayerUI() { const p = document.getElementById('player'); const a = document.getElementById('hero-trigger'); p.style.top = (playerPos.r * 9.09) + '%'; p.style.left = (playerPos.c * 9.09) + '%'; a.style.top = (playerPos.r * 9.09) + '%'; a.style.left = (playerPos.c * 9.09) + '%'; document.getElementById('player-hp-fill').style.width = (playerHp/playerHpMax*100) + "%"; document.getElementById('hero-hp-val').innerText = `${Math.floor(playerHp)}/${playerHpMax}`; }
+        function updatePlayerUI() { const p = document.getElementById('player'); const a = document.getElementById('hero-trigger'); p.style.top = (playerPos.r * 9.09) + '%'; p.style.left = (playerPos.c * 9.09) + '%'; a.style.top = (playerPos.r * 9.09) + '%'; a.style.left = (playerPos.c * 9.09) + '%'; document.getElementById('player-hp-fill').style.width = 100 + "%"; document.getElementById('hero-hp-val').innerText = `OK`; }
 
         function startWave() {
-            if (isWaveActive) return; isWaveActive = true; waveTimer = 30; gateHp = gateHpMax + (currentRound*150); document.getElementById('gate-hp-fill').style.width = "100%"; document.getElementById('south-gate').style.display = "flex"; document.getElementById('start-btn').classList.add('opacity-50', 'pointer-events-none');
+            if (isWaveActive) return; isWaveActive = true; waveTimer = 30; gateHp = gateHpMax + (currentRound*150); document.getElementById('south-gate').style.display = "flex"; document.getElementById('start-btn').classList.add('opacity-50', 'pointer-events-none');
             audioBgm.src = (currentRound % 5 === 0) ? 'music/bossbgm.mp3' : 'music/defensebgm.mp3'; audioBgm.play();
             let count = (currentRound % 5 === 0) ? 1 : 6 + currentRound;
             const spawnInterval = setInterval(() => {
@@ -291,7 +292,8 @@
                     const rg = u.isP ? 2.8 : u.range;
                     if (u.type === "Mage" && u.lv >= 3) {
                         const tgts = monsters.filter(m => Math.hypot(u.r - m.r, u.c - m.c) <= rg).slice(0, Math.min(monsters.length, 1 + Math.floor(u.lv/3)));
-                        tgts.forEach(t => fire(u.r, u.c, t, '#38bdf8', u.atk, false, u)); if(tgts.length > 0) u.lShot = now;
+                        targets = tgts; // For projectile logic
+                        targets.forEach(t => fire(u.r, u.c, t, '#38bdf8', u.atk, false, u)); if(targets.length > 0) u.lShot = now;
                     } else { const t = monsters.find(m => Math.hypot(u.r - m.r, u.c - m.c) <= rg); if(t) { fire(u.r, u.c, t, u.isP?'#fbbf24':'#38bdf8', u.atk, u.isP, u); if(u.isP) playerLastShot=now; else u.lShot=now; } }
                 }
             });
@@ -299,26 +301,62 @@
         }
 
         function fire(sr, sc, t, color, dmg, isP, unit) {
-            playHitSound(isP ? 'player' : 'unit'); let actDmg = dmg; let isCrit = false;
+            playHitSound(isP ? 'player' : 'unit'); 
+            let actDmg = dmg; 
+            let isCrit = false;
             if(unit.type === "Dragon" && unit.lv >= 3 && Math.random() < 0.15) { actDmg *= 2; isCrit = true; }
             
-            // 🚀 투사체 생성 (임팩트 복구)
-            const p = document.createElement('div'); p.className = 'projectile'; p.style.backgroundColor = color;
-            p.style.top = (sr*9.09+4.5)+'%'; p.style.left = (sc*9.09+4.5)+'%';
+            // 🚀 [복구] 투사체 임팩트 엔진
+            const p = document.createElement('div');
+            p.className = 'projectile';
+            p.style.backgroundColor = color;
+            p.style.top = (sr * 9.09 + 4.5) + '%';
+            p.style.left = (sc * 9.09 + 4.5) + '%';
             document.getElementById('map-container').appendChild(p);
 
-            p.animate([{top:p.style.top, left:p.style.left},{top:(t.r*9.09+4.5)+'%', left:(t.c*9.09+4.5)+'%'}], 120).onfinish = () => {
-                p.remove(); t.hp -= actDmg; if(t.mf) t.mf.style.width = (t.hp/t.maxHp*100)+'%'; if(t.hpt) t.hpt.innerText = Math.max(0, Math.floor(t.hp));
+            // 투사체 날아가는 애니메이션
+            p.animate([
+                { top: p.style.top, left: p.style.left },
+                { top: (t.r * 9.09 + 4.5) + '%', left: (t.c * 9.09 + 4.5) + '%' }
+            ], 120).onfinish = () => {
+                p.remove();
+                if(!monsters.includes(t)) return; // 몬스터 이미 사라졌으면 종료
+
+                t.hp -= actDmg; 
+                if(t.mf) t.mf.style.width = (t.hp/t.maxHp*100)+'%'; 
+                if(t.hpt) t.hpt.innerText = Math.max(0, Math.floor(t.hp));
+                
+                // 특수효과 (LV.3 이상)
                 if(unit.type === "Knight" && unit.lv >= 3 && Math.random() < (0.1 + unit.lv * 0.02)) t.stun = 1000;
-                const d = document.createElement('div'); d.className=`dmg-text ${isCrit?'crit':''}`; d.innerText=isCrit ? 'CRIT '+actDmg : actDmg; d.style.top=(t.r*9.09)+'%'; d.style.left=(t.c*9.09)+'%'; document.getElementById('map-container').appendChild(d); setTimeout(()=>d.remove(), 400);
-                if(t.hp<=0 && monsters.includes(t)) { monsters.splice(monsters.indexOf(t),1); t.el.remove(); dCoin+=50; dExp+=35; updateEnemiesCount(); checkLvUp(); updateStats(); }
+                
+                // 데미지 텍스트
+                const d = document.createElement('div'); 
+                d.className = `dmg-text ${isCrit ? 'crit' : ''}`; 
+                d.innerText = isCrit ? 'CRIT ' + actDmg : actDmg; 
+                d.style.top = (t.r * 9.09) + '%'; 
+                d.style.left = (t.c * 9.09) + '%'; 
+                document.getElementById('map-container').appendChild(d); 
+                setTimeout(() => d.remove(), 400);
+
+                if(t.hp <= 0) { 
+                    monsters.splice(monsters.indexOf(t), 1); 
+                    t.el.remove(); 
+                    dCoin += 50; 
+                    dExp += 35; 
+                    updateEnemiesCount(); 
+                    checkLvUp(); 
+                    updateStats(); 
+                }
             };
         }
 
         function checkLvUp() { if(dExp >= dExpNext){ dLevel++; dExp=0; dExpNext=Math.floor(dExpNext*1.5); document.getElementById('flash-overlay').style.opacity = '1'; setTimeout(()=>document.getElementById('flash-overlay').style.opacity = '0', 500); } }
+        
         function updateStats() { 
+            // 🛠️ 지능 및 회복량 실시간 업데이트
             document.getElementById('hero-int-val').innerText = user_int;
             document.getElementById('regen-val-display').innerText = (0.1 * (1 + user_int/10)).toFixed(1);
+            
             document.getElementById('mana-display').innerText = `Mana: ${currentMana.toFixed(1)}/${manaMax.toFixed(1)}`; 
             document.getElementById('level-display').innerText = `LV. ${dLevel}`; 
             document.getElementById('d-coin').innerText = dCoin + " G"; 
@@ -326,6 +364,7 @@
             document.getElementById('round-text').innerText = `ROUND ${currentRound}/20`; 
             document.getElementById('guardian-limit').innerText = `${guardians.length}/${Math.floor(user_int/5) + currentRound}`; 
         }
+
         function showRange(r, c, rg) { clearRange(); for(let i=r-Math.floor(rg); i<=r+Math.floor(rg); i++) for(let j=c-Math.floor(rg); j<=c+Math.floor(rg); j++) { const cell = document.getElementById(`grid-${i}-${j}`); if(cell) cell.classList.add('range-highlight'); } }
         function clearRange() { document.querySelectorAll('.grid-cell').forEach(c => c.classList.remove('range-highlight')); }
         function castMagic() { if(currentMana>=5){currentMana-=5; magicActive=5; updateStats(); showMsg("MANA BURST!");} }
