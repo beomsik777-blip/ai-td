@@ -16,28 +16,27 @@
             display: grid; grid-template-columns: repeat(11, 1fr); grid-template-rows: repeat(11, 1fr);
         }
         .grid-cell { border: 0.1px solid rgba(56, 189, 248, 0.05); pointer-events: none; }
-        /* 🧱 성벽: 확실한 시각적 구분을 위해 채도 상승 */
-        .wall-cell { background: rgba(30, 41, 59, 0.9); border: 1px solid #475569; z-index: 2; }
-        .range-highlight { background: rgba(56, 189, 248, 0.15); border: 1px solid #38bdf8; z-index: 5; }
+        .wall-cell { background: #1e293b; border: 1px solid #475569; z-index: 2; position: relative; }
+        .wall-cell::after { content: '🧱'; position: absolute; font-size: 8px; opacity: 0.3; top: 25%; left: 25%; }
+        .range-highlight { background: rgba(56, 189, 248, 0.2); border: 1px solid #38bdf8; z-index: 5; }
 
         #village {
             position: absolute; top: 36.36%; left: 36.36%; width: 27.27%; height: 27.27%;
-            background: #1e293b; border: 2px solid #38bdf8; z-index: 10;
+            background: #0f172a; border: 3px double #38bdf8; z-index: 10;
             display: flex; align-items: center; justify-content: center; border-radius: 8px;
         }
         
         #south-gate {
-            position: absolute; bottom: 9.09%; left: 45.45%; width: 9.09%; height: 9.09%;
-            background: #78350f; border: 2px solid #f59e0b; z-index: 20; display: flex; flex-direction: column; align-items: center; justify-content: center;
+            position: absolute; bottom: 18.18%; left: 45.45%; width: 9.09%; height: 9.09%;
+            background: #451a03; border: 2px solid #f59e0b; z-index: 20; display: flex; flex-direction: column; align-items: center; justify-content: center;
         }
         #gate-hp-container { width: 80%; height: 3px; background: #450a0a; position: absolute; top: -5px; }
-        #gate-hp-fill { height: 100%; background: #eab308; width: 100%; transition: width 0.3s; }
+        #gate-hp-fill { height: 100%; background: #eab308; width: 100%; }
 
-        .unit { position: absolute; width: 9.09%; height: 9.09%; z-index: 100; display: flex; align-items: center; justify-content: center; background-size: contain; background-repeat: no-repeat; background-position: center; transition: all 0.15s linear; cursor: pointer; }
-        /* 👾 몬스터 크기를 격자 한 칸에 꽉 차게(9.09%) 고정 */
-        .monster { position: absolute; width: 9.09%; height: 9.09%; z-index: 50; display: flex; align-items: center; justify-content: center; transition: all 0.2s linear; font-size: 24px; }
+        .unit { position: absolute; width: 9.09%; height: 9.09%; z-index: 100; display: flex; align-items: center; justify-content: center; background-size: contain; background-repeat: no-repeat; background-position: center; transition: all 0.2s; cursor: pointer; }
+        .monster { position: absolute; width: 9.09%; height: 9.09%; z-index: 50; display: flex; align-items: center; justify-content: center; transition: all 0.4s linear; font-size: 20px; }
         
-        .hp-bar-bg { width: 80%; height: 3px; background: #450a0a; position: absolute; top: -5px; border-radius: 1px; }
+        .hp-bar-bg { width: 80%; height: 3px; background: #450a0a; position: absolute; top: -5px; }
         .hp-bar-fill { height: 100%; background: #22c55e; transition: width 0.2s; }
 
         #timer-container { width: 100%; height: 4px; background: #1e293b; position: absolute; top: 0; left: 0; z-index: 60; }
@@ -46,11 +45,11 @@
 
         .projectile { position: absolute; width: 4px; height: 4px; border-radius: 50%; z-index: 120; pointer-events: none; }
         .dmg-text { position: absolute; color: #ff4d4d; font-weight: bold; font-size: 10px; z-index: 200; pointer-events: none; animation: popUp 0.5s ease-out forwards; }
-        @keyframes popUp { 0% { transform: translateY(0); opacity: 1; } 100% { transform: translateY(-15px); opacity: 0; } }
+        @keyframes popUp { 0% { transform: translateY(0); opacity: 1; } 100% { transform: translateY(-20px); opacity: 0; } }
 
         .ui-panel { background: #0f172a; border-top: 2px solid #334155; padding: 10px; flex-shrink: 0; }
+        .info-tab { position: absolute; top: 50px; left: 5px; background: rgba(15, 23, 42, 0.9); border: 1px solid #334155; padding: 5px; border-radius: 4px; font-size: 7px; z-index: 70; }
         .ctrl-btn { background: #1e293b; color: white; width: 42px; height: 42px; border-radius: 8px; display: flex; align-items: center; justify-content: center; border-bottom: 3px solid #000; }
-        .exp-bar { width: 100%; height: 2px; background: #1e293b; margin-top: 2px; }
         #exp-fill { height: 100%; background: #a855f7; width: 0%; transition: width 0.3s; }
         .start-hint { position: absolute; top: -20px; white-space: nowrap; font-size: 8px; color: #fbbf24; animation: bounce 1s infinite; font-weight: bold; }
         @keyframes bounce { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-5px); } }
@@ -67,18 +66,23 @@
                 <span id="round-text" class="text-blue-400 text-[9px] font-bold uppercase">ROUND 1/20</span>
                 <span id="level-display" class="text-purple-400 text-[9px] font-bold uppercase">LV. 1</span>
             </div>
-            <div class="w-full bg-slate-800 h-1 rounded-full overflow-hidden mb-1">
-                <div id="village-hp-bar" class="bg-emerald-500 h-full w-full"></div>
-            </div>
-            <div class="exp-bar"><div id="exp-fill"></div></div>
+            <div class="w-full bg-slate-800 h-1.5 rounded-full overflow-hidden mb-1"><div id="village-hp-bar" class="bg-emerald-500 h-full w-full"></div></div>
+            <div class="w-full bg-slate-800 h-0.5 rounded-full overflow-hidden"><div id="exp-fill"></div></div>
         </div>
         <div class="text-right">
             <p id="d-coin" class="text-[11px] font-bold text-yellow-400">300 G</p>
-            <p id="monster-count" class="text-[8px] text-red-400 font-bold uppercase">Enemies: 0</p>
+            <p id="mana-display" class="text-[8px] text-blue-400 font-bold uppercase">Mana: 0/0</p>
         </div>
     </header>
 
     <div class="flex-1 flex flex-col items-center justify-center bg-black relative">
+        <div class="info-tab">
+            <p class="text-blue-300 font-bold mb-1 underline">UNIT CHANCE</p>
+            <p>🛡️ Knight: 90%</p>
+            <p class="text-purple-400">🐉 Dragon: 10%</p>
+            <p class="mt-1 text-emerald-400">Mana Regen: <span id="regen-val">0.1</span>/s</p>
+        </div>
+
         <div id="map-container">
             <script>
                 const map = document.getElementById('map-container');
@@ -94,10 +98,7 @@
             <div id="timer-container"><div id="timer-fill"></div></div>
             <div id="timer-text">00:30</div>
             <div id="village">🏰</div>
-            <div id="south-gate">
-                <div id="gate-hp-container"><div id="gate-hp-fill"></div></div>
-                <span class="text-[6px] text-white font-bold uppercase">GATE</span>
-            </div>
+            <div id="south-gate"><div id="gate-hp-container"><div id="gate-hp-fill"></div></div><span class="text-[6px] text-white font-bold uppercase">GATE</span></div>
             <div id="player" class="unit" onclick="handleHeroClick()">
                 <div id="start-label" class="start-hint">TAP HERO TO START</div>
                 <div class="hp-bar-bg"><div id="player-hp-fill" class="hp-bar-fill"></div></div>
@@ -108,11 +109,9 @@
 
     <div class="ui-panel">
         <div class="flex justify-between items-center gap-2 mb-2">
-            <button onclick="buyGuardian()" class="flex-1 py-2 bg-purple-900/40 border border-purple-500 rounded text-[9px] font-bold uppercase">
-                Add Unit (150G) <span id="guardian-limit" class="block text-[7px] text-purple-300">Limit: 0/0</span>
-            </button>
+            <button onclick="buyGuardian()" class="flex-1 py-2 bg-purple-900/40 border border-purple-500 rounded text-[9px] font-bold uppercase">Add Unit (150G) <span id="guardian-limit" class="block text-[7px] text-purple-300">0/0</span></button>
             <button onclick="startWave()" id="start-btn" class="flex-1 py-3 bg-blue-600 rounded font-bold text-[11px] uppercase opacity-50 pointer-events-none">Start Wave</button>
-            <button onclick="castSpeedMagic()" class="flex-1 py-2 bg-indigo-600 rounded text-[9px] font-bold uppercase">Burst (Mana 5)</button>
+            <button onclick="castSpeedMagic()" class="flex-1 py-2 bg-indigo-600 rounded text-[9px] font-bold uppercase">Burst (Mana 5)<br><span class="text-[6px]">공격속도증가</span></button>
         </div>
         
         <div class="flex justify-between items-center">
@@ -122,7 +121,6 @@
                 <button class="ctrl-btn" onclick="movePlayer(1, 0)">▼</button>
                 <button class="ctrl-btn" onclick="movePlayer(0, 1)">▶</button>
             </div>
-            
             <div class="bg-slate-900/80 p-2 rounded border border-slate-700 flex-1 ml-4 grid grid-cols-2 gap-1 text-center">
                 <div><p class="text-[6px] text-slate-500 uppercase">Hero HP</p><p id="hero-hp-val" class="text-[9px] text-emerald-400 font-bold">0/0</p></div>
                 <div><p class="text-[6px] text-slate-500 uppercase">ASPD</p><p id="hero-speed-val" class="text-[9px] text-blue-400 font-bold">1.7/s</p></div>
@@ -149,33 +147,44 @@
         let playerHp = playerHpMax;
         let playerDef = weekly.totalDef || 0;
         let playerLastShot = 0, playerAtkSpeed = 600, magicActive = false;
-        let manaMax = 10 + user_int, currentMana = manaMax;
+        let manaMax = 10 + user_int, currentMana = 0; // 마나는 0부터 시작해서 회복
 
         window.onload = () => {
             const inbody = JSON.parse(localStorage.getItem('user_inbody'));
             document.getElementById('player').style.backgroundImage = inbody?.gender === 'woman' ? "url('image/woman.png')" : "url('image/man/man.png')";
             updatePlayerUI(); updateStats();
+            // 마나 회복 시스템 (초당 0.1 * user_int)
+            setInterval(() => {
+                if(gameStarted) {
+                    const regenAmount = 0.1 * (1 + user_int/10); 
+                    currentMana = Math.min(manaMax, currentMana + regenAmount);
+                    updateStats();
+                }
+            }, 1000);
         };
 
-        function playHitSound() {
-            const osc = audioCtx.createOscillator();
-            const gain = audioCtx.createGain();
-            osc.connect(gain); gain.connect(audioCtx.destination);
-            osc.type = 'sine'; osc.frequency.setValueAtTime(150, audioCtx.currentTime);
-            gain.gain.setValueAtTime(0.1, audioCtx.currentTime);
-            gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.1);
-            osc.start(); osc.stop(audioCtx.currentTime + 0.1);
+        function playAttackSound() {
+            try {
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                osc.connect(gain); gain.connect(audioCtx.destination);
+                osc.type = 'sine'; osc.frequency.setValueAtTime(440, audioCtx.currentTime);
+                osc.frequency.exponentialRampToValueAtTime(110, audioCtx.currentTime + 0.1);
+                gain.gain.setValueAtTime(0.1, audioCtx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.1);
+                osc.start(); osc.stop(audioCtx.currentTime + 0.1);
+            } catch(e) {}
         }
 
         function changeBGM(src) {
             if (audioBgm.getAttribute('src') !== src) {
-                audioBgm.src = src;
-                audioBgm.play().catch(e => console.log("Audio play deferred"));
+                audioBgm.src = src; audioBgm.play().catch(e => {});
             }
         }
 
         function handleHeroClick() {
             if (!gameStarted) {
+                if (audioCtx.state === 'suspended') audioCtx.resume();
                 gameStarted = true;
                 document.getElementById('start-label').style.display = 'none';
                 document.getElementById('start-btn').classList.remove('opacity-50', 'pointer-events-none');
@@ -192,8 +201,9 @@
             document.getElementById('hero-hp-val').innerText = `${Math.floor(playerHp)}/${playerHpMax}`;
             document.getElementById('hero-speed-val').innerText = `${(1000/playerAtkSpeed).toFixed(1)}/s`;
             document.getElementById('d-coin').innerText = dCoin + " G";
-            document.getElementById('mana-display').innerText = `Mana: ${currentMana}/${manaMax}`;
+            document.getElementById('mana-display').innerText = `Mana: ${Math.floor(currentMana)}/${manaMax}`;
             document.getElementById('guardian-limit').innerText = `Limit: ${guardians.length}/${Math.floor(user_int/5) + currentRound}`;
+            document.getElementById('regen-val').innerText = (0.1 * (1 + user_int/10)).toFixed(1);
         }
 
         function castSpeedMagic() {
@@ -206,9 +216,9 @@
             if (!gameStarted) return;
             const nr = playerPos.r + dr, nc = playerPos.c + dc;
             if (nr >= 0 && nr < 11 && nc >= 0 && nc < 11) {
-                if (nr >= 4 && nr <= 6 && nc >= 4 && nc <= 6) return;
+                if (nr >= 4 && nr <= 6 && nc >= 4 && nc <= 6) return; // 마을 중심부
                 const cell = document.getElementById(`grid-${nr}-${nc}`);
-                if (cell.classList.contains('wall-cell') && !(nr === 8 && nc === 5)) return;
+                if (cell.classList.contains('wall-cell')) return; // 성벽 통과 불가
                 playerPos.r = nr; playerPos.c = nc;
                 updatePlayerUI(); clearRange();
             }
@@ -227,8 +237,10 @@
 
         function summonRandomGuardian(isFree = false) {
             const g = document.createElement('div');
-            g.className = `unit guardian`; g.innerHTML = isFree ? '🛡️' : '⚔️';
+            const isHidden = !isFree && Math.random() < 0.1;
+            g.className = `unit guardian`; g.innerHTML = isHidden ? '🐉' : '🛡️';
             let r, c;
+            // 테두리(0,10)와 성벽(1,9)을 제외한 안전 구역(2~8)에만 소환
             do { r = Math.floor(Math.random()*7)+2; c = Math.floor(Math.random()*7)+2; }
             while ((r >= 4 && r <= 6 && c >= 4 && c <= 6) || (r === playerPos.r && c === playerPos.c));
             g.unitR = r; g.unitC = c; g.hpMax = 80 + (currentRound*20); g.hp = g.hpMax;
@@ -236,8 +248,7 @@
             const hpBg = document.createElement('div'); hpBg.className = 'hp-bar-bg';
             const hpFill = document.createElement('div'); hpFill.className = 'hp-bar-fill';
             hpBg.appendChild(hpFill); g.appendChild(hpBg);
-            g.onclick = (e) => { e.stopPropagation(); showRange(g, 2); };
-            g.atk = 25 + currentRound * 2; g.lastShot = 0;
+            g.atk = isHidden ? 70 : 25; g.lastShot = 0;
             document.getElementById('unit-layer').appendChild(g); guardians.push(g); updateStats();
         }
 
@@ -258,15 +269,19 @@
             if (isWaveActive || !gameStarted) return;
             isWaveActive = true; waveTimer = 30; gateHp = 500 + (currentRound*100);
             document.getElementById('gate-hp-fill').style.width = "100%";
-            document.getElementById('south-gate').style.display = "flex";
             document.getElementById('start-btn').classList.add('opacity-50');
             if (currentRound % 5 === 0) changeBGM('music/bossbgm.mp3');
             else changeBGM('music/defensebgm.mp3');
-            const isBoss = currentRound % 5 === 0;
-            let count = isBoss ? 1 : 5 + currentRound;
-            const spawn = setInterval(() => { if(count-- <= 0) { clearInterval(spawn); return; } createMonster(isBoss); }, 1000);
+
+            let count = (currentRound % 5 === 0) ? 1 : 5 + currentRound;
+            const spawnInterval = setInterval(() => {
+                if(count-- <= 0) { clearInterval(spawnInterval); return; }
+                createMonster(currentRound % 5 === 0);
+            }, 1200);
+
             timerInterval = setInterval(() => {
-                waveTimer--; document.getElementById('timer-fill').style.width = (waveTimer/30*100) + "%";
+                waveTimer--;
+                document.getElementById('timer-fill').style.width = (waveTimer/30*100) + "%";
                 document.getElementById('timer-text').innerText = `00:${waveTimer < 10 ? '0' + waveTimer : waveTimer}`;
                 if(waveTimer <= 0) { clearInterval(timerInterval); monsters.forEach(m => m.isCharging = true); }
             }, 1000);
@@ -277,12 +292,14 @@
             const hpBg = document.createElement('div'); hpBg.className = 'hp-bar-bg';
             const hpFill = document.createElement('div'); hpFill.className = 'hp-bar-fill';
             hpBg.appendChild(hpFill); m.appendChild(hpBg);
+            // 소환 위치: 테두리 랜덤
             let r, c;
             if(Math.random() < 0.5) { r = Math.random() < 0.5 ? 0 : 10; c = Math.floor(Math.random()*11); }
             else { c = Math.random() < 0.5 ? 0 : 10; r = Math.floor(Math.random()*11); }
             m.r = r; m.c = c; m.hp = (isBoss ? 4000 : 300) + (currentRound*150); m.maxHp = m.hp;
             m.atk = (isBoss ? 50 : 15) + currentRound; m.lastAttack = 0; m.isCharging = false;
-            m.offX = (Math.random()-0.5)*1.5; m.offY = (Math.random()-0.5)*1.5;
+            // 겹침 방지 오프셋 (정수 그리드에서 아주 미세하게만 틀어줌)
+            m.offX = (Math.random()-0.5)*3; m.offY = (Math.random()-0.5)*3;
             document.getElementById('map-container').appendChild(m); monsters.push(m);
             document.getElementById('monster-count').innerText = `Enemies: ${monsters.length}`;
         }
@@ -291,7 +308,7 @@
             dExp += amt;
             if (dExp >= dExpNext) {
                 dExp -= dExpNext; dLevel++; dExpNext = Math.floor(dExpNext * 1.5);
-                updateStats(); alert(`LEVEL UP! LV.${dLevel}\n공격력이 상승했습니다!`);
+                updateStats(); alert(`LEVEL UP! LV.${dLevel}`);
             } updateStats();
         }
 
@@ -299,15 +316,12 @@
             const now = Date.now();
             monsters.forEach((m, idx) => {
                 let target = null;
-                // 궤도 돌 때는 공격 타겟팅 안 함. 성문 진입 시작(isCharging) 이후에만 수호자/플레이어/성문 공격
-                if (m.isCharging) {
-                    const dP = Math.hypot(m.r - playerPos.r, m.c - playerPos.c);
-                    if (dP <= 1.2) target = { type: 'player' };
-                    else {
-                        const nG = guardians.find(g => Math.hypot(m.r - g.unitR, m.c - g.unitC) <= 1.2);
-                        if (nG) target = { type: 'guardian', ref: nG };
-                        else if (gateHp > 0 && Math.hypot(m.r - 10, m.c - 5) <= 0.3) target = { type: 'gate' };
-                    }
+                const dP = Math.hypot(m.r - playerPos.r, m.c - playerPos.c);
+                if (m.isCharging && dP <= 1.2) target = { type: 'player' };
+                else {
+                    const nG = guardians.find(g => Math.hypot(m.r - g.unitR, m.c - g.unitC) <= 1.2);
+                    if (m.isCharging && nG) target = { type: 'guardian', ref: nG };
+                    else if (m.isCharging && gateHp > 0 && Math.hypot(m.r - 9, m.c - 5) <= 0.3) target = { type: 'gate' };
                 }
 
                 if (target) {
@@ -318,26 +332,24 @@
                             if (target.ref.hp <= 0) { target.ref.remove(); guardians.splice(guardians.indexOf(target.ref), 1); updateStats(); }
                         } else if (target.type === 'gate') {
                             gateHp -= m.atk; document.getElementById('gate-hp-fill').style.width = (gateHp/(500 + currentRound*100)*100) + "%";
-                            if (gateHp <= 0) { gateHp = 0; document.getElementById('south-gate').style.display = "none"; }
+                            if (gateHp <= 0) { gateHp = 0; document.getElementById('south-gate').style.opacity = "0.2"; }
                         }
                         m.lastAttack = now;
                     }
                 } else if (m.isCharging) {
-                    // 성문(10,5) 찍고 입성(5,5). 좌표계를 격자 중심으로 강제 계산
-                    let targetR = gateHp > 0 ? 10 : 5, targetC = 5;
-                    const step = 0.04;
-                    if (m.r < targetR) m.r += step; else if (m.r > targetR) m.r -= step;
-                    if (m.c < targetC) m.c += step; else if (m.c > targetC) m.c -= step;
-                    
-                    if (gateHp <= 0 && Math.hypot(m.r - 5, m.c - 5) < 0.2) {
+                    // 성벽 우회 이동 (r=10 고정 -> r=9 성문 앞 -> 마을)
+                    let tr = gateHp > 0 ? 10 : 5, tc = 5;
+                    const step = 0.035; // 이동속도 조금 더 느리게
+                    if (m.r < tr) m.r += step; else if (m.r > tr) m.r -= step;
+                    if (m.c < tc) m.c += step; else if (m.c > tc) m.c -= step;
+                    if (gateHp <= 0 && Math.hypot(m.r - 5, m.c - 5) < 0.3) {
                         villageHp -= (m.innerHTML === '👹' ? 50 : 10);
                         document.getElementById('village-hp-bar').style.width = villageHp + "%";
                         m.remove(); monsters.splice(idx, 1);
                         if(villageHp <= 0) { alert("VILLAGE DESTROYED!"); location.reload(); }
                     }
                 } else {
-                    // 궤도 로직 (성벽 밖 0, 10 라인만 이동)
-                    const step = 0.055;
+                    const step = 0.05; // 궤도 회전 속도
                     if(m.r <= 0.1 && m.c < 10) m.c += step;
                     else if(m.c >= 9.9 && m.r < 10) m.r += step;
                     else if(m.r >= 9.9 && m.c > 0.1) m.c -= step;
@@ -346,12 +358,11 @@
                 m.style.top = (m.r * 9.09 + m.offY) + '%'; m.style.left = (m.c * 9.09 + m.offX) + '%';
             });
 
-            // 유닛 공격 루프
+            // 공격 감지 및 발사
             [...guardians, {unitR: playerPos.r, unitC: playerPos.c, atk: Math.floor(25 + user_str/4 + (dLevel-1)*15), lastShot: playerLastShot, isPlayer: true}].forEach(u => {
                 const cd = u.isPlayer ? playerAtkSpeed : 1200;
                 const lt = u.isPlayer ? playerLastShot : u.lastShot;
                 if (now - lt > cd) {
-                    // 유닛의 사거리 계산
                     const t = monsters.find(m => Math.hypot(u.unitR - m.r, u.unitC - m.c) <= (u.isPlayer ? 2.8 : 3.8));
                     if (t) { fire(u.unitR, u.unitC, t, u.isPlayer ? '#fbbf24' : '#38bdf8', u.atk); if(u.isPlayer) playerLastShot = now; else u.lastShot = now; }
                 }
@@ -367,13 +378,14 @@
         }
 
         function fire(sr, sc, target, color, dmg) {
+            playAttackSound();
             const p = document.createElement('div'); p.className = 'projectile'; p.style.backgroundColor = color;
             p.style.top = (sr*9.09+4.5)+'%'; p.style.left = (sc*9.09+4.5)+'%';
             document.getElementById('map-container').appendChild(p);
             const d = document.createElement('div'); d.className = 'dmg-text'; d.innerText = dmg;
             d.style.top = (target.r*9.09)+'%'; d.style.left = (target.c*9.09)+'%';
             document.getElementById('map-container').appendChild(d);
-            setTimeout(() => d.remove(), 500); playHitSound();
+            setTimeout(() => d.remove(), 500);
             p.animate([{top: p.style.top, left: p.style.left}, {top: (target.r*9.09+4.5)+'%', left: (target.c*9.09+4.5)+'%'}], 120).onfinish = () => {
                 p.remove();
                 if (monsters.includes(target)) {
