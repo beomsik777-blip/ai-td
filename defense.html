@@ -18,7 +18,6 @@
         }
         .grid-cell { border: 0.1px solid rgba(56, 189, 248, 0.05); position: relative; z-index: 1; }
         .grid-cell.selected { background: rgba(251, 146, 60, 0.3); box-shadow: inset 0 0 15px #fb923c; }
-        
         .wall-cell { background: #1e293b; border: 1px solid #475569; z-index: 2; position: relative; }
         .wall-cell::after { content: '🧱'; position: absolute; font-size: 8px; opacity: 0.4; top: 50%; left: 50%; transform: translate(-50%, -50%); }
         .range-highlight { background: rgba(56, 189, 248, 0.2); border: 1px solid #38bdf8; z-index: 5; }
@@ -33,9 +32,7 @@
         .unit.wait { filter: grayscale(1) brightness(0.6); opacity: 0.7; }
         
         .monster { position: absolute; width: 9.09%; height: 9.09%; z-index: 50; display: flex; flex-direction: column; align-items: center; justify-content: center; font-size: 22px; transition: none; pointer-events: none; }
-        .monster.stunned { filter: hue-rotate(180deg) brightness(1.5); }
         .monster-hp-text { font-size: 7px; color: #fff; font-weight: bold; margin-top: -2px; text-shadow: 1px 1px 1px #000; }
-
         .hp-bar-bg { width: 80%; height: 3px; background: #450a0a; position: absolute; top: -5px; border-radius: 1px; }
         .hp-bar-fill { height: 100%; background: #22c55e; transition: width 0.2s; }
         
@@ -165,9 +162,8 @@
 
         let user_str = parseInt(localStorage.getItem('user_str')) || 0;
         let user_int = parseInt(localStorage.getItem('user_int')) || 0;
-        let weekly = JSON.parse(localStorage.getItem('weekly_workout_data')) || { totalHpBonus: 0 };
-        let playerHpMax = 100 + (weekly.totalHpBonus || 0);
-        let playerHp = playerHpMax;
+        let playerHpMax = 100 + (parseInt(JSON.parse(localStorage.getItem('weekly_workout_data'))?.totalHpBonus) || 0);
+        let playerHp = playerHpMax, playerDef = (parseInt(JSON.parse(localStorage.getItem('weekly_workout_data'))?.totalDef) || 0);
         let manaMax = 10 + user_int, currentMana = 0;
 
         window.onload = () => {
@@ -184,7 +180,7 @@
                 osc.type = type === 'player' ? 'sine' : 'triangle';
                 osc.frequency.setValueAtTime(type === 'player' ? 330 : 180, audioCtx.currentTime);
                 osc.frequency.exponentialRampToValueAtTime(50, audioCtx.currentTime + 0.1);
-                gain.gain.setValueAtTime(0.06, audioCtx.currentTime);
+                gain.gain.setValueAtTime(0.05, audioCtx.currentTime);
                 gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.1);
                 osc.start(); osc.stop(audioCtx.currentTime + 0.1);
             } catch(e) {}
@@ -205,6 +201,8 @@
 
         function onCellClick(r, c) {
             if (!gameStarted) return;
+            
+            // 🚀 이동 모드일 때 (빈 칸 클릭 시 바로 이동)
             if (isMoveMode && activeUnit) {
                 if (isPosBlocked(r, c, false)) return;
                 activeUnit.r = r; activeUnit.c = c;
@@ -214,14 +212,18 @@
                 activeUnit.el.classList.add('wait');
                 
                 // 쿨타임 텍스트 생성
+                if(activeUnit.timerTxt) activeUnit.timerTxt.remove();
                 const timerTxt = document.createElement('div');
                 timerTxt.className = 'wait-timer-text';
                 timerTxt.innerText = '10s';
                 activeUnit.el.appendChild(timerTxt);
                 activeUnit.timerTxt = timerTxt;
 
-                isMoveMode = false; closeUnitPanel(); return;
+                isMoveMode = false; 
+                closeUnitPanel(); 
+                return;
             }
+
             const existing = guardians.find(g => g.r === r && g.c === c);
             if (existing) {
                 if (activeUnit === existing) { closeUnitPanel(); }
@@ -300,8 +302,8 @@
             showRange(g.r, g.c, g.range); 
         }
         function closeUnitPanel() { activeUnit = null; document.getElementById('unit-control-panel').style.display='none'; clearRange(); }
-        function upgradeUnit() { const cost = activeUnit.lv * 100; if(dCoin < cost) return; dCoin -= cost; activeUnit.lv++; activeUnit.atk += 25; activeUnit.el.innerHTML = getUnitVisual(activeUnit.type, activeUnit.lv); if(activeUnit.type === "Archer") activeUnit.range += 0.3; updateStats(); openUnitPanel(activeUnit); }
-        function startMoveMode() { if(!activeUnit) return; isMoveMode = true; closeUnitPanel(); }
+        function upgradeUnit() { if(!activeUnit) return; const cost = activeUnit.lv * 100; if(dCoin < cost) return; dCoin -= cost; activeUnit.lv++; activeUnit.atk += 25; activeUnit.el.innerHTML = getUnitVisual(activeUnit.type, activeUnit.lv); if(activeUnit.type === "Archer") activeUnit.range += 0.3; updateStats(); openUnitPanel(activeUnit); }
+        function startMoveMode() { if(!activeUnit) return; isMoveMode = true; closeUnitPanel(); alert("Click an empty cell to move."); }
 
         function moveHero(dr, dc) {
             if (!gameStarted) return;
