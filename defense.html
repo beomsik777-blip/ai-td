@@ -16,7 +16,8 @@
             display: grid; grid-template-columns: repeat(11, 1fr); grid-template-rows: repeat(11, 1fr);
         }
         .grid-cell { border: 0.1px solid rgba(56, 189, 248, 0.05); pointer-events: none; }
-        .wall-cell { background: rgba(51, 65, 85, 0.8); border: 1px solid #475569; z-index: 2; }
+        /* 🧱 성벽: 확실한 시각적 구분을 위해 채도 상승 */
+        .wall-cell { background: rgba(30, 41, 59, 0.9); border: 1px solid #475569; z-index: 2; }
         .range-highlight { background: rgba(56, 189, 248, 0.15); border: 1px solid #38bdf8; z-index: 5; }
 
         #village {
@@ -33,9 +34,10 @@
         #gate-hp-fill { height: 100%; background: #eab308; width: 100%; transition: width 0.3s; }
 
         .unit { position: absolute; width: 9.09%; height: 9.09%; z-index: 100; display: flex; align-items: center; justify-content: center; background-size: contain; background-repeat: no-repeat; background-position: center; transition: all 0.15s linear; cursor: pointer; }
-        .monster { position: absolute; width: 8%; height: 8%; z-index: 50; display: flex; align-items: center; justify-content: center; transition: all 0.2s linear; }
+        /* 👾 몬스터 크기를 격자 한 칸에 꽉 차게(9.09%) 고정 */
+        .monster { position: absolute; width: 9.09%; height: 9.09%; z-index: 50; display: flex; align-items: center; justify-content: center; transition: all 0.2s linear; font-size: 24px; }
         
-        .hp-bar-bg { width: 80%; height: 3px; background: #450a0a; position: absolute; top: -5px; }
+        .hp-bar-bg { width: 80%; height: 3px; background: #450a0a; position: absolute; top: -5px; border-radius: 1px; }
         .hp-bar-fill { height: 100%; background: #22c55e; transition: width 0.2s; }
 
         #timer-container { width: 100%; height: 4px; background: #1e293b; position: absolute; top: 0; left: 0; z-index: 60; }
@@ -50,8 +52,6 @@
         .ctrl-btn { background: #1e293b; color: white; width: 42px; height: 42px; border-radius: 8px; display: flex; align-items: center; justify-content: center; border-bottom: 3px solid #000; }
         .exp-bar { width: 100%; height: 2px; background: #1e293b; margin-top: 2px; }
         #exp-fill { height: 100%; background: #a855f7; width: 0%; transition: width 0.3s; }
-
-        /* 🤺 시작 레이블 애니메이션 */
         .start-hint { position: absolute; top: -20px; white-space: nowrap; font-size: 8px; color: #fbbf24; animation: bounce 1s infinite; font-weight: bold; }
         @keyframes bounce { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-5px); } }
     </style>
@@ -109,7 +109,7 @@
     <div class="ui-panel">
         <div class="flex justify-between items-center gap-2 mb-2">
             <button onclick="buyGuardian()" class="flex-1 py-2 bg-purple-900/40 border border-purple-500 rounded text-[9px] font-bold uppercase">
-                Add Unit (150G) <span id="guardian-limit" class="block text-[7px] text-purple-300">0/0</span>
+                Add Unit (150G) <span id="guardian-limit" class="block text-[7px] text-purple-300">Limit: 0/0</span>
             </button>
             <button onclick="startWave()" id="start-btn" class="flex-1 py-3 bg-blue-600 rounded font-bold text-[11px] uppercase opacity-50 pointer-events-none">Start Wave</button>
             <button onclick="castSpeedMagic()" class="flex-1 py-2 bg-indigo-600 rounded text-[9px] font-bold uppercase">Burst (Mana 5)</button>
@@ -161,10 +161,10 @@
             const osc = audioCtx.createOscillator();
             const gain = audioCtx.createGain();
             osc.connect(gain); gain.connect(audioCtx.destination);
-            osc.type = 'square'; osc.frequency.setValueAtTime(200, audioCtx.currentTime);
-            gain.gain.setValueAtTime(0.04, audioCtx.currentTime);
-            gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.08);
-            osc.start(); osc.stop(audioCtx.currentTime + 0.08);
+            osc.type = 'sine'; osc.frequency.setValueAtTime(150, audioCtx.currentTime);
+            gain.gain.setValueAtTime(0.1, audioCtx.currentTime);
+            gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.1);
+            osc.start(); osc.stop(audioCtx.currentTime + 0.1);
         }
 
         function changeBGM(src) {
@@ -180,11 +180,8 @@
                 document.getElementById('start-label').style.display = 'none';
                 document.getElementById('start-btn').classList.remove('opacity-50', 'pointer-events-none');
                 changeBGM('music/townbgm.mp3');
-                summonRandomGuardian(true); // 첫 수호자 자동 소환
-                alert("SYSTEM: Defense Activated! 마을을 보호하세요.");
-            } else {
-                showRange(document.getElementById('player'), 2);
-            }
+                summonRandomGuardian(true);
+            } else { showRange(document.getElementById('player'), 2); }
         }
 
         function updateStats() {
@@ -230,8 +227,7 @@
 
         function summonRandomGuardian(isFree = false) {
             const g = document.createElement('div');
-            g.className = `unit guardian`;
-            g.innerHTML = isFree ? '🛡️' : '⚔️';
+            g.className = `unit guardian`; g.innerHTML = isFree ? '🛡️' : '⚔️';
             let r, c;
             do { r = Math.floor(Math.random()*7)+2; c = Math.floor(Math.random()*7)+2; }
             while ((r >= 4 && r <= 6 && c >= 4 && c <= 6) || (r === playerPos.r && c === playerPos.c));
@@ -264,17 +260,13 @@
             document.getElementById('gate-hp-fill').style.width = "100%";
             document.getElementById('south-gate').style.display = "flex";
             document.getElementById('start-btn').classList.add('opacity-50');
-            
-            // BGM 전환
             if (currentRound % 5 === 0) changeBGM('music/bossbgm.mp3');
             else changeBGM('music/defensebgm.mp3');
-
             const isBoss = currentRound % 5 === 0;
             let count = isBoss ? 1 : 5 + currentRound;
             const spawn = setInterval(() => { if(count-- <= 0) { clearInterval(spawn); return; } createMonster(isBoss); }, 1000);
             timerInterval = setInterval(() => {
-                waveTimer--;
-                document.getElementById('timer-fill').style.width = (waveTimer/30*100) + "%";
+                waveTimer--; document.getElementById('timer-fill').style.width = (waveTimer/30*100) + "%";
                 document.getElementById('timer-text').innerText = `00:${waveTimer < 10 ? '0' + waveTimer : waveTimer}`;
                 if(waveTimer <= 0) { clearInterval(timerInterval); monsters.forEach(m => m.isCharging = true); }
             }, 1000);
@@ -289,8 +281,8 @@
             if(Math.random() < 0.5) { r = Math.random() < 0.5 ? 0 : 10; c = Math.floor(Math.random()*11); }
             else { c = Math.random() < 0.5 ? 0 : 10; r = Math.floor(Math.random()*11); }
             m.r = r; m.c = c; m.hp = (isBoss ? 4000 : 300) + (currentRound*150); m.maxHp = m.hp;
-            m.atk = (isBoss ? 50 : 15) + currentRound; m.lastAttack = 0;
-            m.offX = (Math.random()-0.5)*2; m.offY = (Math.random()-0.5)*2;
+            m.atk = (isBoss ? 50 : 15) + currentRound; m.lastAttack = 0; m.isCharging = false;
+            m.offX = (Math.random()-0.5)*1.5; m.offY = (Math.random()-0.5)*1.5;
             document.getElementById('map-container').appendChild(m); monsters.push(m);
             document.getElementById('monster-count').innerText = `Enemies: ${monsters.length}`;
         }
@@ -299,21 +291,23 @@
             dExp += amt;
             if (dExp >= dExpNext) {
                 dExp -= dExpNext; dLevel++; dExpNext = Math.floor(dExpNext * 1.5);
-                alert(`LEVEL UP! LV.${dLevel}\n공격력이 상승했습니다!`);
-            }
-            updateStats();
+                updateStats(); alert(`LEVEL UP! LV.${dLevel}\n공격력이 상승했습니다!`);
+            } updateStats();
         }
 
         function gameLoop() {
             const now = Date.now();
             monsters.forEach((m, idx) => {
                 let target = null;
-                const dP = Math.hypot(m.r - playerPos.r, m.c - playerPos.c);
-                if (m.isCharging && dP <= 1.2) target = { type: 'player' };
-                else {
-                    const nG = guardians.find(g => Math.hypot(m.r - g.unitR, m.c - g.unitC) <= 1.2);
-                    if (m.isCharging && nG) target = { type: 'guardian', ref: nG };
-                    else if (m.isCharging && gateHp > 0 && Math.hypot(m.r - 10, m.c - 5) <= 0.5) target = { type: 'gate' };
+                // 궤도 돌 때는 공격 타겟팅 안 함. 성문 진입 시작(isCharging) 이후에만 수호자/플레이어/성문 공격
+                if (m.isCharging) {
+                    const dP = Math.hypot(m.r - playerPos.r, m.c - playerPos.c);
+                    if (dP <= 1.2) target = { type: 'player' };
+                    else {
+                        const nG = guardians.find(g => Math.hypot(m.r - g.unitR, m.c - g.unitC) <= 1.2);
+                        if (nG) target = { type: 'guardian', ref: nG };
+                        else if (gateHp > 0 && Math.hypot(m.r - 10, m.c - 5) <= 0.3) target = { type: 'gate' };
+                    }
                 }
 
                 if (target) {
@@ -329,40 +323,44 @@
                         m.lastAttack = now;
                     }
                 } else if (m.isCharging) {
-                    let tr = gateHp > 0 ? 10 : 5, tc = 5;
-                    const step = 0.045;
-                    if (m.r < tr) m.r += step; else if (m.r > tr) m.r -= step;
-                    if (m.c < tc) m.c += step; else if (m.c > tc) m.c -= step;
-                    if (gateHp <= 0 && Math.hypot(m.r - 5, m.c - 5) < 0.3) {
+                    // 성문(10,5) 찍고 입성(5,5). 좌표계를 격자 중심으로 강제 계산
+                    let targetR = gateHp > 0 ? 10 : 5, targetC = 5;
+                    const step = 0.04;
+                    if (m.r < targetR) m.r += step; else if (m.r > targetR) m.r -= step;
+                    if (m.c < targetC) m.c += step; else if (m.c > targetC) m.c -= step;
+                    
+                    if (gateHp <= 0 && Math.hypot(m.r - 5, m.c - 5) < 0.2) {
                         villageHp -= (m.innerHTML === '👹' ? 50 : 10);
                         document.getElementById('village-hp-bar').style.width = villageHp + "%";
                         m.remove(); monsters.splice(idx, 1);
                         if(villageHp <= 0) { alert("VILLAGE DESTROYED!"); location.reload(); }
                     }
                 } else {
-                    const step = 0.06;
-                    if(Math.abs(m.r) <= 0.1 && m.c < 10) m.c += step;
-                    else if(Math.abs(m.c - 10) <= 0.1 && m.r < 10) m.r += step;
-                    else if(Math.abs(m.r - 10) <= 0.1 && m.c > 0) m.c -= step;
-                    else if(Math.abs(m.c) <= 0.1 && m.r > 0) m.r -= step;
+                    // 궤도 로직 (성벽 밖 0, 10 라인만 이동)
+                    const step = 0.055;
+                    if(m.r <= 0.1 && m.c < 10) m.c += step;
+                    else if(m.c >= 9.9 && m.r < 10) m.r += step;
+                    else if(m.r >= 9.9 && m.c > 0.1) m.c -= step;
+                    else if(m.c <= 0.1 && m.r > 0.1) m.r -= step;
                 }
                 m.style.top = (m.r * 9.09 + m.offY) + '%'; m.style.left = (m.c * 9.09 + m.offX) + '%';
             });
 
+            // 유닛 공격 루프
             [...guardians, {unitR: playerPos.r, unitC: playerPos.c, atk: Math.floor(25 + user_str/4 + (dLevel-1)*15), lastShot: playerLastShot, isPlayer: true}].forEach(u => {
                 const cd = u.isPlayer ? playerAtkSpeed : 1200;
                 const lt = u.isPlayer ? playerLastShot : u.lastShot;
                 if (now - lt > cd) {
+                    // 유닛의 사거리 계산
                     const t = monsters.find(m => Math.hypot(u.unitR - m.r, u.unitC - m.c) <= (u.isPlayer ? 2.8 : 3.8));
                     if (t) { fire(u.unitR, u.unitC, t, u.isPlayer ? '#fbbf24' : '#38bdf8', u.atk); if(u.isPlayer) playerLastShot = now; else u.lastShot = now; }
                 }
             });
 
             if (playerHp <= 0) { alert("HERO DEFEATED!"); location.reload(); }
-            if(isWaveActive && monsters.length === 0 && waveTimer < 25) {
+            if(isWaveActive && monsters.length === 0 && waveTimer < 20) {
                 isWaveActive = false; document.getElementById('start-btn').classList.remove('opacity-50');
-                document.getElementById('timer-text').innerText = "00:30";
-                changeBGM('music/townbgm.mp3'); // 대기 상태 BGM
+                document.getElementById('timer-text').innerText = "00:30"; changeBGM('music/townbgm.mp3');
                 currentRound++; dCoin += 200; summonRandomGuardian(true); updateStats();
             }
             requestAnimationFrame(gameLoop);
@@ -384,9 +382,7 @@
                     if(fill) fill.style.width = (target.hp/target.maxHp*100) + "%";
                     if(target.hp <= 0) { 
                         const midx = monsters.indexOf(target); 
-                        if (midx > -1) { 
-                            monsters.splice(midx, 1); target.remove(); dCoin += 50; gainExp(30); updateStats(); 
-                        } 
+                        if (midx > -1) { monsters.splice(midx, 1); target.remove(); dCoin += 50; gainExp(30); updateStats(); } 
                     }
                 }
             };
