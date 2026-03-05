@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>QuestBody - Ultimate Gate Defense</title>
+    <title>QuestBody - Gate Defense Master</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Noto+Sans+KR:wght@400;700&display=swap');
@@ -30,7 +30,7 @@
             background: #78350f; border: 2px solid #f59e0b; z-index: 20; display: flex; flex-direction: column; align-items: center; justify-content: center;
         }
         #gate-hp-container { width: 80%; height: 3px; background: #450a0a; position: absolute; top: -5px; }
-        #gate-hp-fill { height: 100%; background: #eab308; width: 100%; transition: width 0.3s; }
+        #gate-hp-fill { height: 100%; background: #eab308; width: 100%; }
 
         .unit { position: absolute; width: 9.09%; height: 9.09%; z-index: 100; display: flex; align-items: center; justify-content: center; background-size: contain; background-repeat: no-repeat; background-position: center; transition: all 0.15s linear; }
         .monster { position: absolute; width: 8%; height: 8%; z-index: 50; display: flex; align-items: center; justify-content: center; transition: all 0.2s linear; }
@@ -40,6 +40,7 @@
 
         #timer-container { width: 100%; height: 4px; background: #1e293b; position: absolute; top: 0; left: 0; z-index: 60; }
         #timer-fill { height: 100%; background: #ef4444; width: 100%; }
+        #timer-text { position: absolute; top: 6px; right: 10px; font-size: 10px; color: #ef4444; font-weight: bold; z-index: 65; }
 
         .projectile { position: absolute; width: 4px; height: 4px; border-radius: 50%; z-index: 120; pointer-events: none; }
         .dmg-text { position: absolute; color: #ff4d4d; font-weight: bold; font-size: 10px; z-index: 200; pointer-events: none; animation: popUp 0.5s ease-out forwards; }
@@ -47,6 +48,8 @@
 
         .ui-panel { background: #0f172a; border-top: 2px solid #334155; padding: 10px; flex-shrink: 0; }
         .ctrl-btn { background: #1e293b; color: white; width: 42px; height: 42px; border-radius: 8px; display: flex; align-items: center; justify-content: center; border-bottom: 3px solid #000; }
+        .exp-bar { width: 100%; height: 2px; background: #1e293b; margin-top: 2px; }
+        #exp-fill { height: 100%; background: #a855f7; width: 0%; transition: width 0.3s; }
     </style>
 </head>
 <body>
@@ -54,10 +57,14 @@
     <header class="p-2 bg-slate-900 flex justify-between items-center border-b border-slate-700 shrink-0">
         <button onclick="location.href='index.html'" class="text-slate-400 text-[10px] font-bold uppercase">◀ HUB</button>
         <div class="text-center flex-1 mx-4">
-            <span id="round-text" class="text-blue-400 text-[10px] font-bold uppercase">ROUND 1/20</span>
-            <div class="w-full bg-slate-800 h-1 rounded-full overflow-hidden mt-1">
-                <div id="village-hp-bar" class="bg-emerald-500 h-full w-full transition-all"></div>
+            <div class="flex justify-between items-center mb-0.5">
+                <span id="round-text" class="text-blue-400 text-[9px] font-bold uppercase">ROUND 1/20</span>
+                <span id="level-display" class="text-purple-400 text-[9px] font-bold uppercase">LV. 1</span>
             </div>
+            <div class="w-full bg-slate-800 h-1 rounded-full overflow-hidden mb-1">
+                <div id="village-hp-bar" class="bg-emerald-500 h-full w-full"></div>
+            </div>
+            <div class="exp-bar"><div id="exp-fill"></div></div>
         </div>
         <div class="text-right">
             <p id="d-coin" class="text-[11px] font-bold text-yellow-400">300 G</p>
@@ -79,6 +86,7 @@
                 }
             </script>
             <div id="timer-container"><div id="timer-fill"></div></div>
+            <div id="timer-text">00:30</div>
             <div id="village">🏰</div>
             <div id="south-gate">
                 <div id="gate-hp-container"><div id="gate-hp-fill"></div></div>
@@ -94,9 +102,9 @@
     <div class="ui-panel">
         <div class="flex justify-between items-center gap-2 mb-2">
             <button onclick="buyGuardian()" class="flex-1 py-2 bg-purple-900/40 border border-purple-500 rounded text-[9px] font-bold uppercase">
-                Add Unit (150G) <span id="guardian-limit" class="block text-[7px] text-purple-300">Limit: 0/0</span>
+                Add Unit (150G) <span id="guardian-limit" class="block text-[7px] text-purple-300">0/0</span>
             </button>
-            <button onclick="startWave()" id="start-btn" class="flex-1 py-3 bg-blue-600 rounded font-bold text-[11px] uppercase">Start Wave</button>
+            <button onclick="startWave()" id="start-btn" class="flex-1 py-3 bg-blue-600 rounded font-bold text-[11px] uppercase shadow-lg shadow-blue-900/50">Start Wave</button>
             <button onclick="castSpeedMagic()" class="flex-1 py-2 bg-indigo-600 rounded text-[9px] font-bold uppercase">Burst (Mana 5)</button>
         </div>
         
@@ -133,6 +141,7 @@
         let weekly = JSON.parse(localStorage.getItem('weekly_workout_data')) || { totalHpBonus: 0, totalDef: 0 };
         
         let villageHp = 100, gateHpMax = 500, gateHp = 500, currentRound = 1, dCoin = 300;
+        let dLevel = 1, dExp = 0, dExpNext = 100;
         let isWaveActive = false, waveTimer = 30;
         let playerPos = { r: 8, c: 5 }, guardians = [], monsters = [], timerInterval;
         
@@ -146,11 +155,14 @@
             const inbody = JSON.parse(localStorage.getItem('user_inbody'));
             document.getElementById('player').style.backgroundImage = inbody?.gender === 'woman' ? "url('image/woman.png')" : "url('image/man/man.png')";
             updatePlayerUI(); updateStats();
-            summonRandomGuardian(true); // 초기 수호자
+            summonRandomGuardian(true);
         };
 
         function updateStats() {
-            document.getElementById('hero-atk').innerText = Math.floor(25 + user_str/4);
+            const levelBonus = (dLevel - 1) * 15;
+            document.getElementById('hero-atk').innerText = Math.floor(25 + user_str/4 + levelBonus);
+            document.getElementById('level-display').innerText = `LV. ${dLevel}`;
+            document.getElementById('exp-fill').style.width = (dExp/dExpNext * 100) + "%";
             document.getElementById('hero-hp-val').innerText = `${Math.floor(playerHp)}/${playerHpMax}`;
             document.getElementById('hero-speed-val').innerText = `${(1000/playerAtkSpeed).toFixed(1)}/s`;
             document.getElementById('d-coin').innerText = dCoin + " G";
@@ -182,7 +194,7 @@
         }
 
         function buyGuardian() {
-            if (guardians.length >= Math.floor(user_int/5) + currentRound || dCoin < 150) { alert("지능이 부족하거나 코인이 없습니다!"); return; }
+            if (guardians.length >= Math.floor(user_int/5) + currentRound || dCoin < 150) return;
             dCoin -= 150; summonRandomGuardian();
         }
 
@@ -224,9 +236,11 @@
             document.getElementById('start-btn').classList.add('opacity-50');
             const isBoss = currentRound % 5 === 0;
             let count = isBoss ? 1 : 5 + currentRound;
-            const spawn = setInterval(() => { if(count-- <= 0) { clearInterval(spawn); return; } createMonster(isBoss); }, 1000);
+            const spawn = setInterval(() => { if(count-- <= 0) { clearInterval(spawn); return; } createMonster(isBoss); }, 800);
             timerInterval = setInterval(() => {
-                waveTimer--; document.getElementById('timer-fill').style.width = (waveTimer/30*100) + "%";
+                waveTimer--;
+                document.getElementById('timer-fill').style.width = (waveTimer/30*100) + "%";
+                document.getElementById('timer-text').innerText = `00:${waveTimer < 10 ? '0' + waveTimer : waveTimer}`;
                 if(waveTimer <= 0) { clearInterval(timerInterval); monsters.forEach(m => m.isCharging = true); }
             }, 1000);
         }
@@ -241,25 +255,32 @@
             else { c = Math.random() < 0.5 ? 0 : 10; r = Math.floor(Math.random()*11); }
             m.r = r; m.c = c; m.hp = (isBoss ? 4000 : 300) + (currentRound*150); m.maxHp = m.hp;
             m.atk = (isBoss ? 50 : 15) + currentRound; m.lastAttack = 0;
-            // 겹침 방지 오프셋
             m.offX = (Math.random()-0.5)*2; m.offY = (Math.random()-0.5)*2;
             document.getElementById('map-container').appendChild(m); monsters.push(m);
             document.getElementById('monster-count').innerText = `Enemies: ${monsters.length}`;
+        }
+
+        function gainExp(amt) {
+            dExp += amt;
+            if (dExp >= dExpNext) {
+                dExp -= dExpNext; dLevel++; dExpNext = Math.floor(dExpNext * 1.5);
+                alert(`LEVEL UP! LV.${dLevel}\n마스터의 공격력이 대폭 상승했습니다!`);
+            }
+            updateStats();
         }
 
         function gameLoop() {
             const now = Date.now();
             monsters.forEach((m, idx) => {
                 let target = null;
-                if (m.isCharging) {
-                    const dP = Math.hypot(m.r - playerPos.r, m.c - playerPos.c);
-                    if (dP <= 1.2) target = { type: 'player' };
-                    else {
-                        const nG = guardians.find(g => Math.hypot(m.r - g.unitR, m.c - g.unitC) <= 1.2);
-                        if (nG) target = { type: 'guardian', ref: nG };
-                        else if (gateHp > 0 && Math.hypot(m.r - 10, m.c - 5) <= 1.2) target = { type: 'gate' };
-                    }
+                const dP = Math.hypot(m.r - playerPos.r, m.c - playerPos.c);
+                if (m.isCharging && dP <= 1.2) target = { type: 'player' };
+                else {
+                    const nG = guardians.find(g => Math.hypot(m.r - g.unitR, m.c - g.unitC) <= 1.2);
+                    if (m.isCharging && nG) target = { type: 'guardian', ref: nG };
+                    else if (m.isCharging && gateHp > 0 && Math.hypot(m.r - 10, m.c - 5) <= 0.5) target = { type: 'gate' };
                 }
+
                 if (target) {
                     if (now - m.lastAttack > 1500) {
                         if (target.type === 'player') { playerHp -= Math.max(1, m.atk - playerDef); updatePlayerUI(); }
@@ -274,7 +295,7 @@
                     }
                 } else if (m.isCharging) {
                     let tr = gateHp > 0 ? 10 : 5, tc = 5;
-                    const step = 0.04;
+                    const step = 0.045;
                     if (m.r < tr) m.r += step; else if (m.r > tr) m.r -= step;
                     if (m.c < tc) m.c += step; else if (m.c > tc) m.c -= step;
                     if (gateHp <= 0 && Math.hypot(m.r - 5, m.c - 5) < 0.3) {
@@ -284,7 +305,7 @@
                         if(villageHp <= 0) { alert("VILLAGE DESTROYED!"); location.reload(); }
                     }
                 } else {
-                    const step = 0.055;
+                    const step = 0.06;
                     if(Math.abs(m.r) <= 0.1 && m.c < 10) m.c += step;
                     else if(Math.abs(m.c - 10) <= 0.1 && m.r < 10) m.r += step;
                     else if(Math.abs(m.r - 10) <= 0.1 && m.c > 0) m.c -= step;
@@ -293,11 +314,11 @@
                 m.style.top = (m.r * 9.09 + m.offY) + '%'; m.style.left = (m.c * 9.09 + m.offX) + '%';
             });
 
-            [...guardians, {unitR: playerPos.r, unitC: playerPos.c, atk: Math.floor(25 + user_str/4), lastShot: playerLastShot, isPlayer: true}].forEach(u => {
+            [...guardians, {unitR: playerPos.r, unitC: playerPos.c, atk: Math.floor(25 + user_str/4 + (dLevel-1)*15), lastShot: playerLastShot, isPlayer: true}].forEach(u => {
                 const cd = u.isPlayer ? playerAtkSpeed : 1200;
                 const lt = u.isPlayer ? playerLastShot : u.lastShot;
                 if (now - lt > cd) {
-                    const t = monsters.find(m => Math.hypot(u.unitR - m.r, u.unitC - m.c) <= (u.isPlayer ? 2.5 : 3.5));
+                    const t = monsters.find(m => Math.hypot(u.unitR - m.r, u.unitC - m.c) <= (u.isPlayer ? 2.8 : 3.8));
                     if (t) { fire(u.unitR, u.unitC, t, u.isPlayer ? '#fbbf24' : '#38bdf8', u.atk); if(u.isPlayer) playerLastShot = now; else u.lastShot = now; }
                 }
             });
@@ -305,6 +326,7 @@
             if (playerHp <= 0) { alert("HERO DEFEATED!"); location.reload(); }
             if(isWaveActive && monsters.length === 0 && waveTimer < 25) {
                 isWaveActive = false; document.getElementById('start-btn').classList.remove('opacity-50');
+                document.getElementById('timer-text').innerText = "00:30";
                 currentRound++; dCoin += 200; summonRandomGuardian(true); updateStats();
             }
             requestAnimationFrame(gameLoop);
@@ -318,11 +340,20 @@
             d.style.top = (target.r*9.09)+'%'; d.style.left = (target.c*9.09)+'%';
             document.getElementById('map-container').appendChild(d);
             setTimeout(() => d.remove(), 500); playHitSound();
-            p.animate([{top: p.style.top, left: p.style.left}, {top: (target.r*9.09+4.5)+'%', left: (target.c*9.09+4.5)+'%'}], 120).onfinish = () => p.remove();
-            target.hp -= dmg;
-            const fill = target.querySelector('.hp-bar-fill');
-            if(fill) fill.style.width = (target.hp/target.maxHp*100) + "%";
-            if(target.hp <= 0) { const midx = monsters.indexOf(target); if (midx > -1) { monsters.splice(midx, 1); target.remove(); dCoin += 40; updateStats(); } }
+            p.animate([{top: p.style.top, left: p.style.left}, {top: (target.r*9.09+4.5)+'%', left: (target.c*9.09+4.5)+'%'}], 120).onfinish = () => {
+                p.remove();
+                if (monsters.includes(target)) {
+                    target.hp -= dmg;
+                    const fill = target.querySelector('.hp-bar-fill');
+                    if(fill) fill.style.width = (target.hp/target.maxHp*100) + "%";
+                    if(target.hp <= 0) { 
+                        const midx = monsters.indexOf(target); 
+                        if (midx > -1) { 
+                            monsters.splice(midx, 1); target.remove(); dCoin += 50; gainExp(30); updateStats(); 
+                        } 
+                    }
+                }
+            };
         }
         gameLoop();
     </script>
