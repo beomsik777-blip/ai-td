@@ -1,4 +1,370 @@
-<!DOCTYPE html>
+<!DOCTYPE html><!DOCTYPE html>
+<html lang="ko" class="notranslate" translate="no">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>QuestBody - Ultimate Gate Defense</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Noto+Sans+KR:wght@400;700&display=swap');
+        * { touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
+        body { background-color: #020617; color: white; font-family: 'Orbitron', 'Noto Sans KR', sans-serif; overflow: hidden; height: 100dvh; margin: 0; }
+        
+        #map-container {
+            width: 95vw; height: 95vw; max-width: 500px; max-height: 500px;
+            background: #0f172a; border: 2px solid #334155; position: relative; margin: 5px auto;
+            display: grid; grid-template-columns: repeat(11, 1fr); grid-template-rows: repeat(11, 1fr);
+        }
+        .grid-cell { border: 0.1px solid rgba(56, 189, 248, 0.05); pointer-events: none; }
+        /* 🧱 성벽 스타일 */
+        .wall-cell { background: rgba(51, 65, 85, 0.6); border: 1px solid rgba(100, 116, 139, 0.5); }
+        .range-highlight { background: rgba(56, 189, 248, 0.15); border: 1px solid #38bdf8; z-index: 5; }
+
+        #village {
+            position: absolute; top: 36.36%; left: 36.36%; width: 27.27%; height: 27.27%;
+            background: #1e293b; border: 2px solid #38bdf8; z-index: 10;
+            display: flex; align-items: center; justify-content: center; border-radius: 8px;
+        }
+        
+        /* 🚪 성문 (6시 방향) */
+        #south-gate {
+            position: absolute; bottom: 18.18%; left: 45.45%; width: 9.09%; height: 18.18%;
+            background: repeating-linear-gradient(45deg, #451a03, #451a03 5px, #78350f 5px, #78350f 10px);
+            border: 2px solid #f59e0b; z-index: 20; display: flex; flex-direction: column; align-items: center; justify-content: center;
+        }
+        #gate-hp-container { width: 80%; height: 4px; background: #450a0a; position: absolute; top: -10px; border-radius: 2px; }
+        #gate-hp-fill { height: 100%; background: #eab308; width: 100%; transition: width 0.3s; }
+
+        .unit { position: absolute; width: 9.09%; height: 9.09%; z-index: 100; display: flex; align-items: center; justify-content: center; background-size: contain; background-repeat: no-repeat; background-position: center; transition: all 0.15s linear; }
+        .monster { position: absolute; width: 9.09%; height: 9.09%; z-index: 50; display: flex; align-items: center; justify-content: center; transition: all 0.2s linear; }
+        
+        .hp-bar-bg { width: 80%; height: 3px; background: #450a0a; position: absolute; top: -5px; }
+        .hp-bar-fill { height: 100%; background: #22c55e; transition: width 0.2s; }
+
+        #timer-container { width: 100%; height: 5px; background: #1e293b; position: absolute; top: 0; left: 0; z-index: 60; }
+        #timer-fill { height: 100%; background: #ef4444; width: 100%; }
+
+        .projectile { position: absolute; width: 5px; height: 5px; border-radius: 50%; z-index: 120; pointer-events: none; }
+        .dmg-text { position: absolute; color: #ff4d4d; font-weight: bold; font-size: 11px; z-index: 200; pointer-events: none; animation: popUp 0.5s ease-out forwards; }
+        @keyframes popUp { 0% { transform: translateY(0); opacity: 1; } 100% { transform: translateY(-15px); opacity: 0; } }
+
+        .ui-panel { background: #0f172a; border-top: 2px solid #334155; padding: 10px; }
+        .ctrl-btn { background: #1e293b; color: white; width: 44px; height: 44px; border-radius: 8px; display: flex; align-items: center; justify-content: center; border-bottom: 3px solid #000; }
+        .magic-btn { background: linear-gradient(135deg, #3b82f6, #8b5cf6); border: 1px solid #a78bfa; }
+    </style>
+</head>
+<body class="flex flex-col">
+
+    <audio id="bgm" loop><source src="music/townbgm.mp3" type="audio/mpeg"></audio>
+
+    <header class="p-2 bg-slate-900 flex justify-between items-center border-b border-slate-700">
+        <button onclick="location.href='index.html'" class="text-slate-400 text-[10px] font-bold uppercase">◀ HUB</button>
+        <div class="text-center flex-1 mx-4">
+            <div class="flex justify-between items-center mb-0.5">
+                <span id="round-text" class="text-blue-400 text-[9px] font-bold uppercase">ROUND 1/20</span>
+                <span id="level-display" class="text-purple-400 text-[9px] font-bold uppercase">LV. 1</span>
+            </div>
+            <div class="w-full bg-slate-800 h-1.5 rounded-full overflow-hidden mb-1">
+                <div id="village-hp-bar" class="bg-emerald-500 h-full w-full"></div>
+            </div>
+        </div>
+        <div class="text-right">
+            <p id="d-coin" class="text-[11px] font-bold text-yellow-400">300 G</p>
+            <p id="mana-display" class="text-[8px] text-blue-400 font-bold uppercase">Mana: 10/10</p>
+        </div>
+    </header>
+
+    <div class="flex-1 flex flex-col items-center justify-center bg-black relative">
+        <div id="map-container">
+            <script>
+                const container = document.getElementById('map-container');
+                for(let i=0; i<121; i++) {
+                    const r = Math.floor(i/11), c = i%11;
+                    const cell = document.createElement('div');
+                    cell.className = 'grid-cell';
+                    // 테두리 안쪽 1칸을 성벽으로 표시
+                    if((r === 1 || r === 9 || c === 1 || c === 9) && !(r===0||r===10||c===0||c===10)) {
+                        cell.classList.add('wall-cell');
+                    }
+                    cell.id = `grid-${r}-${c}`;
+                    container.appendChild(cell);
+                }
+            </script>
+            <div id="timer-container"><div id="timer-fill"></div></div>
+            <div id="village">🏰</div>
+            <div id="south-gate">
+                <div id="gate-hp-container"><div id="gate-hp-fill"></div></div>
+                <span class="text-[7px] font-bold text-white uppercase mt-1">Gate</span>
+            </div>
+            <div id="player" class="unit" onclick="showRange(this, 2)">
+                <div class="hp-bar-bg"><div id="player-hp-fill" class="hp-bar-fill"></div></div>
+            </div>
+            <div id="unit-layer"></div>
+        </div>
+    </div>
+
+    <div class="ui-panel shrink-0 space-y-3">
+        <div class="flex justify-between items-center gap-2">
+            <button onclick="buyGuardian()" class="flex-1 py-2 bg-purple-900/40 border border-purple-500 rounded text-[9px] font-bold uppercase">
+                Summon Guardian (150G)
+            </button>
+            <button onclick="startWave()" id="start-btn" class="flex-1 py-3 bg-blue-600 rounded font-bold text-xs uppercase">Start Wave</button>
+            <button onclick="castSpeedMagic()" class="flex-1 py-2 magic-btn rounded text-[9px] font-bold uppercase">
+                Burst (Mana 5)
+            </button>
+        </div>
+        
+        <div class="flex justify-between items-center">
+            <div class="grid grid-cols-3 gap-1">
+                <div></div><button class="ctrl-btn" onclick="movePlayer(-1, 0)">▲</button><div></div>
+                <button class="ctrl-btn" onclick="movePlayer(0, -1)">◀</button>
+                <button class="ctrl-btn" onclick="movePlayer(1, 0)">▼</button>
+                <button class="ctrl-btn" onclick="movePlayer(0, 1)">▶</button>
+            </div>
+            
+            <div class="bg-slate-900/80 p-2 rounded border border-slate-700 flex-1 ml-4 grid grid-cols-2 gap-2 text-center">
+                <div><p class="text-[6px] text-slate-500 uppercase">HP</p><p id="hero-hp-val" class="text-[9px] text-emerald-400 font-bold">0/0</p></div>
+                <div><p class="text-[6px] text-slate-500 uppercase">ASPD</p><p id="hero-speed-val" class="text-[9px] text-blue-400 font-bold">1.7/s</p></div>
+                <div class="col-span-2 border-t border-slate-800 pt-1"><p id="hero-atk" class="text-[9px] text-orange-400 font-bold uppercase tracking-widest">ATK: 0</p></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let user_str = parseInt(localStorage.getItem('user_str')) || 0;
+        let user_int = parseInt(localStorage.getItem('user_int')) || 0;
+        let weekly = JSON.parse(localStorage.getItem('weekly_workout_data')) || { totalHpBonus: 0, totalDef: 0 };
+        
+        let villageHp = 100, gateHpMax = 500, gateHp = 500, currentRound = 1, dCoin = 300;
+        let dLevel = 1, dExp = 0, dExpNext = 100;
+        let isWaveActive = false, waveTimer = 30;
+        let playerPos = { r: 8, c: 5 }, guardians = [], monsters = [], timerInterval;
+        
+        let playerHpMax = 100 + weekly.totalHpBonus;
+        let playerHp = playerHpMax;
+        let playerDef = weekly.totalDef || 0;
+        let playerLastShot = 0, playerAtkSpeed = 600, magicActive = false;
+        let manaMax = 10 + user_int, currentMana = manaMax;
+
+        window.onload = () => {
+            const inbody = JSON.parse(localStorage.getItem('user_inbody'));
+            document.getElementById('player').style.backgroundImage = inbody?.gender === 'woman' ? "url('image/woman.png')" : "url('image/man/man.png')";
+            updatePlayerUI();
+            updateStats();
+            summonRandomGuardian(true);
+        };
+
+        function updateStats() {
+            const levelBonus = (dLevel - 1) * 10;
+            document.getElementById('hero-atk').innerText = `ATK: ${Math.floor(25 + user_str/4 + levelBonus)}`;
+            document.getElementById('level-display').innerText = `LV. ${dLevel}`;
+            document.getElementById('hero-hp-val').innerText = `${Math.floor(playerHp)}/${playerHpMax}`;
+            document.getElementById('hero-speed-val').innerText = `${(1000/playerAtkSpeed).toFixed(1)}/s`;
+            document.getElementById('d-coin').innerText = dCoin + " G";
+            document.getElementById('mana-display').innerText = `Mana: ${currentMana}/${manaMax}`;
+        }
+
+        function castSpeedMagic() {
+            if (currentMana < 5 || magicActive) return;
+            currentMana -= 5; magicActive = true; playerAtkSpeed = 300;
+            updateStats();
+            setTimeout(() => { magicActive = false; playerAtkSpeed = 600; updateStats(); }, 5000);
+        }
+
+        function movePlayer(dr, dc) {
+            const nr = playerPos.r + dr, nc = playerPos.c + dc;
+            if (nr >= 0 && nr < 11 && nc >= 0 && nc < 11) {
+                if (nr >= 4 && nr <= 6 && nc >= 4 && nc <= 6) return; 
+                // 🧱 성문이나 성벽 이동 제한 (선택 사항이나 마스터가 막아달라고 함)
+                const targetCell = document.getElementById(`grid-${nr}-${nc}`);
+                if (targetCell.classList.contains('wall-cell') && !(nr === 8 && nc === 5)) return; 
+                
+                playerPos.r = nr; playerPos.c = nc;
+                updatePlayerUI();
+                clearRange();
+            }
+        }
+
+        function updatePlayerUI() {
+            const p = document.getElementById('player');
+            p.style.top = (playerPos.r * 9.09) + '%'; p.style.left = (playerPos.c * 9.09) + '%';
+            document.getElementById('player-hp-fill').style.width = (playerHp/playerHpMax*100) + "%";
+        }
+
+        function showRange(el, range) {
+            clearRange();
+            const r = el.unitR !== undefined ? el.unitR : playerPos.r;
+            const c = el.unitC !== undefined ? el.unitC : playerPos.c;
+            for(let i = r-range; i <= r+range; i++) {
+                for(let j = c-range; j <= c+range; j++) {
+                    const cell = document.getElementById(`grid-${i}-${j}`);
+                    if(cell) cell.classList.add('range-highlight');
+                }
+            }
+        }
+
+        function clearRange() { document.querySelectorAll('.grid-cell').forEach(c => c.classList.remove('range-highlight')); }
+
+        function buyGuardian() {
+            if (guardians.length >= Math.floor(user_int/5) + 1 || dCoin < 150) return;
+            dCoin -= 150; summonRandomGuardian();
+        }
+
+        function summonRandomGuardian(isFree = false) {
+            const g = document.createElement('div');
+            const isHidden = !isFree && Math.random() < 0.1;
+            g.className = `unit guardian ${isHidden ? 'hidden-guardian' : ''}`;
+            g.innerHTML = isHidden ? '🐉' : '🛡️';
+            
+            let r, c;
+            // 성벽 안쪽(2~8) 구역에 소환
+            do { r = Math.floor(Math.random()*7)+2; c = Math.floor(Math.random()*7)+2; }
+            while ((r >= 4 && r <= 6 && c >= 4 && c <= 6) || (r === playerPos.r && c === playerPos.c));
+
+            g.unitR = r; g.unitC = c;
+            g.hpMax = 60 + (currentRound*15); g.hp = g.hpMax;
+            g.style.top = (r*9.09)+'%'; g.style.left = (c*9.09)+'%';
+            const hpBg = document.createElement('div'); hpBg.className = 'hp-bar-bg';
+            const hpFill = document.createElement('div'); hpFill.className = 'hp-bar-fill';
+            hpBg.appendChild(hpFill); g.appendChild(hpBg);
+            g.onclick = (e) => { e.stopPropagation(); showRange(g, isHidden ? 4 : 2); };
+            g.atk = isHidden ? 65 : 25; g.lastShot = 0;
+            document.getElementById('unit-layer').appendChild(g);
+            guardians.push(g); updateStats();
+        }
+
+        function startWave() {
+            if (isWaveActive) return;
+            isWaveActive = true; waveTimer = 30; gateHp = gateHpMax + (currentRound*100);
+            document.getElementById('gate-hp-fill').style.width = "100%";
+            document.getElementById('start-btn').classList.add('opacity-50');
+            const isBoss = currentRound % 5 === 0;
+            let count = isBoss ? 1 : 5 + currentRound;
+            const spawn = setInterval(() => { if(count-- <= 0) { clearInterval(spawn); return; } createMonster(isBoss); }, 1000);
+            timerInterval = setInterval(() => {
+                waveTimer--;
+                document.getElementById('timer-fill').style.width = (waveTimer/30*100) + "%";
+                if(waveTimer <= 0) { clearInterval(timerInterval); monsters.forEach(m => m.isCharging = true); }
+            }, 1000);
+        }
+
+        function createMonster(isBoss) {
+            const m = document.createElement('div'); m.className = 'monster'; m.innerHTML = isBoss ? '👹' : '👾';
+            const hpBg = document.createElement('div'); hpBg.className = 'hp-bar-bg';
+            const hpFill = document.createElement('div'); hpFill.className = 'hp-bar-fill';
+            hpBg.appendChild(hpFill); m.appendChild(hpBg);
+            let r, c;
+            if(Math.random() < 0.5) { r = Math.random() < 0.5 ? 0 : 10; c = Math.floor(Math.random()*11); }
+            else { c = Math.random() < 0.5 ? 0 : 10; r = Math.floor(Math.random()*11); }
+            m.r = r; m.c = c; m.hp = (isBoss ? 3500 : 300) + (currentRound*120); m.maxHp = m.hp;
+            m.atk = (isBoss ? 45 : 15) + currentRound; m.lastAttack = 0; m.isCharging = false; m.reachedGate = false;
+            document.getElementById('map-container').appendChild(m);
+            monsters.push(m);
+            document.getElementById('monster-count').innerText = `Enemies: ${monsters.length}`;
+        }
+
+        function gameLoop() {
+            const now = Date.now();
+            monsters.forEach((m, idx) => {
+                let target = null;
+                // 1. 공격 대상 확인 (isCharging일 때만 성벽/마을 침입 및 공격)
+                if (m.isCharging) {
+                    const distToPlayer = Math.abs(m.r - playerPos.r) + Math.abs(m.c - playerPos.c);
+                    if (distToPlayer <= 1.2) target = { type: 'player' };
+                    else {
+                        const nearG = guardians.find(g => Math.abs(m.r - g.unitR) + Math.abs(m.c - g.unitC) <= 1.2);
+                        if (nearG) target = { type: 'guardian', ref: nearG };
+                        else if (gateHp > 0 && Math.abs(m.r - 10) <= 1 && Math.abs(m.c - 5) <= 1) target = { type: 'gate' };
+                    }
+                }
+
+                // 2. 공격 수행
+                if (target) {
+                    if (now - m.lastAttack > 1500) {
+                        if (target.type === 'player') { playerHp -= Math.max(1, m.atk - playerDef); updatePlayerUI(); }
+                        else if (target.type === 'guardian') { 
+                            target.ref.hp -= m.atk; target.ref.querySelector('.hp-bar-fill').style.width = (target.ref.hp/target.ref.hpMax*100) + "%";
+                            if (target.ref.hp <= 0) { target.ref.remove(); guardians.splice(guardians.indexOf(target.ref), 1); updateStats(); }
+                        } else if (target.type === 'gate') {
+                            gateHp -= m.atk; document.getElementById('gate-hp-fill').style.width = (gateHp/(gateHpMax + (currentRound*100))*100) + "%";
+                            if (gateHp <= 0) { gateHp = 0; document.getElementById('south-gate').style.opacity = "0.2"; }
+                        }
+                        m.lastAttack = now;
+                    }
+                } 
+                // 3. 이동 수행
+                else if (m.isCharging) {
+                    // 6시 방향 성문 위치 (r:10, c:5) -> 그 다음 마을 중심 (r:5, c:5)
+                    let targetR = gateHp > 0 ? 10 : 5, targetC = 5;
+                    
+                    const moveStep = 0.045; // 몬스터 이속 조절 (느리게)
+                    if (m.r < targetR) m.r += moveStep; else if (m.r > targetR) m.r -= moveStep;
+                    if (m.c < targetC) m.c += moveStep; else if (m.c > targetC) m.c -= moveStep;
+
+                    if (gateHp <= 0 && Math.abs(m.r - 5) < 0.2 && Math.abs(m.c - 5) < 0.2) {
+                        villageHp -= (m.innerHTML === '👹' ? 50 : 10);
+                        document.getElementById('village-hp-bar').style.width = villageHp + "%";
+                        m.remove(); monsters.splice(idx, 1);
+                        if(villageHp <= 0) { alert("VILLAGE DESTROYED!"); location.reload(); }
+                        return;
+                    }
+                } else {
+                    // 궤도 회전 (테두리 0 or 10)
+                    const rotStep = 0.05;
+                    if(Math.abs(m.r) <= 0.1 && m.c < 10) m.c += rotStep; 
+                    else if(Math.abs(m.c - 10) <= 0.1 && m.r < 10) m.r += rotStep;
+                    else if(Math.abs(m.r - 10) <= 0.1 && m.c > 0) m.c -= rotStep; 
+                    else if(Math.abs(m.c) <= 0.1 && m.r > 0) m.r -= rotStep;
+                }
+                m.style.top = (m.r * 9.09) + '%'; m.style.left = (m.c * 9.09) + '%';
+            });
+
+            // 유닛들의 공격 루프
+            [...guardians, {unitR: playerPos.r, unitC: playerPos.c, atk: Math.floor(25 + user_str/4 + (dLevel-1)*10), lastShot: playerLastShot, isPlayer: true}].forEach(u => {
+                const cooldown = u.isPlayer ? playerAtkSpeed : 1200;
+                const lastTime = u.isPlayer ? playerLastShot : u.lastShot;
+                if (now - lastTime > cooldown) {
+                    const range = u.isPlayer ? 2.5 : 3.5;
+                    const target = monsters.find(m => Math.hypot(u.unitR - m.r, u.unitC - m.c) <= range);
+                    if (target) { 
+                        fire(u.unitR, u.unitC, target, u.isPlayer ? '#fbbf24' : '#38bdf8', u.atk);
+                        if(u.isPlayer) playerLastShot = now; else u.lastShot = now;
+                    }
+                }
+            });
+
+            if (playerHp <= 0) { alert("HERO DEFEATED!"); location.reload(); }
+            if(isWaveActive && monsters.length === 0 && waveTimer < 25) {
+                isWaveActive = false; document.getElementById('start-btn').classList.remove('opacity-50');
+                currentRound++; dCoin += 200; updateStats();
+            }
+            requestAnimationFrame(gameLoop);
+        }
+
+        function fire(sr, sc, target, color, dmg) {
+            const p = document.createElement('div'); p.className = 'projectile'; p.style.backgroundColor = color;
+            p.style.top = (sr*9.09+4.5)+'%'; p.style.left = (sc*9.09+4.5)+'%';
+            document.getElementById('map-container').appendChild(p);
+            
+            const d = document.createElement('div'); d.className = 'dmg-text'; d.innerText = dmg;
+            d.style.top = (target.r*9.09)+'%'; d.style.left = (target.c*9.09)+'%';
+            document.getElementById('map-container').appendChild(d);
+            setTimeout(() => d.remove(), 500);
+
+            p.animate([{top: p.style.top, left: p.style.left}, {top: (target.r*9.09+4.5)+'%', left: (target.c*9.09+4.5)+'%'}], 120).onfinish = () => p.remove();
+            target.hp -= dmg;
+            const fill = target.querySelector('.hp-bar-fill');
+            if(fill) fill.style.width = (target.hp/target.maxHp*100) + "%";
+            if(target.hp <= 0) { 
+                const midx = monsters.indexOf(target);
+                if (midx > -1) { monsters.splice(midx, 1); target.remove(); dCoin += 40; updateStats(); }
+            }
+        }
+        gameLoop();
+    </script>
+</body>
+</html>
+
 <html lang="ko" class="notranslate" translate="no">
 <head>
     <meta charset="UTF-8">
