@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>QuestBody - Ultimate Maze Defense</title>
+    <title>QuestBody - Maze Defense Final Elite</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Noto+Sans+KR:wght@300;400;700&display=swap');
@@ -46,16 +46,17 @@
         .crit { color: #facc15 !important; font-size: 16px !important; }
         @keyframes popUp { 0% { transform: translateY(0) scale(1); opacity: 1; } 100% { transform: translateY(-20px) scale(1.2); opacity: 0; } }
         
-        /* 🚀 투사체 임팩트 복구 */
         .projectile { position: absolute; width: 6px; height: 6px; border-radius: 50%; z-index: 120; pointer-events: none; box-shadow: 0 0 10px currentColor; }
         .flash-screen { position: absolute; inset: 0; background: white; opacity: 0; pointer-events: none; z-index: 1000; transition: opacity 0.5s; }
 
+        /* 📋 UI 가림 방지 레이아웃 */
         .info-tab { margin: 5px auto; width: 95vw; background: rgba(15, 23, 42, 0.95); border: 1px solid #334155; padding: 8px; border-radius: 6px; font-size: 8px; z-index: 70; }
         #unit-control-panel { position: absolute; top: 12%; left: 50%; transform: translateX(-50%); background: rgba(15, 23, 42, 0.98); border: 2px solid #fb923c; padding: 12px; border-radius: 12px; z-index: 250; display: none; min-width: 220px; box-shadow: 0 0 30px #000; text-align: center; }
         #game-msg { position: absolute; top: 45%; left: 50%; transform: translate(-50%, -50%); background: rgba(0,0,0,0.8); color: #fb923c; padding: 10px 25px; border-radius: 30px; font-size: 11px; font-weight: bold; pointer-events: none; z-index: 500; display: none; border: 1px solid #fb923c; text-transform: uppercase; }
         
         .ui-panel { background: #0f172a; border-top: 2px solid #334155; padding: 10px; flex-shrink: 0; }
         .ctrl-btn { background: #1e293b; color: white; width: 44px; height: 44px; border-radius: 8px; display: flex; align-items: center; justify-content: center; border-bottom: 3px solid #000; font-size: 18px; }
+        
         .start-hint { position: absolute; top: -16px; white-space: nowrap; font-size: 8px; color: #facc15; font-weight: bold; letter-spacing: 1px; text-shadow: 0 0 8px #ca8a04; animation: glow 2s infinite ease-in-out; width: 100%; text-align: center; }
         @keyframes glow { 0%, 100% { opacity: 0.4; } 50% { opacity: 1; } }
     </style>
@@ -73,7 +74,7 @@
                 <span id="round-text" class="text-blue-400 text-[9px] font-bold uppercase">ROUND 1/20</span>
                 <span id="level-display" class="text-purple-400 text-[9px] font-bold uppercase">LV. 1</span>
             </div>
-            <div class="w-full bg-slate-800 h-1.5 rounded-full overflow-hidden mb-1"><div id="village-hp-bar" class="bg-emerald-500 h-full w-full transition-all"></div></div>
+            <div class="w-full bg-slate-800 h-1.5 rounded-full overflow-hidden mb-1"><div id="village-hp-bar" class="bg-emerald-500 h-full w-full"></div></div>
             <div class="w-full bg-slate-800 h-0.5 rounded-full overflow-hidden"><div id="exp-fill" class="bg-purple-600 h-full w-0 transition-all"></div></div>
         </div>
         <div class="text-right">
@@ -140,9 +141,9 @@
                 <button class="ctrl-btn" onclick="moveHero(0, 1)">▶</button>
             </div>
             <div class="bg-slate-900/80 p-2 rounded border border-slate-700 flex-1 ml-4 grid grid-cols-2 gap-1 text-center">
-                <div><p class="text-[6px] text-slate-500 uppercase">Hero HP 체력</p><p id="hero-hp-val" class="text-[9px] text-emerald-400 font-bold">100/100</p></div>
+                <div><p class="text-[6px] text-slate-500 uppercase">Hero INT 지능</p><p id="hero-int-val" class="text-[9px] text-emerald-400 font-bold">0</p></div>
                 <div><p class="text-[6px] text-slate-500 uppercase">Limit 설치한도</p><p id="guardian-limit" class="text-[9px] text-blue-400 font-bold">0/0</p></div>
-                <div class="col-span-2 border-t border-slate-800 pt-1 text-[10px] font-bold text-orange-400 uppercase tracking-tighter">Hero ATK 공격력: <span id="hero-atk">0</span></div>
+                <div class="col-span-2 border-t border-slate-800 pt-1 text-[10px] font-bold text-orange-400 uppercase tracking-tighter">Mana Regen 마력회복: <span id="regen-val-display">0.1</span>/s</div>
             </div>
         </div>
     </div>
@@ -154,8 +155,7 @@
         let villageHp = 100, gateHp = 500, gateHpMax = 500, playerPos = { r: 8, c: 5 }, guardians = [], monsters = [], selectedGrid = null, activeUnit = null, isMoveMode = false, playerLastShot = 0, playerAtkSpeed = 650, magicActive = 0;
         
         let user_str = parseInt(localStorage.getItem('user_str')) || 0, user_int = parseInt(localStorage.getItem('user_int')) || 0;
-        let weekly = JSON.parse(localStorage.getItem('weekly_workout_data')) || { totalHpBonus: 0 };
-        let playerHpMax = 100 + (parseInt(weekly.totalHpBonus) || 0), playerHp = playerHpMax, manaMax = 10 + user_int, currentMana = 5.0;
+        let playerHpMax = 100 + (parseInt(JSON.parse(localStorage.getItem('weekly_workout_data'))?.totalHpBonus) || 0), playerHp = playerHpMax, manaMax = 10 + user_int, currentMana = 5.0;
 
         window.onload = () => {
             const inbody = JSON.parse(localStorage.getItem('user_inbody'));
@@ -172,7 +172,7 @@
                         if(magicActive <= 0) removeBurstTimer(); else updateBurstTimer();
                     }
                     updateStats();
-                    checkWaveEnd(); // 매 초마다 웨이브 종료 체크 (안정 장치)
+                    checkWaveEnd(); 
                 } 
             }, 1000);
         };
@@ -241,7 +241,7 @@
         function updatePlayerUI() { const p = document.getElementById('player'); const a = document.getElementById('hero-trigger'); p.style.top = (playerPos.r * 9.09) + '%'; p.style.left = (playerPos.c * 9.09) + '%'; a.style.top = (playerPos.r * 9.09) + '%'; a.style.left = (playerPos.c * 9.09) + '%'; document.getElementById('player-hp-fill').style.width = (playerHp/playerHpMax*100) + "%"; document.getElementById('hero-hp-val').innerText = `${Math.floor(playerHp)}/${playerHpMax}`; }
 
         function startWave() {
-            if (isWaveActive) return; isWaveActive = true; waveTimer = 30; gateHp = gateHpMax + (currentRound*150); document.getElementById('south-gate').style.display = "flex"; document.getElementById('start-btn').classList.add('opacity-50', 'pointer-events-none');
+            if (isWaveActive) return; isWaveActive = true; waveTimer = 30; gateHp = gateHpMax + (currentRound*150); document.getElementById('gate-hp-fill').style.width = "100%"; document.getElementById('south-gate').style.display = "flex"; document.getElementById('start-btn').classList.add('opacity-50', 'pointer-events-none');
             audioBgm.src = (currentRound % 5 === 0) ? 'music/bossbgm.mp3' : 'music/defensebgm.mp3'; audioBgm.play();
             let count = (currentRound % 5 === 0) ? 1 : 6 + currentRound;
             const spawnInterval = setInterval(() => {
@@ -254,12 +254,11 @@
                 const mb = document.createElement('div'); mb.className='hp-bar-bg'; const mf=document.createElement('div'); mf.className='hp-bar-fill w-full';
                 const hpt = document.createElement('div'); hpt.className='monster-hp-text'; hpt.innerText = Math.floor(m.hp);
                 mb.appendChild(mf); el.appendChild(mb); el.appendChild(hpt); document.getElementById('map-container').appendChild(el);
-                m.el = el; m.mf = mf; m.hpt = hpt; monsters.push(m); updateEnemiesCount();
+                m.el = mel = el; m.mf = mf; m.hpt = hpt; monsters.push(m); updateEnemiesCount();
             }, 1000);
             timerInterval = setInterval(() => { waveTimer--; document.getElementById('timer-text').innerText = `00:${waveTimer<10?'0'+waveTimer:waveTimer}`; if(waveTimer <= 0) { clearInterval(timerInterval); monsters.forEach(m => m.charge = true); } }, 1000);
         }
         function updateEnemiesCount() { document.getElementById('enemies-count-display').innerText = `Enemies 적: ${monsters.length}`; }
-        
         function checkWaveEnd() { if(isWaveActive && monsters.length === 0 && waveTimer < 20) endRound(); }
 
         function endRound() {
@@ -299,8 +298,12 @@
         function fire(sr, sc, t, color, dmg, isP, unit) {
             playHitSound(isP ? 'player' : 'unit'); let actDmg = dmg; let isCrit = false;
             if(unit.type === "Dragon" && unit.lv >= 3 && Math.random() < 0.15) { actDmg *= 2; isCrit = true; }
-            const p = document.createElement('div'); p.className = 'projectile'; p.style.backgroundColor = color; p.style.color = color;
-            p.style.top = (sr*9.09+4.5)+'%'; p.style.left = (sc*9.09+4.5)+'%'; document.getElementById('map-container').appendChild(p);
+            
+            // 🚀 투사체 생성 (임팩트 복구)
+            const p = document.createElement('div'); p.className = 'projectile'; p.style.backgroundColor = color;
+            p.style.top = (sr*9.09+4.5)+'%'; p.style.left = (sc*9.09+4.5)+'%';
+            document.getElementById('map-container').appendChild(p);
+
             p.animate([{top:p.style.top, left:p.style.left},{top:(t.r*9.09+4.5)+'%', left:(t.c*9.09+4.5)+'%'}], 120).onfinish = () => {
                 p.remove(); t.hp -= actDmg; if(t.mf) t.mf.style.width = (t.hp/t.maxHp*100)+'%'; if(t.hpt) t.hpt.innerText = Math.max(0, Math.floor(t.hp));
                 if(unit.type === "Knight" && unit.lv >= 3 && Math.random() < (0.1 + unit.lv * 0.02)) t.stun = 1000;
@@ -310,7 +313,17 @@
         }
 
         function checkLvUp() { if(dExp >= dExpNext){ dLevel++; dExp=0; dExpNext=Math.floor(dExpNext*1.5); document.getElementById('flash-overlay').style.opacity = '1'; setTimeout(()=>document.getElementById('flash-overlay').style.opacity = '0', 500); } }
-        function updateStats() { document.getElementById('hero-atk').innerText = Math.floor(25 + user_str/4 + (dLevel-1)*15); document.getElementById('mana-display').innerText = `Mana: ${currentMana.toFixed(1)}/${manaMax.toFixed(1)}`; document.getElementById('level-display').innerText = `LV. ${dLevel}`; document.getElementById('d-coin').innerText = dCoin + " G"; document.getElementById('exp-fill').style.width = (dExp/dExpNext*100)+'%'; document.getElementById('round-text').innerText = `ROUND ${currentRound}/20`; document.getElementById('guardian-limit').innerText = `${guardians.length}/${Math.floor(user_int/5) + currentRound}`; document.getElementById('regen-val').innerText = (0.1 * (1 + user_int/10)).toFixed(1); }
+        function updateStats() { 
+            document.getElementById('hero-int-val').innerText = user_int;
+            document.getElementById('regen-val-display').innerText = (0.1 * (1 + user_int/10)).toFixed(1);
+            document.getElementById('mana-display').innerText = `Mana: ${currentMana.toFixed(1)}/${manaMax.toFixed(1)}`; 
+            document.getElementById('level-display').innerText = `LV. ${dLevel}`; 
+            document.getElementById('d-coin').innerText = dCoin + " G"; 
+            document.getElementById('exp-fill').style.width = (dExp/dExpNext*100)+'%'; 
+            document.getElementById('round-text').innerText = `ROUND ${currentRound}/20`; 
+            document.getElementById('guardian-limit').innerText = `${guardians.length}/${Math.floor(user_int/5) + currentRound}`; 
+            document.getElementById('regen-val').innerText = (0.1 * (1 + user_int/10)).toFixed(1); 
+        }
         function showRange(r, c, rg) { clearRange(); for(let i=r-Math.floor(rg); i<=r+Math.floor(rg); i++) for(let j=c-Math.floor(rg); j<=c+Math.floor(rg); j++) { const cell = document.getElementById(`grid-${i}-${j}`); if(cell) cell.classList.add('range-highlight'); } }
         function clearRange() { document.querySelectorAll('.grid-cell').forEach(c => c.classList.remove('range-highlight')); }
         function castMagic() { if(currentMana>=5){currentMana-=5; magicActive=5; updateStats(); showMsg("MANA BURST!");} }
