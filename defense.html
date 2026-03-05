@@ -133,7 +133,7 @@
             <button id="install-btn" onclick="installGuardian()" class="flex-1 py-3 bg-orange-600 rounded font-bold text-[10px] uppercase hidden border-b-4 border-orange-800 shadow-lg">Deploy 설치 (150G)</button>
             <button id="start-btn" onclick="startWave()" class="flex-1 py-3 bg-blue-600 rounded font-bold text-[10px] uppercase opacity-50 pointer-events-none border-b-4 border-blue-800">Start Wave 시작</button>
             <div class="flex flex-col flex-1 gap-1 items-center">
-                <p id="mana-display" class="text-[9px] text-blue-400 font-bold uppercase tracking-tighter">Mana: 5.0/10.0</p>
+                <p id="mana-display" class="text-[9px] text-blue-400 font-bold uppercase tracking-tighter">Mana: 5.0/12.0</p>
                 <button id="magic-btn" onclick="castMagic()" class="w-full py-2 bg-indigo-600 rounded text-[8px] font-bold uppercase border-b-4 border-indigo-800 leading-none">Mana Burst<br>마나 버스트 (5)</button>
             </div>
         </div>
@@ -155,14 +155,14 @@
     </div>
 
     <script>
-        // 🛠️ 지능(INT) 데이터 로드 (최우선)
+        // 🛠️ 마스터 설정 로드
         const raw_int = localStorage.getItem('user_int');
         const user_int = (raw_int !== null && raw_int !== undefined) ? parseInt(raw_int) : 2;
-        const manaRegenRate = 0.1 * (1 + user_int / 10); 
+        const manaRegenRate = 0.1 * (1 + user_int / 10);
 
         const audioBgm = document.getElementById('audio-bgm');
         const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-        let gameStarted = false, isWaveActive = false, waveTimer = 30, dCoin = 300, currentRound = 1, dLevel = 1, dExp = 0, dExpNext = 100;
+        let gameStarted = false, isWaveActive = false, isSpawning = false, waveTimer = 30, dCoin = 300, currentRound = 1, dLevel = 1, dExp = 0, dExpNext = 100;
         let villageHp = 100, gateHp = 500, gateHpMax = 500, playerPos = { r: 8, c: 5 }, guardians = [], monsters = [], selectedGrid = null, activeUnit = null, isMoveMode = false, playerLastShot = 0, playerAtkSpeed = 650, magicActive = 0;
         
         let user_str = parseInt(localStorage.getItem('user_str')) || 0;
@@ -175,7 +175,7 @@
             updatePlayerUI(); 
             updateStats();
             
-            // 🔄 엔진 업데이트 로직 (1초 단위)
+            // 🔄 엔진 통합 관리 (1초 주기)
             setInterval(() => { 
                 if(gameStarted) { 
                     currentMana = parseFloat((currentMana + manaRegenRate).toFixed(2));
@@ -187,12 +187,12 @@
                         if(magicActive <= 0) removeBurstTimer(); else updateBurstTimer();
                     }
                     updateStats();
-                    checkWaveFinish(); // 매 초 몬스터 전멸 상태 체크
+                    checkWaveLogic(); // 라운드 종료 및 타이머 상태 체크
                 } 
             }, 1000);
         };
 
-        function showMsg(txt) { const m = document.getElementById('game-msg'); m.innerText = txt; m.style.display = 'block'; setTimeout(() => m.style.display = 'none', 2500); }
+        function showMsg(txt) { const m = document.getElementById('game-msg'); m.innerText = txt; m.style.display = 'block'; setTimeout(() => m.style.display = 'none', 3000); }
         function updateMagicBtn() { const btn = document.getElementById('magic-btn'); btn.innerHTML = magicActive > 0 ? `BURSTING...<br>(${magicActive}s)` : "Mana Burst<br>마나 버스트 (5)"; }
         
         function updateBurstTimer() {
@@ -241,16 +241,7 @@
         }
 
         function isPosBlocked(r, c, inst) { if (r===1 || r===9 || c===1 || c===9) return true; if (r >= 4 && r <= 6 && c >= 4 && c <= 6) return true; if (guardians.some(g => g.r === r && g.c === c)) return true; if (playerPos.r === r && playerPos.c === c) return true; return false; }
-        
-        function getUnitVisual(type, lv) {
-            const icons = {
-                "Knight": lv >= 7 ? '👑' : (lv >= 4 ? '⚔️' : '🛡️'),
-                "Archer": lv >= 7 ? '💥' : (lv >= 4 ? '🏹' : '🎯'),
-                "Mage": lv >= 7 ? '☄️' : (lv >= 4 ? '🧙' : '🔮'),
-                "Dragon": lv >= 7 ? '🔥' : (lv >= 4 ? '🐲' : '🐉')
-            };
-            return icons[type] || '🛡️';
-        }
+        function getUnitVisual(type, lv) { const icons = { "Knight": lv >= 7 ? '👑' : (lv >= 4 ? '⚔️' : '🛡️'), "Archer": lv >= 7 ? '💥' : (lv >= 4 ? '🏹' : '🎯'), "Mage": lv >= 7 ? '☄️' : (lv >= 4 ? '🧙' : '🔮'), "Dragon": lv >= 7 ? '🔥' : (lv >= 4 ? '🐲' : '🐉') }; return icons[type] || '🛡️'; }
 
         function installGuardian() {
             const lim = Math.floor(user_int/5) + currentRound; if (guardians.length >= lim || dCoin < 150) return;
@@ -285,10 +276,11 @@
         function updatePlayerUI() { const p = document.getElementById('player'); const a = document.getElementById('hero-trigger'); p.style.top = (playerPos.r * 9.09) + '%'; p.style.left = (playerPos.c * 9.09) + '%'; a.style.top = (playerPos.r * 9.09) + '%'; a.style.left = (playerPos.c * 9.09) + '%'; document.getElementById('player-hp-fill').style.width = 100 + "%"; }
 
         function startWave() {
-            if (isWaveActive) return; 
+            if (isWaveActive || isSpawning) return; 
             if (currentRound > 20) { showMsg("CAMPAIGN COMPLETE!"); return; }
             
             isWaveActive = true; 
+            isSpawning = true; // 🚀 소환 시작 알림
             waveTimer = (currentRound % 5 === 0) ? 60 : 30;
             gateHp = gateHpMax + (currentRound * 150); 
             document.getElementById('south-gate').style.display = "flex"; 
@@ -297,8 +289,12 @@
             
             let count = (currentRound % 5 === 0) ? 1 : 6 + currentRound;
             const spawnInterval = setInterval(() => {
-                if(count-- <= 0) { clearInterval(spawnInterval); return; }
-                let hpBase = (currentRound % 5 === 0) ? 20000 : 450; // 보스 체력 상향
+                if(count-- <= 0) { 
+                    clearInterval(spawnInterval); 
+                    isSpawning = false; // 🚀 소환 종료
+                    return; 
+                }
+                let hpBase = (currentRound % 5 === 0) ? 20000 : 450;
                 const m = { r:0, c:0, hp:hpBase + (currentRound * 220), charge:false, lAtk:0, stun:0 };
                 const pos = Math.random(); if(pos<0.25){m.r=0; m.c=Math.floor(Math.random()*11);} else if(pos<0.5){m.r=10; m.c=Math.floor(Math.random()*11);} else if(pos<0.75){m.c=0; m.r=Math.floor(Math.random()*11);} else {m.c=10; m.r=Math.floor(Math.random()*11);}
                 m.maxHp = m.hp; m.atk = 20 + currentRound * 5;
@@ -325,11 +321,11 @@
             document.getElementById('enemies-count-display').innerText = `Enemies 적: ${monsters.length}`; 
         }
         
-        function checkWaveFinish() { 
-            // 🚀 버그 수정: 몬스터가 소환 중일 때는 종료 체크를 하지 않음
-            if(!isWaveActive || monsters.length > 0) return;
-            // 웨이브 타이머가 진행 중이라도 몬스터가 0이면 강제 종료 로직 진입
-            endRound();
+        function checkWaveLogic() { 
+            // 🚀 소환 중이 아닐 때만 적군이 0명인지 체크 (라운드 즉시 종료 버그 방지)
+            if(isWaveActive && !isSpawning && monsters.length === 0) {
+                endRound();
+            }
         }
 
         function endRound() {
@@ -344,8 +340,7 @@
                 return;
             }
             
-            currentRound++; 
-            dCoin += 250; 
+            currentRound++; dCoin += 250; 
             updateStats();
             document.getElementById('start-btn').classList.remove('opacity-50', 'pointer-events-none');
             audioBgm.src = 'music/townbgm.mp3'; audioBgm.play();
@@ -357,7 +352,7 @@
             monsters.forEach((m, idx) => {
                 if(m.stun > 0) { m.stun -= 16; m.el.classList.add('stunned'); return; } else { m.el.classList.remove('stunned'); }
                 if (m.charge) {
-                    const step = 0.045; 
+                    const step = 0.045; let tR = gateHp > 0 ? 10 : 5;
                     if (gateHp > 0) { if (Math.abs(m.r - 10) > 0.1 && (m.c === 0 || m.c === 10)) { m.r += step; } else if (Math.abs(m.c - 5) > 0.1) { m.r = 10; if (m.c < 5) m.c += step; else m.c -= step; } } 
                     else { if (m.r > 5) m.r -= step; if (Math.abs(m.c - 5) > 0.1) { if (m.c < 5) m.c += step; else m.c -= step; } }
                     if (gateHp > 0 && Math.abs(m.r-10) < 0.3 && Math.abs(m.c-5) < 0.3) { if(now - m.lAtk > 1500) { gateHp -= m.atk; m.lAtk = now; document.getElementById('gate-hp-fill').style.width = (gateHp/(500 + (currentRound-1)*150)*100)+'%'; if(gateHp<=0) document.getElementById('south-gate').style.display='none'; } } 
@@ -414,7 +409,7 @@
                 setTimeout(() => { 
                     document.getElementById('flash-overlay').style.opacity = '0'; 
                     document.getElementById('lv-up-text').classList.remove('show');
-                }, 800); // 🆙 임팩트 시간 단축 (1.5s -> 0.8s)
+                }, 800); 
             } 
         }
         
