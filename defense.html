@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>QuestBody - Guardians Evolution</title>
+    <title>QuestBody - Maze Defense Elite</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Noto+Sans+KR:wght@300;400;700&display=swap');
@@ -24,30 +24,32 @@
 
         #village { position: absolute; top: 36.36%; left: 36.36%; width: 27.27%; height: 27.27%; background: #0f172a; border: 2px solid #38bdf8; z-index: 10; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 24px; }
         #south-gate { position: absolute; bottom: 9.09%; left: 45.45%; width: 9.09%; height: 9.09%; background: #451a03; border: 2px solid #f59e0b; z-index: 20; display: flex; align-items: center; justify-content: center; }
-        #gate-hp-container { position: absolute; top: -5px; width: 100%; height: 3px; background: #450a0a; border-radius: 1px; overflow: hidden; }
+        #gate-hp-container { position: absolute; top: -5px; width: 100%; height: 3px; background: #450a0a; border-radius: 1px; }
         #gate-hp-fill { height: 100%; background: #eab308; width: 100%; transition: width 0.3s; }
 
         .unit { position: absolute; width: 9.09%; height: 9.09%; z-index: 100; display: flex; align-items: center; justify-content: center; background-size: contain; background-repeat: no-repeat; background-position: center; transition: all 0.3s; pointer-events: none; }
         .unit-click-area { position: absolute; width: 9.09%; height: 9.09%; z-index: 110; cursor: pointer; }
-        .unit.wait { filter: grayscale(1) brightness(0.6); }
+        .unit.wait { filter: grayscale(1) brightness(0.4); opacity: 0.5; }
         
         .monster { position: absolute; width: 9.09%; height: 9.09%; z-index: 50; display: flex; flex-direction: column; align-items: center; justify-content: center; font-size: 22px; transition: none; pointer-events: none; }
-        .monster-hp-text { font-size: 6px; color: #fff; font-weight: bold; margin-top: -2px; text-shadow: 1px 1px 1px #000; }
+        .monster.stunned { filter: hue-rotate(180deg) brightness(1.5); }
+        .monster-hp-text { font-size: 7px; color: #fff; font-weight: bold; margin-top: -2px; text-shadow: 1px 1px 1px #000; }
 
         .hp-bar-bg { width: 80%; height: 3px; background: #450a0a; position: absolute; top: -5px; border-radius: 1px; }
         .hp-bar-fill { height: 100%; background: #22c55e; transition: width 0.2s; }
         
         .dmg-text { position: absolute; color: #ff4d4d; font-weight: 800; font-size: 12px; z-index: 200; pointer-events: none; animation: popUp 0.6s forwards; text-shadow: 1px 1px 2px black; }
-        @keyframes popUp { 0% { transform: translateY(0); opacity: 1; } 100% { transform: translateY(-20px); opacity: 0; } }
+        .crit { color: #facc15 !important; font-size: 16px !important; }
+        @keyframes popUp { 0% { transform: translateY(0) scale(1); opacity: 1; } 100% { transform: translateY(-20px) scale(1.2); opacity: 0; } }
         .projectile { position: absolute; width: 6px; height: 6px; border-radius: 50%; z-index: 120; pointer-events: none; box-shadow: 0 0 10px currentColor; }
-        .lv-up-fx { position: absolute; inset: 0; background: white; opacity: 0; pointer-events: none; z-index: 300; }
-        .flash { animation: flashAnim 0.5s; }
+        .flash-screen { position: absolute; inset: 0; background: white; opacity: 0; pointer-events: none; z-index: 300; }
+        .flash { animation: flashAnim 0.5s ease-out; }
         @keyframes flashAnim { 0% { opacity: 0.6; } 100% { opacity: 0; } }
 
         .ui-panel { background: #0f172a; border-top: 2px solid #334155; padding: 10px; flex-shrink: 0; }
         .ctrl-btn { background: #1e293b; color: white; width: 44px; height: 44px; border-radius: 8px; display: flex; align-items: center; justify-content: center; border-bottom: 3px solid #000; font-size: 18px; }
         
-        #unit-control-panel { position: absolute; top: 15%; left: 50%; transform: translateX(-50%); background: rgba(15, 23, 42, 0.98); border: 2px solid #fb923c; padding: 12px; border-radius: 12px; z-index: 250; display: none; min-width: 220px; box-shadow: 0 0 30px #000; }
+        #unit-control-panel { position: absolute; top: 10%; left: 50%; transform: translateX(-50%); background: rgba(15, 23, 42, 0.98); border: 2px solid #fb923c; padding: 12px; border-radius: 12px; z-index: 250; display: none; min-width: 220px; box-shadow: 0 0 30px #000; }
         .info-tab { position: absolute; top: 45px; left: 5px; background: rgba(15, 23, 42, 0.85); border: 1px solid #334155; padding: 6px; border-radius: 4px; font-size: 7px; z-index: 70; }
         .start-hint { position: absolute; top: -14px; white-space: nowrap; font-size: 7px; color: #fbbf24; animation: bounce 1.5s infinite; font-weight: 300; width: 100%; text-align: center; }
         @keyframes bounce { 0%, 100% { transform: translateY(0); opacity: 0.5; } 50% { transform: translateY(-3px); opacity: 1; } }
@@ -65,8 +67,8 @@
                 <span id="round-text" class="text-blue-400 text-[9px] font-bold uppercase">ROUND 1/20</span>
                 <span id="level-display" class="text-purple-400 text-[9px] font-bold uppercase">LV. 1</span>
             </div>
-            <div class="w-full bg-slate-800 h-1.5 rounded-full overflow-hidden mb-1"><div id="village-hp-bar" class="bg-emerald-500 h-full w-full"></div></div>
-            <div class="w-full bg-slate-800 h-0.5 rounded-full overflow-hidden"><div id="exp-fill" class="bg-purple-600 h-full w-0"></div></div>
+            <div class="w-full bg-slate-800 h-1.5 rounded-full overflow-hidden mb-1"><div id="village-hp-bar" class="bg-emerald-500 h-full w-full transition-all"></div></div>
+            <div class="w-full bg-slate-800 h-0.5 rounded-full overflow-hidden"><div id="exp-fill" class="bg-purple-600 h-full w-0 transition-all"></div></div>
         </div>
         <div class="text-right">
             <p id="d-coin" class="text-[11px] font-bold text-yellow-400">300 G</p>
@@ -76,9 +78,12 @@
 
     <main class="flex-1 flex flex-col items-center justify-center bg-black relative">
         <div class="info-tab">
-            <p class="text-blue-300 font-bold mb-1 underline text-[8px]">UNIT EVOLUTION</p>
-            <p>🛡️ Lv.1-3 -> ⚔️ Lv.4-6 -> 👑 Lv.7+</p>
-            <p class="mt-1 text-emerald-400">Mana Regen: <span id="regen-val">0.1</span>/s</p>
+            <p class="text-blue-300 font-bold mb-1 underline text-[8px] uppercase">Probability & Skill</p>
+            <p>🛡️ Knight(50%): Stun Chance</p>
+            <p class="text-orange-400">🏹 Archer(25%): Super Range</p>
+            <p class="text-blue-400">🧙 Mage(20%): Multi-Target</p>
+            <p class="text-purple-500 font-bold">🐉 Dragon(5%): Critical Hit</p>
+            <p class="mt-1 text-emerald-400 border-t border-slate-700 pt-1">Regen: <span id="regen-val">0.1</span>/s</p>
         </div>
 
         <div id="unit-control-panel">
@@ -151,13 +156,12 @@
         let villageHp = 100, gateHp = 500, gateHpMax = 500;
         let playerPos = { r: 8, c: 5 }, guardians = [], monsters = [];
         let selectedGrid = null, activeUnit = null, isMoveMode = false;
-        let playerLastShot = 0, playerAtkSpeed = 650, magicActive = false;
+        let playerLastShot = 0, playerAtkSpeed = 650;
 
         let user_str = parseInt(localStorage.getItem('user_str')) || 0;
         let user_int = parseInt(localStorage.getItem('user_int')) || 0;
-        let weekly = JSON.parse(localStorage.getItem('weekly_workout_data')) || { totalHpBonus: 0 };
-        let playerHpMax = 100 + (weekly.totalHpBonus || 0);
-        let playerHp = playerHpMax;
+        let playerHpMax = 100 + (parseInt(JSON.parse(localStorage.getItem('weekly_workout_data'))?.totalHpBonus) || 0);
+        let playerHp = playerHpMax, playerDef = (parseInt(JSON.parse(localStorage.getItem('weekly_workout_data'))?.totalDef) || 0);
         let manaMax = 10 + user_int, currentMana = 0;
 
         window.onload = () => {
@@ -174,7 +178,7 @@
                 osc.type = type === 'player' ? 'sine' : 'triangle';
                 osc.frequency.setValueAtTime(type === 'player' ? 330 : 180, audioCtx.currentTime);
                 osc.frequency.exponentialRampToValueAtTime(50, audioCtx.currentTime + 0.1);
-                gain.gain.setValueAtTime(0.06, audioCtx.currentTime);
+                gain.gain.setValueAtTime(0.05, audioCtx.currentTime);
                 gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.1);
                 osc.start(); osc.stop(audioCtx.currentTime + 0.1);
             } catch(e) {}
@@ -188,12 +192,8 @@
                 audioBgm.src = 'music/townbgm.mp3'; audioBgm.play();
                 updateStats();
             } else {
-                // 토글 로직: 이미 메뉴가 열려있으면 닫기
                 if(activeUnit === 'player') { closeUnitPanel(); }
-                else {
-                    activeUnit = 'player';
-                    showRange(playerPos.r, playerPos.c, 2.5);
-                }
+                else { activeUnit = 'player'; showRange(playerPos.r, playerPos.c, 2.5); }
             }
         }
 
@@ -209,13 +209,11 @@
             }
             const existing = guardians.find(g => g.r === r && g.c === c);
             if (existing) {
-                // 토글 로직: 같은 유닛 클릭 시 해제
                 if (activeUnit === existing) { closeUnitPanel(); }
                 else { openUnitPanel(existing); }
             } 
             else {
                 if(selectedGrid && selectedGrid.r === r && selectedGrid.c === c) {
-                    // 빈 땅 토글 해제
                     document.getElementById(`grid-${r}-${c}`).classList.remove('selected');
                     document.getElementById('install-btn').classList.add('hidden');
                     selectedGrid = null;
@@ -256,9 +254,11 @@
             const rand = Math.random();
             const type = rand < 0.05 ? "Dragon" : rand < 0.25 ? "Mage" : rand < 0.55 ? "Archer" : "Knight";
             const g = { r: selectedGrid.r, c: selectedGrid.c, lv: 1, type, wait: 0, lShot: 0 };
-            g.atk = type==="Dragon"?100 : type==="Archer"?35 : 28;
-            g.range = type==="Archer"?4.2 : type==="Mage"?3.2 : 2.5;
-            g.cd = type==="Archer"?450 : 1200;
+            
+            // 유닛 초기 스탯 세팅
+            g.atk = type==="Dragon"?120 : type==="Archer"?35 : 28;
+            g.range = type==="Archer"?4.5 : type==="Mage"?3.2 : 2.5;
+            g.cd = type==="Archer"?400 : type==="Mage"?1500 : 1200;
             
             const el = document.createElement('div'); el.className = 'unit guardian';
             el.innerHTML = getUnitVisual(type, 1);
@@ -285,31 +285,20 @@
             document.getElementById('ui-cost').innerText = g.lv * 100;
             showRange(g.r, g.c, g.range); 
         }
-
-        function closeUnitPanel() { 
-            activeUnit = null;
-            document.getElementById('unit-control-panel').style.display='none'; 
-            clearRange(); 
-        }
-
-        function upgradeUnit() { 
-            const cost = activeUnit.lv * 100; 
-            if(dCoin < cost) return; 
-            dCoin -= cost; 
-            activeUnit.lv++; 
-            activeUnit.atk += 20;
+        function closeUnitPanel() { activeUnit = null; document.getElementById('unit-control-panel').style.display='none'; clearRange(); }
+        
+        function upgradeUnit() {
+            const cost = activeUnit.lv * 100;
+            if(dCoin < cost) return;
+            dCoin -= cost;
+            activeUnit.lv++;
+            activeUnit.atk += 25;
+            // 아쳐 사거리 증가
+            if(activeUnit.type === "Archer") activeUnit.range += 0.3;
             activeUnit.el.innerHTML = getUnitVisual(activeUnit.type, activeUnit.lv);
-            updateStats(); 
-            openUnitPanel(activeUnit); 
+            updateStats(); openUnitPanel(activeUnit);
         }
-
-        function startMoveMode() { 
-            if(!activeUnit) return;
-            isMoveMode = true; 
-            const type = activeUnit.type;
-            alert(`${type}을 이동시킬 빈 칸을 클릭하세요.`); 
-            closeUnitPanel(); 
-        }
+        function startMoveMode() { if(!activeUnit) return; isMoveMode = true; closeUnitPanel(); }
 
         function moveHero(dr, dc) {
             if (!gameStarted) return;
@@ -338,10 +327,11 @@
             document.getElementById('south-gate').style.display = "flex";
             document.getElementById('start-btn').classList.add('opacity-50', 'pointer-events-none');
             audioBgm.src = (currentRound % 5 === 0) ? 'music/bossbgm.mp3' : 'music/defensebgm.mp3'; audioBgm.play();
+            
             let count = (currentRound % 5 === 0) ? 1 : 5 + currentRound;
             const spawnInterval = setInterval(() => {
                 if(count-- <= 0) { clearInterval(spawnInterval); return; }
-                const m = { r:0, c:0, hp:(currentRound%5===0?5000:350)+(currentRound*160), charge:false, lAtk:0 };
+                const m = { r:0, c:0, hp:(currentRound%5===0?6000:350)+(currentRound*180), charge:false, lAtk:0, stun:0 };
                 const pos = Math.random();
                 if(pos<0.25){m.r=0; m.c=Math.floor(Math.random()*11);} else if(pos<0.5){m.r=10; m.c=Math.floor(Math.random()*11);}
                 else if(pos<0.75){m.c=0; m.r=Math.floor(Math.random()*11);} else {m.c=10; m.r=Math.floor(Math.random()*11);}
@@ -363,10 +353,11 @@
         function gameLoop() {
             const now = Date.now();
             monsters.forEach((m, idx) => {
+                if(m.stun > 0) { m.stun -= 16; m.el.classList.add('stunned'); return; }
+                else { m.el.classList.remove('stunned'); }
+
                 if (m.charge) {
-                    const step = 0.045;
-                    let targetR = gateHp > 0 ? 10 : 5;
-                    let targetC = 5;
+                    const step = 0.04;
                     if (gateHp > 0) {
                         if (Math.abs(m.r - 10) > 0.1 && (m.c === 0 || m.c === 10)) { m.r += step; } 
                         else if (Math.abs(m.c - 5) > 0.1) { m.r = 10; if (m.c < 5) m.c += step; else m.c -= step; }
@@ -385,42 +376,61 @@
                         if(villageHp <= 0) { alert("VILLAGE DESTROYED"); location.reload(); }
                     }
                 } else {
-                    const step = 0.065;
+                    const step = 0.06;
                     if(Math.abs(m.r) <= 0.1 && m.c < 10) m.c += step; else if(Math.abs(m.c - 10) <= 0.1 && m.r < 10) m.r += step;
                     else if(Math.abs(m.r - 10) <= 0.1 && m.c > 0.1) m.c -= step; else if(Math.abs(m.c) <= 0.1 && m.r > 0.1) m.r -= step;
                 }
                 m.el.style.top = (m.r * 9.09 + m.offY) + '%'; m.el.style.left = (m.c * 9.09 + m.offX) + '%';
             });
 
-            [...guardians, {r:playerPos.r, c:playerPos.c, atk:Math.floor(25+user_str/4+(dLevel-1)*15), isP:true}].forEach(u => {
+            [...guardians, {r:playerPos.r, c:playerPos.c, atk:Math.floor(25+user_str/4+(dLevel-1)*15), isP:true, type:'Hero'}].forEach(u => {
                 if(u.wait > 0) { u.wait -= 0.016; if(u.wait<=0) u.el.classList.remove('wait'); return; }
                 const cd = u.isP ? playerAtkSpeed : u.cd;
                 const lt = u.isP ? playerLastShot : u.lShot;
                 if (now - lt > cd) {
-                    const t = monsters.find(m => Math.hypot(u.r - m.r, u.c - m.c) <= (u.isP?3 : u.range));
-                    if(t) { fire(u.r, u.c, t, u.isP?'#fbbf24':'#38bdf8', u.atk, u.isP); if(u.isP) playerLastShot=now; else u.lShot=now; }
+                    const range = u.isP ? 2.8 : u.range;
+                    if (u.type === "Mage") {
+                        const targets = monsters.filter(m => Math.hypot(u.r - m.r, u.c - m.c) <= range).slice(0, Math.min(monsters.length, 1 + Math.floor(u.lv/3)));
+                        targets.forEach(t => fire(u.r, u.c, t, '#38bdf8', u.atk, false, u));
+                        if(targets.length > 0) u.lShot = now;
+                    } else {
+                        const t = monsters.find(m => Math.hypot(u.r - m.r, u.c - m.c) <= range);
+                        if(t) { fire(u.r, u.c, t, u.isP?'#fbbf24':'#38bdf8', u.atk, u.isP, u); if(u.isP) playerLastShot=now; else u.lShot=now; }
+                    }
                 }
             });
 
             if(isWaveActive && monsters.length === 0 && waveTimer < 20) {
-                isWaveActive = false; currentRound++; dCoin += 200; updateStats();
+                isWaveActive = false; currentRound++; dCoin += 250; updateStats();
                 document.getElementById('start-btn').classList.remove('opacity-50', 'pointer-events-none');
                 audioBgm.src = 'music/townbgm.mp3'; audioBgm.play();
             }
             requestAnimationFrame(gameLoop);
         }
 
-        function fire(sr, sc, t, color, dmg, isP) {
+        function fire(sr, sc, t, color, dmg, isP, unit) {
             playHitSound(isP ? 'player' : 'unit');
+            let actualDmg = dmg;
+            let isCrit = false;
+
+            // 드래곤 크리티컬 (15%)
+            if(unit.type === "Dragon" && Math.random() < 0.15) { actualDmg *= 2; isCrit = true; }
+
             const p = document.createElement('div'); p.className = 'projectile'; p.style.backgroundColor = color; p.style.color = color;
             p.style.top = (sr*9.09+4.5)+'%'; p.style.left = (sc*9.09+4.5)+'%';
             document.getElementById('map-container').appendChild(p);
             p.animate([{top:p.style.top, left:p.style.left},{top:(t.r*9.09+4.5)+'%', left:(t.c*9.09+4.5)+'%'}], 120).onfinish = () => {
-                p.remove(); t.hp -= dmg; if(t.mf) t.mf.style.width = (t.hp/t.maxHp*100)+'%';
+                p.remove(); t.hp -= actualDmg; if(t.mf) t.mf.style.width = (t.hp/t.maxHp*100)+'%';
                 if(t.hpt) t.hpt.innerText = Math.max(0, Math.floor(t.hp));
-                const d = document.createElement('div'); d.className='dmg-text'; d.innerText=dmg; d.style.top=(t.r*9.09)+'%'; d.style.left=(t.c*9.09)+'%';
+                
+                // 나이트 스턴 (확률: 10% + 레벨*2%)
+                if(unit.type === "Knight" && Math.random() < (0.1 + unit.lv * 0.02)) { t.stun = 1000; }
+
+                const d = document.createElement('div'); d.className=`dmg-text ${isCrit?'crit':''}`; d.innerText=isCrit ? 'CRIT '+actualDmg : actualDmg; 
+                d.style.top=(t.r*9.09)+'%'; d.style.left=(t.c*9.09)+'%';
                 document.getElementById('map-container').appendChild(d); setTimeout(()=>d.remove(), 400);
-                if(t.hp<=0 && monsters.includes(t)) { monsters.splice(monsters.indexOf(t),1); t.el.remove(); dCoin+=45; dExp+=30; checkLvUp(); updateStats(); }
+                
+                if(t.hp<=0 && monsters.includes(t)) { monsters.splice(monsters.indexOf(t),1); t.el.remove(); dCoin+=50; dExp+=35; checkLvUp(); updateStats(); }
             };
         }
 
