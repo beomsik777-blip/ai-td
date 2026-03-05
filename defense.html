@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>QuestBody - Maze Defense Elite</title>
+    <title>QuestBody - Maze Defense Elite Final</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Noto+Sans+KR:wght@300;400;700&display=swap');
@@ -26,7 +26,7 @@
         #south-gate { position: absolute; bottom: 9.09%; left: 45.45%; width: 9.09%; height: 9.09%; background: #451a03; border: 2px solid #f59e0b; z-index: 20; display: flex; align-items: center; justify-content: center; }
         #gate-hp-fill { height: 100%; background: #eab308; width: 100%; transition: width 0.3s; }
 
-        .unit { position: absolute; width: 9.09%; height: 9.09%; z-index: 100; display: flex; align-items: center; justify-content: center; background-size: contain; background-repeat: no-repeat; background-position: center; transition: all 0.3s; pointer-events: none; }
+        .unit { position: absolute; width: 9.09%; height: 9.09%; z-index: 100; display: flex; align-items: center; justify-content: center; background-size: contain; background-repeat: no-repeat; background-position: center; transition: all 0.2s; pointer-events: none; }
         .unit-click-area { position: absolute; width: 9.09%; height: 9.09%; z-index: 110; cursor: pointer; }
         .unit.wait { filter: grayscale(1) brightness(0.4); opacity: 0.5; }
         
@@ -44,7 +44,7 @@
         
         .dmg-text { position: absolute; color: #ff4d4d; font-weight: 800; font-size: 12px; z-index: 200; pointer-events: none; animation: popUp 0.6s forwards; text-shadow: 1px 1px 2px black; }
         .crit { color: #facc15 !important; font-size: 16px !important; }
-        @keyframes popUp { 0% { transform: translateY(0); opacity: 1; } 100% { transform: translateY(-20px) scale(1.2); opacity: 0; } }
+        @keyframes popUp { 0% { transform: translateY(0) scale(1); opacity: 1; } 100% { transform: translateY(-20px) scale(1.2); opacity: 0; } }
         
         .projectile { position: absolute; width: 6px; height: 6px; border-radius: 50%; z-index: 120; pointer-events: none; box-shadow: 0 0 10px currentColor; }
         .flash-screen { position: fixed; inset: 0; background: white; opacity: 0; pointer-events: none; z-index: 1000; transition: opacity 0.5s; }
@@ -55,10 +55,10 @@
         
         .ui-panel { background: #0f172a; border-top: 2px solid #334155; padding: 10px; flex-shrink: 0; }
         .ctrl-btn { background: #1e293b; color: white; width: 44px; height: 44px; border-radius: 8px; display: flex; align-items: center; justify-content: center; border-bottom: 3px solid #000; font-size: 18px; }
+        
         .start-hint { position: absolute; top: -16px; white-space: nowrap; font-size: 8px; color: #facc15; font-weight: bold; letter-spacing: 1px; text-shadow: 0 0 8px #ca8a04; animation: glow 2s infinite ease-in-out; width: 100%; text-align: center; }
         @keyframes glow { 0%, 100% { opacity: 0.4; } 50% { opacity: 1; } }
 
-        /* 🆙 레벨업 텍스트 연출 */
         #lv-up-text { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%) scale(0.5); font-size: 40px; font-weight: 800; color: #facc15; text-shadow: 0 0 20px #ca8a04; z-index: 1100; pointer-events: none; opacity: 0; transition: all 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
         #lv-up-text.show { opacity: 1; transform: translate(-50%, -50%) scale(1.2); }
     </style>
@@ -121,6 +121,7 @@
             <div id="timer-text" style="position: absolute; top: 6px; right: 10px; font-size: 10px; color: #ef4444; font-weight: bold; z-index: 65;">00:30</div>
             <div id="village">🏰</div>
             <div id="south-gate"><div id="gate-hp-container" style="position:absolute; top:-5px; width:100%; height:3px; background:#450a0a; border-radius:1px;"><div id="gate-hp-fill" style="height: 100%; background: #eab308; width: 100%; transition: width 0.3s;"></div></div></div>
+            
             <div id="player" class="unit"><div id="start-label" class="start-hint">tap to start</div><div class="hp-bar-bg" style="width: 80%; height: 3px; background: #450a0a; position: absolute; top: -5px; border-radius: 1px;"><div id="player-hp-fill" class="hp-bar-fill"></div></div></div>
             <div id="hero-trigger" class="unit-click-area" style="top:72.72%; left:45.45%; z-index:150;" onclick="handleHeroClick()"></div>
             <div id="unit-layer"></div>
@@ -132,7 +133,7 @@
             <button id="install-btn" onclick="installGuardian()" class="flex-1 py-3 bg-orange-600 rounded font-bold text-[10px] uppercase hidden border-b-4 border-orange-800 shadow-lg">Deploy 설치 (150G)</button>
             <button id="start-btn" onclick="startWave()" class="flex-1 py-3 bg-blue-600 rounded font-bold text-[10px] uppercase opacity-50 pointer-events-none border-b-4 border-blue-800">Start Wave 시작</button>
             <div class="flex flex-col flex-1 gap-1 items-center">
-                <p id="mana-display" class="text-[9px] text-blue-400 font-bold uppercase tracking-tighter">Mana: 5.0/10.0</p>
+                <p id="mana-display" class="text-[9px] text-blue-400 font-bold uppercase tracking-tighter">Mana: 5.0/12.0</p>
                 <button id="magic-btn" onclick="castMagic()" class="w-full py-2 bg-indigo-600 rounded text-[8px] font-bold uppercase border-b-4 border-indigo-800 leading-none">Mana Burst<br>마나 버스트 (5)</button>
             </div>
         </div>
@@ -146,14 +147,15 @@
             <div class="bg-slate-900/80 p-2 rounded border border-slate-700 flex-1 ml-4 grid grid-cols-2 gap-1 text-center">
                 <div><p class="text-[6px] text-slate-500 uppercase">Hero INT 지능</p><p id="hero-int-val" class="text-[9px] text-emerald-400 font-bold">2</p></div>
                 <div><p class="text-[6px] text-slate-500 uppercase">Limit 설치한도</p><p id="guardian-limit" class="text-[9px] text-blue-400 font-bold">0/0</p></div>
-                <div class="col-span-2 border-t border-slate-800 pt-1 text-[10px] font-bold text-orange-400 uppercase tracking-tighter">Mana Regen 마력회복: <span id="regen-val-display">0.12</span>/s</div>
+                <div class="col-span-2 border-t border-slate-800 pt-1 text-[10px] font-bold text-orange-400 uppercase tracking-tighter">
+                   ATK: <span id="hero-atk-val-info">30</span> | Regen: <span id="regen-val-display">0.12</span>/s
+                </div>
             </div>
         </div>
-        <div id="hero-atk-display" class="w-full text-center mt-2 py-1 bg-slate-800/50 rounded-full border border-slate-700 text-[10px] font-bold text-orange-500 uppercase tracking-widest">Hero ATK 공격력: 30</div>
     </div>
 
     <script>
-        // 🛠️ 지능(INT) 데이터 연동 강제 고정
+        // 🛠️ 지능(INT) 데이터 연동 최우선 실행
         const raw_int = localStorage.getItem('user_int');
         const user_int = (raw_int !== null && raw_int !== undefined) ? parseInt(raw_int) : 2;
         const manaRegenRate = 0.1 * (1 + user_int / 10); 
@@ -173,6 +175,7 @@
             updatePlayerUI(); 
             updateStats();
             
+            // 🔄 핵심 엔진: 1초 단위 업데이트
             setInterval(() => { 
                 if(gameStarted) { 
                     currentMana = parseFloat((currentMana + manaRegenRate).toFixed(2));
@@ -208,7 +211,13 @@
 
         function handleHeroClick() { 
             if (!gameStarted) { gameStarted = true; audioCtx.resume(); document.getElementById('start-label').style.display = 'none'; document.getElementById('start-btn').classList.remove('opacity-50', 'pointer-events-none'); audioBgm.src = 'music/townbgm.mp3'; audioBgm.play(); updateStats(); } 
-            else { if(activeUnit === 'hero') closeUnitPanel(); else { activeUnit = 'hero'; showRange(playerPos.r, playerPos.c, 2.5); } } 
+            else { 
+                if(activeUnit === 'hero') closeUnitPanel(); 
+                else { 
+                    activeUnit = 'hero'; 
+                    showRange(playerPos.r, playerPos.c, 2.5); 
+                } 
+            } 
         }
 
         function onCellClick(r, c) {
@@ -249,7 +258,22 @@
         function upgradeUnit() { if(!activeUnit) return; const cost = activeUnit.lv * 100; if(dCoin < cost) { showMsg("NEED GOLD!"); return; } dCoin -= cost; activeUnit.lv++; activeUnit.atk += 25; if(activeUnit.type === "Archer") activeUnit.range += 0.3; activeUnit.el.innerHTML = getUnitVisual(activeUnit.type, activeUnit.lv); updateStats(); openUnitPanel(activeUnit); }
         function startMoveMode() { if(!activeUnit) return; isMoveMode = true; document.getElementById('unit-control-panel').style.display='none'; showMsg("SELECT EMPTY CELL (빈 칸 선택)"); }
 
-        function moveHero(dr, dc) { if (!gameStarted) return; const nr = playerPos.r + dr, nc = playerPos.c + dc; if (nr >= 0 && nr < 11 && nc >= 0 && nc < 11) { if (nr >= 4 && nr <= 6 && nc >= 4 && nc <= 6) return; const cell = document.getElementById(`grid-${nr}-${nc}`); if (cell.classList.contains('wall-cell')) return; playerPos.r = nr; playerPos.c = nc; updatePlayerUI(); } }
+        function moveHero(dr, dc) { 
+            if (!gameStarted) return; 
+            const nr = playerPos.r + dr, nc = playerPos.c + dc; 
+            if (nr >= 0 && nr < 11 && nc >= 0 && nc < 11) { 
+                if (nr >= 4 && nr <= 6 && nc >= 4 && nc <= 6) return; 
+                const cell = document.getElementById(`grid-${nr}-${nc}`); 
+                if (cell.classList.contains('wall-cell')) return; 
+                playerPos.r = nr; playerPos.c = nc; 
+                updatePlayerUI(); 
+                
+                // 🚀 [추가] 히어로 이동 시 사거리 표시 실시간 갱신
+                if(activeUnit === 'hero') {
+                    showRange(playerPos.r, playerPos.c, 2.5);
+                }
+            } 
+        }
         function updatePlayerUI() { const p = document.getElementById('player'); const a = document.getElementById('hero-trigger'); p.style.top = (playerPos.r * 9.09) + '%'; p.style.left = (playerPos.c * 9.09) + '%'; a.style.top = (playerPos.r * 9.09) + '%'; a.style.left = (playerPos.c * 9.09) + '%'; document.getElementById('player-hp-fill').style.width = 100 + "%"; }
 
         function startWave() {
@@ -260,7 +284,8 @@
                 if(count-- <= 0) { clearInterval(spawnInterval); return; }
                 const m = { r:0, c:0, hp:(currentRound%5===0?6000:350)+(currentRound*180), charge:false, lAtk:0, stun:0 };
                 const pos = Math.random(); if(pos<0.25){m.r=0; m.c=Math.floor(Math.random()*11);} else if(pos<0.5){m.r=10; m.c=Math.floor(Math.random()*11);} else if(pos<0.75){m.c=0; m.r=Math.floor(Math.random()*11);} else {m.c=10; m.r=Math.floor(Math.random()*11);}
-                m.maxHp = m.hp; m.atk = 20 + currentRound*5; m.offX = (Math.random()-0.5)*3; m.offY = (Math.random()-0.5)*3;
+                m.maxHp = m.hp; m.atk = 20 + currentRound*5;
+                m.offX = (Math.random()-0.5)*3; m.offY = (Math.random()-0.5)*3;
                 const el = document.createElement('div'); el.className='monster'; el.innerHTML=(currentRound%5===0)?'👹':'👾';
                 const mb = document.createElement('div'); mb.className='hp-bar-bg'; const mf=document.createElement('div'); mf.className='hp-bar-fill w-full';
                 const hpt = document.createElement('div'); hpt.className='monster-hp-text'; hpt.innerText = Math.floor(m.hp);
@@ -269,10 +294,15 @@
             }, 1000);
             
             // ⏰ 타이머 음수 방지 로직 보강
-            timerInterval = setInterval(() => { 
-                waveTimer = Math.max(0, waveTimer - 1); 
+            const waveTimerInterval = setInterval(() => { 
+                if(!isWaveActive) { clearInterval(waveTimerInterval); return; }
+                waveTimer--;
+                if(waveTimer <= 0) { 
+                    waveTimer = 0;
+                    clearInterval(waveTimerInterval); 
+                    monsters.forEach(m => m.charge = true); 
+                }
                 document.getElementById('timer-text').innerText = `00:${waveTimer<10?'0'+waveTimer:waveTimer}`; 
-                if(waveTimer <= 0) { clearInterval(timerInterval); monsters.forEach(m => m.charge = true); } 
             }, 1000);
         }
 
@@ -295,7 +325,7 @@
                     const step = 0.045; let tR = gateHp > 0 ? 10 : 5; let tC = 5;
                     if (gateHp > 0) { if (Math.abs(m.r - 10) > 0.1 && (m.c === 0 || m.c === 10)) { m.r += step; } else if (Math.abs(m.c - 5) > 0.1) { m.r = 10; if (m.c < 5) m.c += step; else m.c -= step; } } 
                     else { if (m.r > 5) m.r -= step; if (Math.abs(m.c - 5) > 0.1) { if (m.c < 5) m.c += step; else m.c -= step; } }
-                    if (gateHp > 0 && Math.abs(m.r-10) < 0.3 && Math.abs(m.c-5) < 0.3) { if(now - m.lAtk > 1500) { gateHp -= m.atk; m.lAtk = now; document.getElementById('gate-hp-fill').style.width = (gateHp/(gateHpMax+currentRound*150)*100)+'%'; if(gateHp<=0) document.getElementById('south-gate').style.display='none'; } } 
+                    if (gateHp > 0 && Math.abs(m.r-10) < 0.3 && Math.abs(m.c-5) < 0.3) { if(now - m.lAtk > 1500) { gateHp -= m.atk; m.lAtk = now; document.getElementById('gate-hp-fill').style.width = (gateHp/(500 + currentRound*150)*100)+'%'; if(gateHp<=0) document.getElementById('south-gate').style.display='none'; } } 
                     else if (gateHp <= 0 && Math.hypot(m.r-5, m.c-5) < 0.2) { villageHp -= 10; document.getElementById('village-hp-bar').style.width = villageHp+'%'; m.el.remove(); monsters.splice(idx, 1); updateEnemiesCount(); if(villageHp <= 0) { showMsg("VILLAGE DESTROYED!"); location.reload(); } }
                 } else { const step = 0.06; if(Math.abs(m.r) <= 0.1 && m.c < 10) m.c += step; else if(Math.abs(m.c - 10) <= 0.1 && m.r < 10) m.r += step; else if(Math.abs(m.r - 10) <= 0.1 && m.c > 0.1) m.c -= step; else if(Math.abs(m.c) <= 0.1 && m.r > 0.1) m.r -= step; }
                 m.el.style.top = (m.r * 9.09 + m.offY) + '%'; m.el.style.left = (m.c * 9.09 + m.offX) + '%';
@@ -319,7 +349,7 @@
             let actDmg = dmg; let isCrit = false;
             if(unit.type === "Dragon" && unit.lv >= 3 && Math.random() < 0.15) { actDmg *= 2; isCrit = true; }
             
-            // 🚀 [완벽 복원] 투사체 연출 엔진
+            // 🚀 투사체 생성 (복구 완료)
             const p = document.createElement('div');
             p.className = 'projectile';
             p.style.backgroundColor = color;
@@ -359,7 +389,9 @@
             document.getElementById('exp-fill').style.width = (dExp/dExpNext*100)+'%'; 
             document.getElementById('round-text').innerText = `ROUND ${currentRound}/20`; 
             document.getElementById('guardian-limit').innerText = `${guardians.length}/${Math.floor(user_int/5) + currentRound}`; 
-            document.getElementById('hero-atk-display').innerText = `Hero ATK 공격력: ${hAtk}`;
+            // ⚔️ 하단 탭 공격력 실시간 업데이트
+            const infoAtk = document.getElementById('hero-atk-val-info');
+            if(infoAtk) infoAtk.innerText = hAtk;
         }
 
         function showRange(r, c, rg) { clearRange(); for(let i=r-Math.floor(rg); i<=r+Math.floor(rg); i++) for(let j=c-Math.floor(rg); j<=c+Math.floor(rg); j++) { const cell = document.getElementById(`grid-${i}-${j}`); if(cell) cell.classList.add('range-highlight'); } }
