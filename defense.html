@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>QuestBody - Ultimate Maze Defense</title>
+    <title>QuestBody - Guardians Evolution</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Noto+Sans+KR:wght@300;400;700&display=swap');
@@ -18,8 +18,6 @@
         }
         .grid-cell { border: 0.1px solid rgba(56, 189, 248, 0.05); position: relative; z-index: 1; }
         .grid-cell.selected { background: rgba(251, 146, 60, 0.3); box-shadow: inset 0 0 15px #fb923c; }
-        
-        /* 🧱 성벽: 절대 방어선 */
         .wall-cell { background: #1e293b; border: 1px solid #475569; z-index: 2; position: relative; }
         .wall-cell::after { content: '🧱'; position: absolute; font-size: 8px; opacity: 0.4; top: 50%; left: 50%; transform: translate(-50%, -50%); }
         .range-highlight { background: rgba(56, 189, 248, 0.2); border: 1px solid #38bdf8; z-index: 5; }
@@ -33,21 +31,22 @@
         .unit-click-area { position: absolute; width: 9.09%; height: 9.09%; z-index: 110; cursor: pointer; }
         .unit.wait { filter: grayscale(1) brightness(0.6); }
         
-        .monster { position: absolute; width: 9.09%; height: 9.09%; z-index: 50; display: flex; align-items: center; justify-content: center; font-size: 22px; transition: none; pointer-events: none; }
-        .hp-bar-bg { width: 80%; height: 3px; background: #450a0a; position: absolute; top: -5px; }
+        .monster { position: absolute; width: 9.09%; height: 9.09%; z-index: 50; display: flex; flex-direction: column; align-items: center; justify-content: center; font-size: 22px; transition: none; pointer-events: none; }
+        .monster-hp-text { font-size: 6px; color: #fff; font-weight: bold; margin-top: -2px; text-shadow: 1px 1px 1px #000; }
+
+        .hp-bar-bg { width: 80%; height: 3px; background: #450a0a; position: absolute; top: -5px; border-radius: 1px; }
         .hp-bar-fill { height: 100%; background: #22c55e; transition: width 0.2s; }
         
-        .dmg-text { position: absolute; color: #ff4d4d; font-weight: 800; font-size: 12px; z-index: 200; pointer-events: none; animation: popUp 0.6s forwards; }
+        .dmg-text { position: absolute; color: #ff4d4d; font-weight: 800; font-size: 12px; z-index: 200; pointer-events: none; animation: popUp 0.6s forwards; text-shadow: 1px 1px 2px black; }
         @keyframes popUp { 0% { transform: translateY(0); opacity: 1; } 100% { transform: translateY(-20px); opacity: 0; } }
         .projectile { position: absolute; width: 6px; height: 6px; border-radius: 50%; z-index: 120; pointer-events: none; box-shadow: 0 0 10px currentColor; }
-        .flash-screen { position: absolute; inset: 0; background: white; opacity: 0; pointer-events: none; z-index: 300; }
-        .flash { animation: flashAnim 0.5s ease-out; }
+        .lv-up-fx { position: absolute; inset: 0; background: white; opacity: 0; pointer-events: none; z-index: 300; }
+        .flash { animation: flashAnim 0.5s; }
         @keyframes flashAnim { 0% { opacity: 0.6; } 100% { opacity: 0; } }
 
         .ui-panel { background: #0f172a; border-top: 2px solid #334155; padding: 10px; flex-shrink: 0; }
         .ctrl-btn { background: #1e293b; color: white; width: 44px; height: 44px; border-radius: 8px; display: flex; align-items: center; justify-content: center; border-bottom: 3px solid #000; font-size: 18px; }
         
-        /* 📜 유닛 컨트롤 패널: 상단 배치로 가림 방지 */
         #unit-control-panel { position: absolute; top: 15%; left: 50%; transform: translateX(-50%); background: rgba(15, 23, 42, 0.98); border: 2px solid #fb923c; padding: 12px; border-radius: 12px; z-index: 250; display: none; min-width: 220px; box-shadow: 0 0 30px #000; }
         .info-tab { position: absolute; top: 45px; left: 5px; background: rgba(15, 23, 42, 0.85); border: 1px solid #334155; padding: 6px; border-radius: 4px; font-size: 7px; z-index: 70; }
         .start-hint { position: absolute; top: -14px; white-space: nowrap; font-size: 7px; color: #fbbf24; animation: bounce 1.5s infinite; font-weight: 300; width: 100%; text-align: center; }
@@ -77,8 +76,8 @@
 
     <main class="flex-1 flex flex-col items-center justify-center bg-black relative">
         <div class="info-tab">
-            <p class="text-blue-300 font-bold mb-1 underline text-[8px]">MAZE DEFENSE</p>
-            <p>🛡️ Knight | 🏹 Archer | 🧙 Mage | 🐉 Dragon</p>
+            <p class="text-blue-300 font-bold mb-1 underline text-[8px]">UNIT EVOLUTION</p>
+            <p>🛡️ Lv.1-3 -> ⚔️ Lv.4-6 -> 👑 Lv.7+</p>
             <p class="mt-1 text-emerald-400">Mana Regen: <span id="regen-val">0.1</span>/s</p>
         </div>
 
@@ -123,7 +122,7 @@
             <button id="install-btn" onclick="installGuardian()" class="flex-1 py-3 bg-orange-600 rounded font-bold text-[10px] uppercase hidden border-b-4 border-orange-800 shadow-lg">Deploy (150G)</button>
             <button id="start-btn" onclick="startWave()" class="flex-1 py-3 bg-blue-600 rounded font-bold text-[11px] uppercase opacity-50 pointer-events-none border-b-4 border-blue-800">Start Wave</button>
             <div class="flex flex-col flex-1 gap-1 items-center">
-                <p id="mana-display" class="text-[9px] text-blue-400 font-bold uppercase">Mana: 0/10</p>
+                <p id="mana-display" class="text-[9px] text-blue-400 font-bold uppercase tracking-tighter">Mana: 0/10</p>
                 <button onclick="castMagic()" class="w-full py-2 bg-indigo-600 rounded text-[8px] font-bold uppercase border-b-4 border-indigo-800">Mana Burst</button>
             </div>
         </div>
@@ -138,7 +137,7 @@
             <div class="bg-slate-900/80 p-2 rounded border border-slate-700 flex-1 ml-4 grid grid-cols-2 gap-1 text-center">
                 <div><p class="text-[6px] text-slate-500 uppercase">Hero HP</p><p id="hero-hp-val" class="text-[9px] text-emerald-400 font-bold">100/100</p></div>
                 <div><p class="text-[6px] text-slate-500 uppercase">Limit</p><p id="guardian-limit" class="text-[9px] text-blue-400 font-bold">0/0</p></div>
-                <div class="col-span-2 border-t border-slate-800 pt-1 text-[10px] font-bold text-orange-400 uppercase">Hero ATK: <span id="hero-atk">0</span></div>
+                <div class="col-span-2 border-t border-slate-800 pt-1 text-[10px] font-bold text-orange-400 uppercase tracking-tighter">Hero ATK: <span id="hero-atk">0</span></div>
             </div>
         </div>
     </div>
@@ -188,7 +187,14 @@
                 document.getElementById('start-btn').classList.remove('opacity-50', 'pointer-events-none');
                 audioBgm.src = 'music/townbgm.mp3'; audioBgm.play();
                 updateStats();
-            } else { showRange(playerPos.r, playerPos.c, 2.5); }
+            } else {
+                // 토글 로직: 이미 메뉴가 열려있으면 닫기
+                if(activeUnit === 'player') { closeUnitPanel(); }
+                else {
+                    activeUnit = 'player';
+                    showRange(playerPos.r, playerPos.c, 2.5);
+                }
+            }
         }
 
         function onCellClick(r, c) {
@@ -202,16 +208,25 @@
                 isMoveMode = false; closeUnitPanel(); return;
             }
             const existing = guardians.find(g => g.r === r && g.c === c);
-            if (existing) { openUnitPanel(existing); } 
+            if (existing) {
+                // 토글 로직: 같은 유닛 클릭 시 해제
+                if (activeUnit === existing) { closeUnitPanel(); }
+                else { openUnitPanel(existing); }
+            } 
             else {
-                if(selectedGrid) {
-                    const prev = document.getElementById(`grid-${selectedGrid.r}-${selectedGrid.c}`);
-                    if(prev) prev.classList.remove('selected');
+                if(selectedGrid && selectedGrid.r === r && selectedGrid.c === c) {
+                    // 빈 땅 토글 해제
+                    document.getElementById(`grid-${r}-${c}`).classList.remove('selected');
+                    document.getElementById('install-btn').classList.add('hidden');
+                    selectedGrid = null;
+                } else {
+                    if(selectedGrid) document.getElementById(`grid-${selectedGrid.r}-${selectedGrid.c}`).classList.remove('selected');
+                    if(isPosBlocked(r, c, true)) return;
+                    selectedGrid = {r, c};
+                    document.getElementById(`grid-${r}-${c}`).classList.add('selected');
+                    document.getElementById('install-btn').classList.remove('hidden');
+                    closeUnitPanel();
                 }
-                if(isPosBlocked(r, c, true)) return;
-                selectedGrid = {r, c};
-                document.getElementById(`grid-${r}-${c}`).classList.add('selected');
-                document.getElementById('install-btn').classList.remove('hidden');
             }
         }
 
@@ -224,6 +239,16 @@
             return false;
         }
 
+        function getUnitVisual(type, lv) {
+            const icons = {
+                "Knight": lv >= 7 ? '👑' : (lv >= 4 ? '⚔️' : '🛡️'),
+                "Archer": lv >= 7 ? '💥' : (lv >= 4 ? '🏹' : '🎯'),
+                "Mage": lv >= 7 ? '☄️' : (lv >= 4 ? '🧙' : '🔮'),
+                "Dragon": lv >= 7 ? '🔥' : (lv >= 4 ? '🐲' : '🐉')
+            };
+            return icons[type] || '🛡️';
+        }
+
         function installGuardian() {
             const limit = Math.floor(user_int/5) + currentRound;
             if (guardians.length >= limit || dCoin < 150) return;
@@ -234,15 +259,19 @@
             g.atk = type==="Dragon"?100 : type==="Archer"?35 : 28;
             g.range = type==="Archer"?4.2 : type==="Mage"?3.2 : 2.5;
             g.cd = type==="Archer"?450 : 1200;
+            
             const el = document.createElement('div'); el.className = 'unit guardian';
-            el.innerHTML = type==="Dragon"?'🐉' : type==="Mage"?'🧙' : type==="Archer"?'🏹' : '🛡️';
+            el.innerHTML = getUnitVisual(type, 1);
             el.style.top = (g.r*9.09)+'%'; el.style.left = (g.c*9.09)+'%';
+            
             const area = document.createElement('div'); area.className = 'unit-click-area';
             area.style.top = (g.r*9.09)+'%'; area.style.left = (g.c*9.09)+'%';
             area.onclick = (e) => { e.stopPropagation(); onCellClick(g.r, g.c); };
+            
             const hb = document.createElement('div'); hb.className='hp-bar-bg'; const hf = document.createElement('div'); hf.className='hp-bar-fill w-full'; hb.appendChild(hf); el.appendChild(hb);
             document.getElementById('unit-layer').appendChild(el); document.getElementById('unit-layer').appendChild(area);
             g.el = el; g.area = area; g.hf = hf; guardians.push(g);
+            
             document.getElementById(`grid-${selectedGrid.r}-${selectedGrid.c}`).classList.remove('selected');
             document.getElementById('install-btn').classList.add('hidden');
             selectedGrid = null; updateStats();
@@ -256,9 +285,31 @@
             document.getElementById('ui-cost').innerText = g.lv * 100;
             showRange(g.r, g.c, g.range); 
         }
-        function closeUnitPanel() { document.getElementById('unit-control-panel').style.display='none'; clearRange(); }
-        function upgradeUnit() { const cost = activeUnit.lv * 100; if(dCoin < cost) return; dCoin -= cost; activeUnit.lv++; activeUnit.atk += 20; updateStats(); openUnitPanel(activeUnit); }
-        function startMoveMode() { isMoveMode = true; alert("Click empty space to relocate."); closeUnitPanel(); }
+
+        function closeUnitPanel() { 
+            activeUnit = null;
+            document.getElementById('unit-control-panel').style.display='none'; 
+            clearRange(); 
+        }
+
+        function upgradeUnit() { 
+            const cost = activeUnit.lv * 100; 
+            if(dCoin < cost) return; 
+            dCoin -= cost; 
+            activeUnit.lv++; 
+            activeUnit.atk += 20;
+            activeUnit.el.innerHTML = getUnitVisual(activeUnit.type, activeUnit.lv);
+            updateStats(); 
+            openUnitPanel(activeUnit); 
+        }
+
+        function startMoveMode() { 
+            if(!activeUnit) return;
+            isMoveMode = true; 
+            const type = activeUnit.type;
+            alert(`${type}을 이동시킬 빈 칸을 클릭하세요.`); 
+            closeUnitPanel(); 
+        }
 
         function moveHero(dr, dc) {
             if (!gameStarted) return;
@@ -298,8 +349,10 @@
                 m.offX = (Math.random()-0.5)*3; m.offY = (Math.random()-0.5)*3;
                 const el = document.createElement('div'); el.className='monster'; el.innerHTML=(currentRound%5===0)?'👹':'👾';
                 const mb = document.createElement('div'); mb.className='hp-bar-bg'; const mf=document.createElement('div'); mf.className='hp-bar-fill w-full';
-                mb.appendChild(mf); el.appendChild(mb); document.getElementById('map-container').appendChild(el);
-                m.el = el; m.mf = mf; monsters.push(m);
+                const hpt = document.createElement('div'); hpt.className='monster-hp-text'; hpt.innerText = Math.floor(m.hp);
+                mb.appendChild(mf); el.appendChild(mb); el.appendChild(hpt);
+                document.getElementById('map-container').appendChild(el);
+                m.el = el; m.mf = mf; m.hpt = hpt; monsters.push(m);
             }, 1000);
             timerInterval = setInterval(() => {
                 waveTimer--; document.getElementById('timer-text').innerText = `00:${waveTimer<10?'0'+waveTimer:waveTimer}`;
@@ -311,27 +364,16 @@
             const now = Date.now();
             monsters.forEach((m, idx) => {
                 if (m.charge) {
-                    // 미로 로직: 무조건 외곽 -> 6시 성문 통로(10, 5) -> 마을 중심으로 고정
                     const step = 0.045;
                     let targetR = gateHp > 0 ? 10 : 5;
                     let targetC = 5;
-
-                    // 1단계: 성문 앞(10, 5)으로 이동하기 위해 테두리(0 or 10)에서 각 정렬
                     if (gateHp > 0) {
-                        if (Math.abs(m.r - 10) > 0.1 && (m.c === 0 || m.c === 10)) {
-                            // 현재 옆 벽에 붙어있다면 아래(10)로 먼저 이동
-                            m.r += step;
-                        } else if (Math.abs(m.c - 5) > 0.1) {
-                            // 아래 벽(10)에 도착했다면 가로로 성문(5)까지 이동
-                            m.r = 10; // 높이 고정 (성벽 침범 방지)
-                            if (m.c < 5) m.c += step; else m.c -= step;
-                        }
+                        if (Math.abs(m.r - 10) > 0.1 && (m.c === 0 || m.c === 10)) { m.r += step; } 
+                        else if (Math.abs(m.c - 5) > 0.1) { m.r = 10; if (m.c < 5) m.c += step; else m.c -= step; }
                     } else {
-                        // 2단계: 성문 파괴 후 마을 진입
                         if (m.r > 5) m.r -= step;
                         if (Math.abs(m.c - 5) > 0.1) { if (m.c < 5) m.c += step; else m.c -= step; }
                     }
-
                     if (gateHp > 0 && Math.abs(m.r-10) < 0.3 && Math.abs(m.c-5) < 0.3) {
                         if(now - m.lAtk > 1500) { gateHp -= m.atk; m.lAtk = now; 
                             document.getElementById('gate-hp-fill').style.width = (gateHp/(500 + currentRound*150)*100)+'%';
@@ -375,6 +417,7 @@
             document.getElementById('map-container').appendChild(p);
             p.animate([{top:p.style.top, left:p.style.left},{top:(t.r*9.09+4.5)+'%', left:(t.c*9.09+4.5)+'%'}], 120).onfinish = () => {
                 p.remove(); t.hp -= dmg; if(t.mf) t.mf.style.width = (t.hp/t.maxHp*100)+'%';
+                if(t.hpt) t.hpt.innerText = Math.max(0, Math.floor(t.hp));
                 const d = document.createElement('div'); d.className='dmg-text'; d.innerText=dmg; d.style.top=(t.r*9.09)+'%'; d.style.left=(t.c*9.09)+'%';
                 document.getElementById('map-container').appendChild(d); setTimeout(()=>d.remove(), 400);
                 if(t.hp<=0 && monsters.includes(t)) { monsters.splice(monsters.indexOf(t),1); t.el.remove(); dCoin+=45; dExp+=30; checkLvUp(); updateStats(); }
