@@ -18,7 +18,7 @@
         .grid-cell { border: 0.1px solid rgba(56, 189, 248, 0.05); pointer-events: none; }
         .wall-cell { background: #1e293b; border: 1px solid #475569; z-index: 2; position: relative; }
         .wall-cell::after { content: '🧱'; position: absolute; font-size: 8px; opacity: 0.3; top: 25%; left: 25%; }
-        .range-highlight { background: rgba(56, 189, 248, 0.2); border: 1px solid #38bdf8; z-index: 5; }
+        .range-highlight { background: rgba(56, 189, 248, 0.15); border: 1px solid #38bdf8; z-index: 5; }
 
         #village {
             position: absolute; top: 36.36%; left: 36.36%; width: 27.27%; height: 27.27%;
@@ -34,7 +34,7 @@
         #gate-hp-fill { height: 100%; background: #eab308; width: 100%; }
 
         .unit { position: absolute; width: 9.09%; height: 9.09%; z-index: 100; display: flex; align-items: center; justify-content: center; background-size: contain; background-repeat: no-repeat; background-position: center; transition: all 0.2s; cursor: pointer; }
-        .monster { position: absolute; width: 9.09%; height: 9.09%; z-index: 50; display: flex; align-items: center; justify-content: center; transition: all 0.4s linear; font-size: 20px; }
+        .monster { position: absolute; width: 8%; height: 8%; z-index: 50; display: flex; align-items: center; justify-content: center; transition: all 0.2s linear; font-size: 20px; }
         
         .hp-bar-bg { width: 80%; height: 3px; background: #450a0a; position: absolute; top: -5px; }
         .hp-bar-fill { height: 100%; background: #22c55e; transition: width 0.2s; }
@@ -48,7 +48,7 @@
         @keyframes popUp { 0% { transform: translateY(0); opacity: 1; } 100% { transform: translateY(-20px); opacity: 0; } }
 
         .ui-panel { background: #0f172a; border-top: 2px solid #334155; padding: 10px; flex-shrink: 0; }
-        .info-tab { position: absolute; top: 50px; left: 5px; background: rgba(15, 23, 42, 0.9); border: 1px solid #334155; padding: 5px; border-radius: 4px; font-size: 7px; z-index: 70; }
+        .info-tab { position: absolute; top: 50px; left: 5px; background: rgba(15, 23, 42, 0.95); border: 1px solid #334155; padding: 5px; border-radius: 4px; font-size: 7px; z-index: 70; max-width: 100px; }
         .ctrl-btn { background: #1e293b; color: white; width: 42px; height: 42px; border-radius: 8px; display: flex; align-items: center; justify-content: center; border-bottom: 3px solid #000; }
         #exp-fill { height: 100%; background: #a855f7; width: 0%; transition: width 0.3s; }
         .start-hint { position: absolute; top: -20px; white-space: nowrap; font-size: 8px; color: #fbbf24; animation: bounce 1s infinite; font-weight: bold; }
@@ -59,7 +59,7 @@
 
     <audio id="audio-bgm" loop></audio>
 
-    <header class="p-2 bg-slate-900 flex justify-between items-center border-b border-slate-700 shrink-0">
+    <header class="p-2 bg-slate-900 flex justify-between items-center border-b border-slate-700 shrink-0 text-[Orbitron]">
         <button onclick="location.href='index.html'" class="text-slate-400 text-[10px] font-bold uppercase">◀ HUB</button>
         <div class="text-center flex-1 mx-4">
             <div class="flex justify-between items-center mb-0.5">
@@ -71,16 +71,18 @@
         </div>
         <div class="text-right">
             <p id="d-coin" class="text-[11px] font-bold text-yellow-400">300 G</p>
-            <p id="mana-display" class="text-[8px] text-blue-400 font-bold uppercase">Mana: 0/0</p>
+            <p id="monster-count" class="text-[8px] text-red-400 font-bold uppercase">Enemies: 0</p>
         </div>
     </header>
 
     <div class="flex-1 flex flex-col items-center justify-center bg-black relative">
         <div class="info-tab">
-            <p class="text-blue-300 font-bold mb-1 underline">UNIT CHANCE</p>
-            <p>🛡️ Knight: 90%</p>
-            <p class="text-purple-400">🐉 Dragon: 10%</p>
-            <p class="mt-1 text-emerald-400">Mana Regen: <span id="regen-val">0.1</span>/s</p>
+            <p class="text-blue-300 font-bold mb-1 underline uppercase text-[8px]">Unit Chance</p>
+            <p>🛡️ KNT: 50% (Sld)</p>
+            <p class="text-orange-400">🏹 ARC: 25% (Spd)</p>
+            <p class="text-blue-400">🧙 MAG: 20% (Aoe)</p>
+            <p class="text-purple-500 font-bold">🐉 DRG: 5% (Strong)</p>
+            <p class="mt-1 text-emerald-400 border-t border-slate-700 pt-1">Mana Regen: <span id="regen-val">0.1</span>/s</p>
         </div>
 
         <div id="map-container">
@@ -111,7 +113,10 @@
         <div class="flex justify-between items-center gap-2 mb-2">
             <button onclick="buyGuardian()" class="flex-1 py-2 bg-purple-900/40 border border-purple-500 rounded text-[9px] font-bold uppercase">Add Unit (150G) <span id="guardian-limit" class="block text-[7px] text-purple-300">0/0</span></button>
             <button onclick="startWave()" id="start-btn" class="flex-1 py-3 bg-blue-600 rounded font-bold text-[11px] uppercase opacity-50 pointer-events-none">Start Wave</button>
-            <button onclick="castSpeedMagic()" class="flex-1 py-2 bg-indigo-600 rounded text-[9px] font-bold uppercase">Burst (Mana 5)<br><span class="text-[6px]">공격속도증가</span></button>
+            <div class="flex flex-col flex-1 gap-1">
+                <p id="mana-display" class="text-[9px] text-blue-400 font-bold text-center uppercase tracking-tighter">Mana: 0/0</p>
+                <button onclick="castSpeedMagic()" class="py-2 bg-indigo-600 rounded text-[9px] font-bold uppercase leading-none">Burst<br><span class="text-[6px]">ASPD UP (5)</span></button>
+            </div>
         </div>
         
         <div class="flex justify-between items-center">
@@ -147,13 +152,12 @@
         let playerHp = playerHpMax;
         let playerDef = weekly.totalDef || 0;
         let playerLastShot = 0, playerAtkSpeed = 600, magicActive = false;
-        let manaMax = 10 + user_int, currentMana = 0; // 마나는 0부터 시작해서 회복
+        let manaMax = 10 + user_int, currentMana = 0;
 
         window.onload = () => {
             const inbody = JSON.parse(localStorage.getItem('user_inbody'));
             document.getElementById('player').style.backgroundImage = inbody?.gender === 'woman' ? "url('image/woman.png')" : "url('image/man/man.png')";
             updatePlayerUI(); updateStats();
-            // 마나 회복 시스템 (초당 0.1 * user_int)
             setInterval(() => {
                 if(gameStarted) {
                     const regenAmount = 0.1 * (1 + user_int/10); 
@@ -164,16 +168,14 @@
         };
 
         function playAttackSound() {
-            try {
-                const osc = audioCtx.createOscillator();
-                const gain = audioCtx.createGain();
-                osc.connect(gain); gain.connect(audioCtx.destination);
-                osc.type = 'sine'; osc.frequency.setValueAtTime(440, audioCtx.currentTime);
-                osc.frequency.exponentialRampToValueAtTime(110, audioCtx.currentTime + 0.1);
-                gain.gain.setValueAtTime(0.1, audioCtx.currentTime);
-                gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.1);
-                osc.start(); osc.stop(audioCtx.currentTime + 0.1);
-            } catch(e) {}
+            if (audioCtx.state === 'suspended') return;
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.connect(gain); gain.connect(audioCtx.destination);
+            osc.type = 'square'; osc.frequency.setValueAtTime(200 + Math.random()*100, audioCtx.currentTime);
+            gain.gain.setValueAtTime(0.05, audioCtx.currentTime);
+            gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.1);
+            osc.start(); osc.stop(audioCtx.currentTime + 0.1);
         }
 
         function changeBGM(src) {
@@ -184,7 +186,7 @@
 
         function handleHeroClick() {
             if (!gameStarted) {
-                if (audioCtx.state === 'suspended') audioCtx.resume();
+                audioCtx.resume();
                 gameStarted = true;
                 document.getElementById('start-label').style.display = 'none';
                 document.getElementById('start-btn').classList.remove('opacity-50', 'pointer-events-none');
@@ -216,9 +218,9 @@
             if (!gameStarted) return;
             const nr = playerPos.r + dr, nc = playerPos.c + dc;
             if (nr >= 0 && nr < 11 && nc >= 0 && nc < 11) {
-                if (nr >= 4 && nr <= 6 && nc >= 4 && nc <= 6) return; // 마을 중심부
+                if (nr >= 4 && nr <= 6 && nc >= 4 && nc <= 6) return;
                 const cell = document.getElementById(`grid-${nr}-${nc}`);
-                if (cell.classList.contains('wall-cell')) return; // 성벽 통과 불가
+                if (cell.classList.contains('wall-cell')) return;
                 playerPos.r = nr; playerPos.c = nc;
                 updatePlayerUI(); clearRange();
             }
@@ -237,47 +239,52 @@
 
         function summonRandomGuardian(isFree = false) {
             const g = document.createElement('div');
-            const isHidden = !isFree && Math.random() < 0.1;
-            g.className = `unit guardian`; g.innerHTML = isHidden ? '🐉' : '🛡️';
+            const rand = Math.random();
+            let type = "Knight";
+            if (rand < 0.05) type = "Dragon";
+            else if (rand < 0.25) type = "Mage";
+            else if (rand < 0.50) type = "Archer";
+
+            g.className = `unit guardian`;
+            g.innerHTML = type === "Dragon" ? '🐉' : type === "Mage" ? '🧙' : type === "Archer" ? '🏹' : '🛡️';
+            
             let r, c;
-            // 테두리(0,10)와 성벽(1,9)을 제외한 안전 구역(2~8)에만 소환
             do { r = Math.floor(Math.random()*7)+2; c = Math.floor(Math.random()*7)+2; }
             while ((r >= 4 && r <= 6 && c >= 4 && c <= 6) || (r === playerPos.r && c === playerPos.c));
-            g.unitR = r; g.unitC = c; g.hpMax = 80 + (currentRound*20); g.hp = g.hpMax;
+            
+            g.unitR = r; g.unitC = c;
+            g.hpMax = type === "Dragon" ? 300 : type === "Knight" ? 150 : 80; 
+            g.hp = g.hpMax;
             g.style.top = (r*9.09)+'%'; g.style.left = (c*9.09)+'%';
+            
             const hpBg = document.createElement('div'); hpBg.className = 'hp-bar-bg';
             const hpFill = document.createElement('div'); hpFill.className = 'hp-bar-fill';
             hpBg.appendChild(hpFill); g.appendChild(hpBg);
-            g.atk = isHidden ? 70 : 25; g.lastShot = 0;
+            
+            g.stats = {
+                atk: type === "Dragon" ? 100 : type === "Archer" ? 40 : type === "Mage" ? 35 : 25,
+                cd: type === "Archer" ? 500 : type === "Mage" ? 1500 : 1000,
+                range: type === "Archer" ? 4 : type === "Mage" ? 3 : 2,
+                aoe: type === "Mage" || type === "Dragon",
+                lastShot: 0
+            };
+            
+            g.onclick = (e) => { e.stopPropagation(); showRange(g, g.stats.range); };
             document.getElementById('unit-layer').appendChild(g); guardians.push(g); updateStats();
         }
 
-        function showRange(el, range) {
-            clearRange();
-            const r = el.unitR !== undefined ? el.unitR : playerPos.r;
-            const c = el.unitC !== undefined ? el.unitC : playerPos.c;
-            for(let i=r-range; i<=r+range; i++) {
-                for(let j=c-range; j<=c+range; j++) {
-                    const cell = document.getElementById(`grid-${i}-${j}`);
-                    if(cell) cell.classList.add('range-highlight');
-                }
-            }
-        }
-        function clearRange() { document.querySelectorAll('.grid-cell').forEach(c => c.classList.remove('range-highlight')); }
-
         function startWave() {
             if (isWaveActive || !gameStarted) return;
-            isWaveActive = true; waveTimer = 30; gateHp = 500 + (currentRound*100);
+            isWaveActive = true; waveTimer = 30; gateHp = 500 + (currentRound*150);
             document.getElementById('gate-hp-fill').style.width = "100%";
             document.getElementById('start-btn').classList.add('opacity-50');
-            if (currentRound % 5 === 0) changeBGM('music/bossbgm.mp3');
-            else changeBGM('music/defensebgm.mp3');
+            changeBGM(currentRound % 5 === 0 ? 'music/bossbgm.mp3' : 'music/defensebgm.mp3');
 
             let count = (currentRound % 5 === 0) ? 1 : 5 + currentRound;
             const spawnInterval = setInterval(() => {
                 if(count-- <= 0) { clearInterval(spawnInterval); return; }
                 createMonster(currentRound % 5 === 0);
-            }, 1200);
+            }, 1000);
 
             timerInterval = setInterval(() => {
                 waveTimer--;
@@ -292,14 +299,13 @@
             const hpBg = document.createElement('div'); hpBg.className = 'hp-bar-bg';
             const hpFill = document.createElement('div'); hpFill.className = 'hp-bar-fill';
             hpBg.appendChild(hpFill); m.appendChild(hpBg);
-            // 소환 위치: 테두리 랜덤
             let r, c;
             if(Math.random() < 0.5) { r = Math.random() < 0.5 ? 0 : 10; c = Math.floor(Math.random()*11); }
             else { c = Math.random() < 0.5 ? 0 : 10; r = Math.floor(Math.random()*11); }
-            m.r = r; m.c = c; m.hp = (isBoss ? 4000 : 300) + (currentRound*150); m.maxHp = m.hp;
+            m.r = r; m.c = c; m.hp = (isBoss ? 5000 : 300) + (currentRound*150); m.maxHp = m.hp;
             m.atk = (isBoss ? 50 : 15) + currentRound; m.lastAttack = 0; m.isCharging = false;
-            // 겹침 방지 오프셋 (정수 그리드에서 아주 미세하게만 틀어줌)
-            m.offX = (Math.random()-0.5)*3; m.offY = (Math.random()-0.5)*3;
+            // 겹침 방지: 격자 내 미세 랜덤 위치
+            m.offX = (Math.random()-0.5)*4; m.offY = (Math.random()-0.5)*4;
             document.getElementById('map-container').appendChild(m); monsters.push(m);
             document.getElementById('monster-count').innerText = `Enemies: ${monsters.length}`;
         }
@@ -316,12 +322,15 @@
             const now = Date.now();
             monsters.forEach((m, idx) => {
                 let target = null;
-                const dP = Math.hypot(m.r - playerPos.r, m.c - playerPos.c);
-                if (m.isCharging && dP <= 1.2) target = { type: 'player' };
-                else {
-                    const nG = guardians.find(g => Math.hypot(m.r - g.unitR, m.c - g.unitC) <= 1.2);
-                    if (m.isCharging && nG) target = { type: 'guardian', ref: nG };
-                    else if (m.isCharging && gateHp > 0 && Math.hypot(m.r - 9, m.c - 5) <= 0.3) target = { type: 'gate' };
+                // 성문 진입 모드일 때만 공격 타겟 감지
+                if (m.isCharging) {
+                    const dP = Math.hypot(m.r - playerPos.r, m.c - playerPos.c);
+                    if (dP <= 1.2) target = { type: 'player' };
+                    else {
+                        const nG = guardians.find(g => Math.hypot(m.r - g.unitR, m.c - g.unitC) <= 1.2);
+                        if (nG) target = { type: 'guardian', ref: nG };
+                        else if (gateHp > 0 && Math.abs(m.r - 9) <= 0.3 && Math.abs(m.c - 5) <= 0.3) target = { type: 'gate' };
+                    }
                 }
 
                 if (target) {
@@ -331,25 +340,31 @@
                             target.ref.hp -= m.atk; target.ref.querySelector('.hp-bar-fill').style.width = (target.ref.hp/target.ref.hpMax*100) + "%";
                             if (target.ref.hp <= 0) { target.ref.remove(); guardians.splice(guardians.indexOf(target.ref), 1); updateStats(); }
                         } else if (target.type === 'gate') {
-                            gateHp -= m.atk; document.getElementById('gate-hp-fill').style.width = (gateHp/(500 + currentRound*100)*100) + "%";
+                            gateHp -= m.atk; document.getElementById('gate-hp-fill').style.width = (gateHp/(500 + currentRound*150)*100) + "%";
                             if (gateHp <= 0) { gateHp = 0; document.getElementById('south-gate').style.opacity = "0.2"; }
                         }
                         m.lastAttack = now;
                     }
                 } else if (m.isCharging) {
-                    // 성벽 우회 이동 (r=10 고정 -> r=9 성문 앞 -> 마을)
+                    // 성벽 물리: 6시 성문 통로(r=10, c=5)를 거쳐서만 진입 가능
                     let tr = gateHp > 0 ? 10 : 5, tc = 5;
-                    const step = 0.035; // 이동속도 조금 더 느리게
-                    if (m.r < tr) m.r += step; else if (m.r > tr) m.r -= step;
-                    if (m.c < tc) m.c += step; else if (m.c > tc) m.c -= step;
-                    if (gateHp <= 0 && Math.hypot(m.r - 5, m.c - 5) < 0.3) {
+                    const step = 0.035;
+                    // X축 먼저 성문 중앙으로 정렬 후 Y축 진입 (성벽 충돌 방지)
+                    if (Math.abs(m.c - 5) > 0.1 && m.r > 8) {
+                        if (m.c < 5) m.c += step; else m.c -= step;
+                    } else {
+                        if (m.r < tr) m.r += step; else if (m.r > tr) m.r -= step;
+                        if (m.c < tc) m.c += step; else if (m.c > tc) m.c -= step;
+                    }
+
+                    if (gateHp <= 0 && Math.hypot(m.r - 5, m.c - 5) < 0.2) {
                         villageHp -= (m.innerHTML === '👹' ? 50 : 10);
                         document.getElementById('village-hp-bar').style.width = villageHp + "%";
                         m.remove(); monsters.splice(idx, 1);
                         if(villageHp <= 0) { alert("VILLAGE DESTROYED!"); location.reload(); }
                     }
                 } else {
-                    const step = 0.05; // 궤도 회전 속도
+                    const step = 0.045; // 궤도 회전 속도 (성벽 밖 0/10 라인만 이용)
                     if(m.r <= 0.1 && m.c < 10) m.c += step;
                     else if(m.c >= 9.9 && m.r < 10) m.r += step;
                     else if(m.r >= 9.9 && m.c > 0.1) m.c -= step;
@@ -358,27 +373,36 @@
                 m.style.top = (m.r * 9.09 + m.offY) + '%'; m.style.left = (m.c * 9.09 + m.offX) + '%';
             });
 
-            // 공격 감지 및 발사
+            // 아군 공격
             [...guardians, {unitR: playerPos.r, unitC: playerPos.c, atk: Math.floor(25 + user_str/4 + (dLevel-1)*15), lastShot: playerLastShot, isPlayer: true}].forEach(u => {
-                const cd = u.isPlayer ? playerAtkSpeed : 1200;
-                const lt = u.isPlayer ? playerLastShot : u.lastShot;
+                const cd = u.isPlayer ? playerAtkSpeed : u.stats.cd;
+                const lt = u.isPlayer ? playerLastShot : u.stats.lastShot;
+                const range = u.isPlayer ? 2.8 : u.stats.range + 0.8;
                 if (now - lt > cd) {
-                    const t = monsters.find(m => Math.hypot(u.unitR - m.r, u.unitC - m.c) <= (u.isPlayer ? 2.8 : 3.8));
-                    if (t) { fire(u.unitR, u.unitC, t, u.isPlayer ? '#fbbf24' : '#38bdf8', u.atk); if(u.isPlayer) playerLastShot = now; else u.lastShot = now; }
+                    const t = monsters.find(m => Math.hypot(u.unitR - m.r, u.unitC - m.c) <= range);
+                    if (t) { 
+                        if (u.isPlayer) { fire(u.unitR, u.unitC, t, '#fbbf24', u.atk); playerLastShot = now; }
+                        else { 
+                            if (u.stats.aoe) { // 광역 공격 (Mage/Dragon)
+                                monsters.filter(m => Math.hypot(t.r - m.r, t.c - m.c) <= 1.5).forEach(target => fire(u.unitR, u.unitC, target, '#38bdf8', u.stats.atk, false));
+                            } else { fire(u.unitR, u.unitC, t, '#38bdf8', u.stats.atk); }
+                            u.stats.lastShot = now; 
+                        }
+                    }
                 }
             });
 
             if (playerHp <= 0) { alert("HERO DEFEATED!"); location.reload(); }
             if(isWaveActive && monsters.length === 0 && waveTimer < 20) {
                 isWaveActive = false; document.getElementById('start-btn').classList.remove('opacity-50');
-                document.getElementById('timer-text').innerText = "00:30"; changeBGM('music/townbgm.mp3');
-                currentRound++; dCoin += 200; summonRandomGuardian(true); updateStats();
+                changeBGM('music/townbgm.mp3'); currentRound++; dCoin += 200; 
+                summonRandomGuardian(true); updateStats();
             }
             requestAnimationFrame(gameLoop);
         }
 
-        function fire(sr, sc, target, color, dmg) {
-            playAttackSound();
+        function fire(sr, sc, target, color, dmg, sound = true) {
+            if(sound) playAttackSound();
             const p = document.createElement('div'); p.className = 'projectile'; p.style.backgroundColor = color;
             p.style.top = (sr*9.09+4.5)+'%'; p.style.left = (sc*9.09+4.5)+'%';
             document.getElementById('map-container').appendChild(p);
@@ -394,7 +418,7 @@
                     if(fill) fill.style.width = (target.hp/target.maxHp*100) + "%";
                     if(target.hp <= 0) { 
                         const midx = monsters.indexOf(target); 
-                        if (midx > -1) { monsters.splice(midx, 1); target.remove(); dCoin += 50; gainExp(30); updateStats(); } 
+                        if (midx > -1) { monsters.splice(midx, 1); target.remove(); dCoin += 50; gainExp(30); } 
                     }
                 }
             };
