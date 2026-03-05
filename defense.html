@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>QuestBody - Maze Defense KR/EN</title>
+    <title>QuestBody - Maze Defense Elite</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Noto+Sans+KR:wght@300;400;700&display=swap');
@@ -18,6 +18,9 @@
         }
         .grid-cell { border: 0.1px solid rgba(56, 189, 248, 0.05); position: relative; z-index: 1; }
         .grid-cell.selected { background: rgba(251, 146, 60, 0.3); box-shadow: inset 0 0 15px #fb923c; }
+        .grid-cell.move-target { background: rgba(56, 189, 248, 0.2); animation: pulse 1s infinite; }
+        @keyframes pulse { 0% { opacity: 0.5; } 50% { opacity: 1; } 100% { opacity: 0.5; } }
+
         .wall-cell { background: #1e293b; border: 1px solid #475569; z-index: 2; position: relative; }
         .wall-cell::after { content: '🧱'; position: absolute; font-size: 8px; opacity: 0.4; top: 50%; left: 50%; transform: translate(-50%, -50%); }
         .range-highlight { background: rgba(56, 189, 248, 0.2); border: 1px solid #38bdf8; z-index: 5; }
@@ -29,12 +32,13 @@
 
         .unit { position: absolute; width: 9.09%; height: 9.09%; z-index: 100; display: flex; align-items: center; justify-content: center; background-size: contain; background-repeat: no-repeat; background-position: center; transition: all 0.3s; pointer-events: none; }
         .unit-click-area { position: absolute; width: 9.09%; height: 9.09%; z-index: 110; cursor: pointer; }
-        .unit.wait { filter: grayscale(1) brightness(0.6); opacity: 0.7; }
+        .unit.wait { filter: grayscale(1) brightness(0.4); opacity: 0.5; }
         .wait-timer-text { position: absolute; top: -15px; width: 100%; text-align: center; color: #38bdf8; font-weight: bold; font-size: 9px; text-shadow: 0 0 4px #000; z-index: 120; }
 
         .monster { position: absolute; width: 9.09%; height: 9.09%; z-index: 50; display: flex; flex-direction: column; align-items: center; justify-content: center; font-size: 22px; transition: none; pointer-events: none; }
         .monster.stunned { filter: hue-rotate(180deg) brightness(1.5); }
         .monster-hp-text { font-size: 7px; color: #fff; font-weight: bold; margin-top: -2px; text-shadow: 1px 1px 1px #000; }
+
         .hp-bar-bg { width: 80%; height: 3px; background: #450a0a; position: absolute; top: -5px; border-radius: 1px; }
         .hp-bar-fill { height: 100%; background: #22c55e; transition: width 0.2s; }
         
@@ -42,24 +46,23 @@
         .crit { color: #facc15 !important; font-size: 16px !important; }
         @keyframes popUp { 0% { transform: translateY(0) scale(1); opacity: 1; } 100% { transform: translateY(-20px) scale(1.2); opacity: 0; } }
 
-        .projectile { position: absolute; width: 6px; height: 6px; border-radius: 50%; z-index: 120; pointer-events: none; box-shadow: 0 0 10px currentColor; }
-        .flash-screen { position: absolute; inset: 0; background: white; opacity: 0; pointer-events: none; z-index: 300; }
-        .flash { animation: flashAnim 0.5s ease-out; }
-        @keyframes flashAnim { 0% { opacity: 0.6; } 100% { opacity: 0; } }
-
         .ui-panel { background: #0f172a; border-top: 2px solid #334155; padding: 10px; flex-shrink: 0; }
         .ctrl-btn { background: #1e293b; color: white; width: 44px; height: 44px; border-radius: 8px; display: flex; align-items: center; justify-content: center; border-bottom: 3px solid #000; font-size: 18px; }
         
-        #unit-control-panel { position: absolute; top: 10%; left: 50%; transform: translateX(-50%); background: rgba(15, 23, 42, 0.98); border: 2px solid #fb923c; padding: 12px; border-radius: 12px; z-index: 250; display: none; min-width: 220px; box-shadow: 0 0 30px #000; text-align: center; }
+        #unit-control-panel { position: absolute; top: 12%; left: 50%; transform: translateX(-50%); background: rgba(15, 23, 42, 0.98); border: 2px solid #fb923c; padding: 12px; border-radius: 12px; z-index: 250; display: none; min-width: 220px; box-shadow: 0 0 30px #000; text-align: center; }
         .info-tab { position: absolute; top: 45px; left: 5px; background: rgba(15, 23, 42, 0.85); border: 1px solid #334155; padding: 6px; border-radius: 4px; font-size: 7px; z-index: 70; }
         .start-hint { position: absolute; top: -14px; white-space: nowrap; font-size: 7px; color: #fbbf24; animation: bounce 1.5s infinite; font-weight: 300; width: 100%; text-align: center; }
         @keyframes bounce { 0%, 100% { transform: translateY(0); opacity: 0.5; } 50% { transform: translateY(-3px); opacity: 1; } }
+        
+        /* 알림 메시지 스타일 */
+        #game-msg { position: absolute; top: 40%; left: 50%; transform: translate(-50%, -50%); background: rgba(0,0,0,0.7); color: #fb923c; padding: 10px 20px; border-radius: 20px; font-size: 10px; font-weight: bold; pointer-events: none; z-index: 500; display: none; border: 1px solid #fb923c; }
     </style>
 </head>
 <body>
 
     <audio id="audio-bgm" loop></audio>
-    <div id="flash-overlay" class="flash-screen"></div>
+    <div id="flash-overlay" class="lv-up-fx" style="position:fixed; inset:0; pointer-events:none; background:white; opacity:0; z-index:1000;"></div>
+    <div id="game-msg">MESSAGE</div>
 
     <header class="p-2 bg-slate-900 flex justify-between items-center border-b border-slate-700 shrink-0">
         <button onclick="location.href='index.html'" class="text-slate-400 text-[10px] font-bold uppercase">◀ HUB</button>
@@ -79,11 +82,11 @@
 
     <main class="flex-1 flex flex-col items-center justify-center bg-black relative">
         <div class="info-tab text-slate-300">
-            <p class="text-blue-400 font-bold mb-1 underline text-[8px] uppercase">Unit Skill & Luck</p>
-            <p>🛡️ Knight: Stun Chance (스턴)</p>
-            <p class="text-orange-400">🏹 Archer: Long Range (장거리)</p>
-            <p class="text-blue-300">🧙 Mage: Multi-Target (다중공격)</p>
-            <p class="text-purple-400 font-bold">🐉 Dragon: Critical (치명타)</p>
+            <p class="text-blue-400 font-bold mb-1 underline text-[8px] uppercase">Unit Skill & Luck (확률/기술)</p>
+            <p>🛡️ Knight(50%): Stun Chance (스턴)</p>
+            <p class="text-orange-400">🏹 Archer(25%): Long Range (장거리)</p>
+            <p class="text-blue-300">🧙 Mage(20%): Multi-Target (다중공격)</p>
+            <p class="text-purple-400 font-bold">🐉 Dragon(5%): Critical (치명타)</p>
             <p class="mt-1 text-emerald-400 border-t border-slate-800 pt-1 uppercase">Mana Regen: <span id="regen-val">0.1</span>/s</p>
         </div>
 
@@ -92,7 +95,7 @@
             <p id="ui-lv" class="text-[10px] text-orange-400 mb-3 font-bold uppercase">Level 1</p>
             <div class="grid grid-cols-2 gap-2">
                 <button onclick="upgradeUnit()" class="py-2 bg-emerald-700 rounded text-[9px] font-bold uppercase border-b-2 border-emerald-900 active:border-0 active:translate-y-1">Upgrade 강화<br>(<span id="ui-cost">100</span>G)</button>
-                <button onclick="startMoveMode()" class="py-2 bg-blue-700 rounded text-[9px] font-bold uppercase border-b-2 border-blue-900 active:border-0 active:translate-y-1">Relocate 이동<br>(10s)</button>
+                <button onclick="startMoveMode()" class="py-2 bg-blue-700 rounded text-[9px] font-bold uppercase border-b-2 border-blue-900 active:border-0 active:translate-y-1">Relocate 이동<br>(10s Delay)</button>
                 <button onclick="closeUnitPanel()" class="col-span-2 py-1 bg-slate-700 rounded text-[9px] font-bold uppercase mt-1">Close 닫기</button>
             </div>
         </div>
@@ -141,9 +144,9 @@
                 <button class="ctrl-btn" onclick="moveHero(0, 1)">▶</button>
             </div>
             <div class="bg-slate-900/80 p-2 rounded border border-slate-700 flex-1 ml-4 grid grid-cols-2 gap-1 text-center">
-                <div><p class="text-[6px] text-slate-500 uppercase">Hero HP</p><p id="hero-hp-val" class="text-[9px] text-emerald-400 font-bold">100/100</p></div>
+                <div><p class="text-[6px] text-slate-500 uppercase">Hero HP 히어로체력</p><p id="hero-hp-val" class="text-[9px] text-emerald-400 font-bold">100/100</p></div>
                 <div><p class="text-[6px] text-slate-500 uppercase">Limit 설치제한</p><p id="guardian-limit" class="text-[9px] text-blue-400 font-bold">0/0</p></div>
-                <div class="col-span-2 border-t border-slate-800 pt-1 text-[10px] font-bold text-orange-400 uppercase tracking-tighter">Hero ATK: <span id="hero-atk">0</span></div>
+                <div class="col-span-2 border-t border-slate-800 pt-1 text-[10px] font-bold text-orange-400 uppercase tracking-tighter">Hero ATK 공격력: <span id="hero-atk">0</span></div>
             </div>
         </div>
     </div>
@@ -162,7 +165,7 @@
         let user_str = parseInt(localStorage.getItem('user_str')) || 0;
         let user_int = parseInt(localStorage.getItem('user_int')) || 0;
         let weekly = JSON.parse(localStorage.getItem('weekly_workout_data')) || { totalHpBonus: 0 };
-        let playerHpMax = 100 + (weekly.totalHpBonus || 0);
+        let playerHpMax = 100 + (parseInt(weekly.totalHpBonus) || 0);
         let playerHp = playerHpMax;
         let manaMax = 10 + user_int, currentMana = 0;
 
@@ -173,6 +176,12 @@
             setInterval(() => { if(gameStarted) { currentMana = Math.min(manaMax, currentMana + 0.1 * (1 + user_int/10)); updateStats(); } }, 1000);
         };
 
+        function showMsg(txt) {
+            const m = document.getElementById('game-msg');
+            m.innerText = txt; m.style.display = 'block';
+            setTimeout(() => m.style.display = 'none', 2000);
+        }
+
         function playHitSound(type) {
             try {
                 const osc = audioCtx.createOscillator(); const gain = audioCtx.createGain();
@@ -180,7 +189,7 @@
                 osc.type = type === 'player' ? 'sine' : 'triangle';
                 osc.frequency.setValueAtTime(type === 'player' ? 330 : 180, audioCtx.currentTime);
                 osc.frequency.exponentialRampToValueAtTime(50, audioCtx.currentTime + 0.1);
-                gain.gain.setValueAtTime(0.06, audioCtx.currentTime);
+                gain.gain.setValueAtTime(0.05, audioCtx.currentTime);
                 gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.1);
                 osc.start(); osc.stop(audioCtx.currentTime + 0.1);
             } catch(e) {}
@@ -194,24 +203,27 @@
                 audioBgm.src = 'music/townbgm.mp3'; audioBgm.play();
                 updateStats();
             } else {
-                if(activeUnit === 'player') { closeUnitPanel(); }
-                else { activeUnit = 'player'; showRange(playerPos.r, playerPos.c, 2.5); }
+                if(activeUnit === 'hero') { closeUnitPanel(); }
+                else { activeUnit = 'hero'; showRange(playerPos.r, playerPos.c, 2.5); }
             }
         }
 
         function onCellClick(r, c) {
             if (!gameStarted) return;
             
-            // 🚀 이동 모드일 때 (빈 칸 클릭 시 바로 이동)
-            if (isMoveMode && activeUnit) {
-                if (isPosBlocked(r, c, false)) return;
+            // 🚀 이동 모드 (바닥 클릭 시 즉시 이동)
+            if (isMoveMode && activeUnit && activeUnit !== 'hero') {
+                if (isPosBlocked(r, c, true)) return;
+                
+                // 데이터 업데이트
                 activeUnit.r = r; activeUnit.c = c;
+                // 시각적 위치 업데이트
                 activeUnit.el.style.top = (r*9.09)+'%'; activeUnit.el.style.left = (c*9.09)+'%';
                 activeUnit.area.style.top = (r*9.09)+'%'; activeUnit.area.style.left = (c*9.09)+'%';
-                activeUnit.wait = 10000; // 10초
+                
+                activeUnit.wait = 10000; 
                 activeUnit.el.classList.add('wait');
                 
-                // 쿨타임 텍스트 생성
                 if(activeUnit.timerTxt) activeUnit.timerTxt.remove();
                 const timerTxt = document.createElement('div');
                 timerTxt.className = 'wait-timer-text';
@@ -220,7 +232,9 @@
                 activeUnit.timerTxt = timerTxt;
 
                 isMoveMode = false; 
-                closeUnitPanel(); 
+                activeUnit = null;
+                showMsg("RELOCATED! (이동 완료)");
+                clearRange();
                 return;
             }
 
@@ -246,9 +260,8 @@
         }
 
         function isPosBlocked(r, c, isInstall) {
-            if (isInstall && (r===0 || r===10 || c===0 || c===10)) return true;
-            if (r===1 || r===9 || c===1 || c===9) return true;
-            if (r >= 4 && r <= 6 && c >= 4 && c <= 6) return true;
+            if (r===1 || r===9 || c===1 || c===9) return true; // 성벽
+            if (r >= 4 && r <= 6 && c >= 4 && c <= 6) return true; // 마을
             if (guardians.some(g => g.r === r && g.c === c)) return true;
             if (playerPos.r === r && playerPos.c === c) return true;
             return false;
@@ -266,7 +279,9 @@
 
         function installGuardian() {
             const limit = Math.floor(user_int/5) + currentRound;
-            if (guardians.length >= limit || dCoin < 150) return;
+            if (guardians.length >= limit) { showMsg("LIMIT REACHED!"); return; }
+            if (dCoin < 150) { showMsg("NOT ENOUGH GOLD!"); return; }
+            
             dCoin -= 150;
             const rand = Math.random();
             const type = rand < 0.05 ? "Dragon" : rand < 0.25 ? "Mage" : rand < 0.55 ? "Archer" : "Knight";
@@ -306,15 +321,13 @@
         function upgradeUnit() {
             if(!activeUnit) return;
             const cost = activeUnit.lv * 100;
-            if(dCoin < cost) return;
-            dCoin -= cost;
-            activeUnit.lv++;
-            activeUnit.atk += 25;
+            if(dCoin < cost) { showMsg("NOT ENOUGH GOLD!"); return; }
+            dCoin -= cost; activeUnit.lv++; activeUnit.atk += 25;
             if(activeUnit.type === "Archer") activeUnit.range += 0.3;
             activeUnit.el.innerHTML = getUnitVisual(activeUnit.type, activeUnit.lv);
             updateStats(); openUnitPanel(activeUnit);
         }
-        function startMoveMode() { if(!activeUnit) return; isMoveMode = true; closeUnitPanel(); alert("Click an empty cell to move. 빈 칸을 눌러 이동하세요."); }
+        function startMoveMode() { if(!activeUnit) return; isMoveMode = true; document.getElementById('unit-control-panel').style.display='none'; showMsg("SELECT EMPTY CELL (이동할 칸 선택)"); }
 
         function moveHero(dr, dc) {
             if (!gameStarted) return;
@@ -322,7 +335,7 @@
             if (nr >= 0 && nr < 11 && nc >= 0 && nc < 11) {
                 if (nr >= 4 && nr <= 6 && nc >= 4 && nc <= 6) return;
                 const cell = document.getElementById(`grid-${nr}-${nc}`);
-                if (cell.classList.contains('wall-cell') && !(nr === 8 && nc === 5)) return;
+                if (cell.classList.contains('wall-cell')) return;
                 playerPos.r = nr; playerPos.c = nc; updatePlayerUI();
             }
         }
@@ -359,7 +372,6 @@
                 mb.appendChild(mf); el.appendChild(mb); el.appendChild(hpt);
                 document.getElementById('map-container').appendChild(el);
                 m.el = el; m.mf = mf; m.hpt = hpt; monsters.push(m);
-                document.getElementById('monster-count').innerText = `Enemies: ${monsters.length}`;
             }, 1000);
             timerInterval = setInterval(() => {
                 waveTimer--; document.getElementById('timer-text').innerText = `00:${waveTimer<10?'0'+waveTimer:waveTimer}`;
@@ -375,16 +387,10 @@
 
                 if (m.charge) {
                     const step = 0.04;
-                    // 몬스터가 성문(10, 5)을 향해 최외곽 궤도(0, 10)를 따라 이동하게 로직 고정
                     if (gateHp > 0) {
-                        // 현재 가로 테두리(0, 10)에 있을 때
                         if (Math.abs(m.r - 10) > 0.1 && (m.c === 0 || m.c === 10)) { m.r += step; } 
-                        else if (Math.abs(m.c - 5) > 0.1) { 
-                            m.r = 10; // 아래 테두리에 붙음
-                            if (m.c < 5) m.c += step; else m.c -= step; 
-                        }
+                        else if (Math.abs(m.c - 5) > 0.1) { m.r = 10; if (m.c < 5) m.c += step; else m.c -= step; }
                     } else {
-                        // 성문 파괴 후 마을 진입
                         if (m.r > 5) m.r -= step;
                         if (Math.abs(m.c - 5) > 0.1) { if (m.c < 5) m.c += step; else m.c -= step; }
                     }
@@ -396,7 +402,7 @@
                     } else if (gateHp <= 0 && Math.hypot(m.r-5, m.c-5) < 0.2) {
                         villageHp -= 10; document.getElementById('village-hp-bar').style.width = villageHp+'%';
                         m.el.remove(); monsters.splice(idx, 1);
-                        if(villageHp <= 0) { alert("VILLAGE DESTROYED"); location.reload(); }
+                        if(villageHp <= 0) { showMsg("VILLAGE DESTROYED!"); location.reload(); }
                     }
                 } else {
                     const step = 0.06;
@@ -458,7 +464,7 @@
             };
         }
 
-        function checkLvUp() { if(dExp >= dExpNext){ dLevel++; dExp=0; dExpNext=Math.floor(dExpNext*1.5); document.getElementById('flash-overlay').classList.add('flash'); setTimeout(()=>document.getElementById('flash-overlay').classList.remove('flash'), 500); } }
+        function checkLvUp() { if(dExp >= dExpNext){ dLevel++; dExp=0; dExpNext=Math.floor(dExpNext*1.5); document.getElementById('flash-overlay').style.opacity = '1'; setTimeout(()=>document.getElementById('flash-overlay').style.opacity = '0', 500); } }
         function updateStats() {
             document.getElementById('hero-atk').innerText = Math.floor(25 + user_str/4 + (dLevel-1)*15);
             document.getElementById('mana-display').innerText = `Mana: ${Math.floor(currentMana)}/${manaMax}`;
