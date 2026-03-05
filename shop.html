@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="ko" class="notranslate" translate="no">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>QuestBody - System Shop</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Noto+Sans+KR:wght@400;700&display=swap');
+        body { background-color: #020617; color: white; font-family: 'Orbitron', 'Noto Sans KR', sans-serif; margin: 0; padding: 0; height: 100dvh; overflow: hidden; }
+        .shop-card { background: rgba(15, 23, 42, 0.8); border: 1px solid #1e293b; border-radius: 16px; padding: 15px; transition: all 0.3s ease; }
+        .shop-card:active { transform: scale(0.98); border-color: #38bdf8; }
+        .coin-glow { text-shadow: 0 0 10px #facc15; }
+        .main-content { height: calc(100dvh - 80px); overflow-y: auto; scrollbar-width: none; }
+        .main-content::-webkit-scrollbar { display: none; }
+        .price-tag { background: rgba(250, 204, 21, 0.1); border: 1px solid rgba(250, 204, 21, 0.3); color: #facc15; }
+    </style>
+</head>
+<body class="flex flex-col">
+    <audio id="bgm" loop preload="auto"><source src="music/loginbgm.mp3" type="audio/mpeg"></audio>
+
+    <header class="p-4 bg-slate-900 border-b border-yellow-500/30 flex justify-between items-center shrink-0">
+        <button onclick="location.href='index.html'" class="text-yellow-500 font-bold text-[10px] uppercase text-left">◀ BACK<br>뒤로</button>
+        <h1 class="text-xs font-bold tracking-widest text-yellow-400 uppercase text-center">SYSTEM SHOP<br>시스템 상점</h1>
+        <div class="text-right">
+            <p class="text-[7px] text-slate-500 uppercase font-bold">Your Assets</p>
+            <p id="user-coin" class="text-xs font-bold text-yellow-400 coin-glow">0 G</p>
+        </div>
+    </header>
+
+    <main class="main-content p-4 space-y-6">
+        <section class="space-y-3">
+            <h2 class="text-[10px] font-bold text-blue-400 tracking-[0.2em] uppercase pl-1">Consumables (강화 소모품)</h2>
+            
+            <div onclick="buyItem('Mana Potion', 100, 'mana')" class="shop-card flex justify-between items-center">
+                <div class="flex items-center gap-4">
+                    <span class="text-2xl">🧪</span>
+                    <div>
+                        <h3 class="text-xs font-bold uppercase">Mana Potion<br><span class="text-[10px] text-slate-400">마나 포션</span></h3>
+                        <p class="text-[8px] text-blue-400 mt-1">Recovers 10 Mana (마나 10 회복)</p>
+                    </div>
+                </div>
+                <div class="price-tag px-3 py-1 rounded-full text-[10px] font-bold tracking-tighter">100 G</div>
+            </div>
+
+            <div onclick="buyItem('Village Repair Kit', 300, 'hp')" class="shop-card flex justify-between items-center">
+                <div class="flex items-center gap-4">
+                    <span class="text-2xl">🛠️</span>
+                    <div>
+                        <h3 class="text-xs font-bold uppercase">Repair Kit<br><span class="text-[10px] text-slate-400">마을 수리 키트</span></h3>
+                        <p class="text-[8px] text-emerald-400 mt-1">Village HP +20 (마을 체력 회복)</p>
+                    </div>
+                </div>
+                <div class="price-tag px-3 py-1 rounded-full text-[10px] font-bold tracking-tighter">300 G</div>
+            </div>
+        </section>
+
+        <section class="space-y-3">
+            <h2 class="text-[10px] font-bold text-red-400 tracking-[0.2em] uppercase pl-1">Equipment (전투 장비)</h2>
+            
+            <div onclick="buyItem('Training Sword', 1000, 'atk')" class="shop-card flex justify-between items-center">
+                <div class="flex items-center gap-4">
+                    <span class="text-2xl">⚔️</span>
+                    <div>
+                        <h3 class="text-xs font-bold uppercase">Training Sword<br><span class="text-[10px] text-slate-400">수련용 목검</span></h3>
+                        <p class="text-[8px] text-red-400 mt-1">ATK +5 (탐험 공격력 상승)</p>
+                    </div>
+                </div>
+                <div class="price-tag px-3 py-1 rounded-full text-[10px] font-bold tracking-tighter">1000 G</div>
+            </div>
+
+            <div onclick="buyItem('Heavy Dumbbell', 2500, 'str')" class="shop-card flex justify-between items-center">
+                <div class="flex items-center gap-4">
+                    <span class="text-2xl">🏋️</span>
+                    <div>
+                        <h3 class="text-xs font-bold uppercase">Heavy Dumbbell<br><span class="text-[10px] text-slate-400">고중량 덤벨</span></h3>
+                        <p class="text-[8px] text-orange-400 mt-1">Permanent STR +10 (영구 근력 상승)</p>
+                    </div>
+                </div>
+                <div class="price-tag px-3 py-1 rounded-full text-[10px] font-bold tracking-tighter">2500 G</div>
+            </div>
+        </section>
+
+        <div class="pb-10"></div>
+    </main>
+
+    <script>
+        const bgm = document.getElementById('bgm');
+        document.body.addEventListener('click', () => { if (bgm.paused) bgm.play().catch(e => {}); }, { once: true });
+
+        window.onload = () => {
+            updateCoinDisplay();
+        };
+
+        function updateCoinDisplay() {
+            const coins = parseInt(localStorage.getItem('user_coin')) || 0;
+            document.getElementById('user-coin').innerText = coins.toLocaleString() + " G";
+        }
+
+        function buyItem(name, price, type) {
+            let coins = parseInt(localStorage.getItem('user_coin')) || 0;
+
+            if (coins < price) {
+                alert(`잔액이 부족합니다! / Insufficient balance!\n(Needs ${price - coins} G more)`);
+                return;
+            }
+
+            if (confirm(`[${name}]을(를) 구매하시겠습니까?\nDo you want to buy this?`)) {
+                coins -= price;
+                localStorage.setItem('user_coin', coins);
+                
+                // 아이템 효과 적용
+                applyItemEffect(type);
+                
+                alert(`구매 완료! 효과가 적용되었습니다.\nPurchase complete! Effect applied.`);
+                updateCoinDisplay();
+            }
+        }
+
+        function applyItemEffect(type) {
+            if (type === 'mana') {
+                // 마나 즉시 회복 로직 (index.html에서 마나를 관리하므로 키값만 변경)
+                // 현재 마나는 세션이나 로컬에 저장하지 않으므로, 다음 접속 시 반영되거나
+                // 별도의 키를 만들어 index.html의 updateUI에서 불러오게 설계 가능
+            } else if (type === 'hp') {
+                let villageHp = parseInt(localStorage.getItem('village_hp')) || 100;
+                localStorage.setItem('village_hp', Math.min(100, villageHp + 20));
+            } else if (type === 'str') {
+                let str = parseInt(localStorage.getItem('user_str')) || 0;
+                localStorage.setItem('user_str', str + 10);
+            } else if (type === 'atk') {
+                let bonusAtk = parseInt(localStorage.getItem('bonus_atk')) || 0;
+                localStorage.setItem('bonus_atk', bonusAtk + 5);
+            }
+        }
+    </script>
+</body>
+</html>
