@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>QuestBody - Gate Defense Master</title>
+    <title>QuestBody - Ultimate Gate Defense</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Noto+Sans+KR:wght@400;700&display=swap');
@@ -30,9 +30,9 @@
             background: #78350f; border: 2px solid #f59e0b; z-index: 20; display: flex; flex-direction: column; align-items: center; justify-content: center;
         }
         #gate-hp-container { width: 80%; height: 3px; background: #450a0a; position: absolute; top: -5px; }
-        #gate-hp-fill { height: 100%; background: #eab308; width: 100%; }
+        #gate-hp-fill { height: 100%; background: #eab308; width: 100%; transition: width 0.3s; }
 
-        .unit { position: absolute; width: 9.09%; height: 9.09%; z-index: 100; display: flex; align-items: center; justify-content: center; background-size: contain; background-repeat: no-repeat; background-position: center; transition: all 0.15s linear; }
+        .unit { position: absolute; width: 9.09%; height: 9.09%; z-index: 100; display: flex; align-items: center; justify-content: center; background-size: contain; background-repeat: no-repeat; background-position: center; transition: all 0.15s linear; cursor: pointer; }
         .monster { position: absolute; width: 8%; height: 8%; z-index: 50; display: flex; align-items: center; justify-content: center; transition: all 0.2s linear; }
         
         .hp-bar-bg { width: 80%; height: 3px; background: #450a0a; position: absolute; top: -5px; }
@@ -50,9 +50,15 @@
         .ctrl-btn { background: #1e293b; color: white; width: 42px; height: 42px; border-radius: 8px; display: flex; align-items: center; justify-content: center; border-bottom: 3px solid #000; }
         .exp-bar { width: 100%; height: 2px; background: #1e293b; margin-top: 2px; }
         #exp-fill { height: 100%; background: #a855f7; width: 0%; transition: width 0.3s; }
+
+        /* 🤺 시작 레이블 애니메이션 */
+        .start-hint { position: absolute; top: -20px; white-space: nowrap; font-size: 8px; color: #fbbf24; animation: bounce 1s infinite; font-weight: bold; }
+        @keyframes bounce { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-5px); } }
     </style>
 </head>
 <body>
+
+    <audio id="audio-bgm" loop></audio>
 
     <header class="p-2 bg-slate-900 flex justify-between items-center border-b border-slate-700 shrink-0">
         <button onclick="location.href='index.html'" class="text-slate-400 text-[10px] font-bold uppercase">◀ HUB</button>
@@ -92,7 +98,8 @@
                 <div id="gate-hp-container"><div id="gate-hp-fill"></div></div>
                 <span class="text-[6px] text-white font-bold uppercase">GATE</span>
             </div>
-            <div id="player" class="unit" onclick="showRange(this, 2)">
+            <div id="player" class="unit" onclick="handleHeroClick()">
+                <div id="start-label" class="start-hint">TAP HERO TO START</div>
                 <div class="hp-bar-bg"><div id="player-hp-fill" class="hp-bar-fill"></div></div>
             </div>
             <div id="unit-layer"></div>
@@ -104,7 +111,7 @@
             <button onclick="buyGuardian()" class="flex-1 py-2 bg-purple-900/40 border border-purple-500 rounded text-[9px] font-bold uppercase">
                 Add Unit (150G) <span id="guardian-limit" class="block text-[7px] text-purple-300">0/0</span>
             </button>
-            <button onclick="startWave()" id="start-btn" class="flex-1 py-3 bg-blue-600 rounded font-bold text-[11px] uppercase shadow-lg shadow-blue-900/50">Start Wave</button>
+            <button onclick="startWave()" id="start-btn" class="flex-1 py-3 bg-blue-600 rounded font-bold text-[11px] uppercase opacity-50 pointer-events-none">Start Wave</button>
             <button onclick="castSpeedMagic()" class="flex-1 py-2 bg-indigo-600 rounded text-[9px] font-bold uppercase">Burst (Mana 5)</button>
         </div>
         
@@ -125,17 +132,10 @@
     </div>
 
     <script>
+        const audioBgm = document.getElementById('audio-bgm');
         const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-        function playHitSound() {
-            const osc = audioCtx.createOscillator();
-            const gain = audioCtx.createGain();
-            osc.connect(gain); gain.connect(audioCtx.destination);
-            osc.type = 'square'; osc.frequency.setValueAtTime(200, audioCtx.currentTime);
-            gain.gain.setValueAtTime(0.05, audioCtx.currentTime);
-            gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.08);
-            osc.start(); osc.stop(audioCtx.currentTime + 0.08);
-        }
-
+        
+        let gameStarted = false;
         let user_str = parseInt(localStorage.getItem('user_str')) || 0;
         let user_int = parseInt(localStorage.getItem('user_int')) || 0;
         let weekly = JSON.parse(localStorage.getItem('weekly_workout_data')) || { totalHpBonus: 0, totalDef: 0 };
@@ -155,8 +155,37 @@
             const inbody = JSON.parse(localStorage.getItem('user_inbody'));
             document.getElementById('player').style.backgroundImage = inbody?.gender === 'woman' ? "url('image/woman.png')" : "url('image/man/man.png')";
             updatePlayerUI(); updateStats();
-            summonRandomGuardian(true);
         };
+
+        function playHitSound() {
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.connect(gain); gain.connect(audioCtx.destination);
+            osc.type = 'square'; osc.frequency.setValueAtTime(200, audioCtx.currentTime);
+            gain.gain.setValueAtTime(0.04, audioCtx.currentTime);
+            gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.08);
+            osc.start(); osc.stop(audioCtx.currentTime + 0.08);
+        }
+
+        function changeBGM(src) {
+            if (audioBgm.getAttribute('src') !== src) {
+                audioBgm.src = src;
+                audioBgm.play().catch(e => console.log("Audio play deferred"));
+            }
+        }
+
+        function handleHeroClick() {
+            if (!gameStarted) {
+                gameStarted = true;
+                document.getElementById('start-label').style.display = 'none';
+                document.getElementById('start-btn').classList.remove('opacity-50', 'pointer-events-none');
+                changeBGM('music/townbgm.mp3');
+                summonRandomGuardian(true); // 첫 수호자 자동 소환
+                alert("SYSTEM: Defense Activated! 마을을 보호하세요.");
+            } else {
+                showRange(document.getElementById('player'), 2);
+            }
+        }
 
         function updateStats() {
             const levelBonus = (dLevel - 1) * 15;
@@ -171,12 +200,13 @@
         }
 
         function castSpeedMagic() {
-            if (currentMana < 5 || magicActive) return;
+            if (currentMana < 5 || magicActive || !gameStarted) return;
             currentMana -= 5; magicActive = true; playerAtkSpeed = 300; updateStats();
             setTimeout(() => { magicActive = false; playerAtkSpeed = 600; updateStats(); }, 5000);
         }
 
         function movePlayer(dr, dc) {
+            if (!gameStarted) return;
             const nr = playerPos.r + dr, nc = playerPos.c + dc;
             if (nr >= 0 && nr < 11 && nc >= 0 && nc < 11) {
                 if (nr >= 4 && nr <= 6 && nc >= 4 && nc <= 6) return;
@@ -194,7 +224,7 @@
         }
 
         function buyGuardian() {
-            if (guardians.length >= Math.floor(user_int/5) + currentRound || dCoin < 150) return;
+            if (!gameStarted || guardians.length >= Math.floor(user_int/5) + currentRound || dCoin < 150) return;
             dCoin -= 150; summonRandomGuardian();
         }
 
@@ -229,14 +259,19 @@
         function clearRange() { document.querySelectorAll('.grid-cell').forEach(c => c.classList.remove('range-highlight')); }
 
         function startWave() {
-            if (isWaveActive) return;
+            if (isWaveActive || !gameStarted) return;
             isWaveActive = true; waveTimer = 30; gateHp = 500 + (currentRound*100);
             document.getElementById('gate-hp-fill').style.width = "100%";
             document.getElementById('south-gate').style.display = "flex";
             document.getElementById('start-btn').classList.add('opacity-50');
+            
+            // BGM 전환
+            if (currentRound % 5 === 0) changeBGM('music/bossbgm.mp3');
+            else changeBGM('music/defensebgm.mp3');
+
             const isBoss = currentRound % 5 === 0;
             let count = isBoss ? 1 : 5 + currentRound;
-            const spawn = setInterval(() => { if(count-- <= 0) { clearInterval(spawn); return; } createMonster(isBoss); }, 800);
+            const spawn = setInterval(() => { if(count-- <= 0) { clearInterval(spawn); return; } createMonster(isBoss); }, 1000);
             timerInterval = setInterval(() => {
                 waveTimer--;
                 document.getElementById('timer-fill').style.width = (waveTimer/30*100) + "%";
@@ -264,7 +299,7 @@
             dExp += amt;
             if (dExp >= dExpNext) {
                 dExp -= dExpNext; dLevel++; dExpNext = Math.floor(dExpNext * 1.5);
-                alert(`LEVEL UP! LV.${dLevel}\n마스터의 공격력이 대폭 상승했습니다!`);
+                alert(`LEVEL UP! LV.${dLevel}\n공격력이 상승했습니다!`);
             }
             updateStats();
         }
@@ -327,6 +362,7 @@
             if(isWaveActive && monsters.length === 0 && waveTimer < 25) {
                 isWaveActive = false; document.getElementById('start-btn').classList.remove('opacity-50');
                 document.getElementById('timer-text').innerText = "00:30";
+                changeBGM('music/townbgm.mp3'); // 대기 상태 BGM
                 currentRound++; dCoin += 200; summonRandomGuardian(true); updateStats();
             }
             requestAnimationFrame(gameLoop);
