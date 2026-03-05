@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>QuestBody - Ultimate Maze Defense</title>
+    <title>QuestBody - Maze Defense KR/EN</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Noto+Sans+KR:wght@300;400;700&display=swap');
@@ -30,8 +30,10 @@
         .unit { position: absolute; width: 9.09%; height: 9.09%; z-index: 100; display: flex; align-items: center; justify-content: center; background-size: contain; background-repeat: no-repeat; background-position: center; transition: all 0.3s; pointer-events: none; }
         .unit-click-area { position: absolute; width: 9.09%; height: 9.09%; z-index: 110; cursor: pointer; }
         .unit.wait { filter: grayscale(1) brightness(0.6); opacity: 0.7; }
-        
+        .wait-timer-text { position: absolute; top: -15px; width: 100%; text-align: center; color: #38bdf8; font-weight: bold; font-size: 9px; text-shadow: 0 0 4px #000; z-index: 120; }
+
         .monster { position: absolute; width: 9.09%; height: 9.09%; z-index: 50; display: flex; flex-direction: column; align-items: center; justify-content: center; font-size: 22px; transition: none; pointer-events: none; }
+        .monster.stunned { filter: hue-rotate(180deg) brightness(1.5); }
         .monster-hp-text { font-size: 7px; color: #fff; font-weight: bold; margin-top: -2px; text-shadow: 1px 1px 1px #000; }
         .hp-bar-bg { width: 80%; height: 3px; background: #450a0a; position: absolute; top: -5px; border-radius: 1px; }
         .hp-bar-fill { height: 100%; background: #22c55e; transition: width 0.2s; }
@@ -39,9 +41,6 @@
         .dmg-text { position: absolute; color: #ff4d4d; font-weight: 800; font-size: 12px; z-index: 200; pointer-events: none; animation: popUp 0.6s forwards; text-shadow: 1px 1px 2px black; }
         .crit { color: #facc15 !important; font-size: 16px !important; }
         @keyframes popUp { 0% { transform: translateY(0) scale(1); opacity: 1; } 100% { transform: translateY(-20px) scale(1.2); opacity: 0; } }
-        
-        /* ⏱️ 이동 쿨타임 텍스트 */
-        .wait-timer-text { position: absolute; top: -15px; width: 100%; text-align: center; color: #38bdf8; font-weight: bold; font-size: 9px; text-shadow: 0 0 4px #000; z-index: 120; }
 
         .projectile { position: absolute; width: 6px; height: 6px; border-radius: 50%; z-index: 120; pointer-events: none; box-shadow: 0 0 10px currentColor; }
         .flash-screen { position: absolute; inset: 0; background: white; opacity: 0; pointer-events: none; z-index: 300; }
@@ -51,7 +50,7 @@
         .ui-panel { background: #0f172a; border-top: 2px solid #334155; padding: 10px; flex-shrink: 0; }
         .ctrl-btn { background: #1e293b; color: white; width: 44px; height: 44px; border-radius: 8px; display: flex; align-items: center; justify-content: center; border-bottom: 3px solid #000; font-size: 18px; }
         
-        #unit-control-panel { position: absolute; top: 10%; left: 50%; transform: translateX(-50%); background: rgba(15, 23, 42, 0.98); border: 2px solid #fb923c; padding: 12px; border-radius: 12px; z-index: 250; display: none; min-width: 220px; box-shadow: 0 0 30px #000; }
+        #unit-control-panel { position: absolute; top: 10%; left: 50%; transform: translateX(-50%); background: rgba(15, 23, 42, 0.98); border: 2px solid #fb923c; padding: 12px; border-radius: 12px; z-index: 250; display: none; min-width: 220px; box-shadow: 0 0 30px #000; text-align: center; }
         .info-tab { position: absolute; top: 45px; left: 5px; background: rgba(15, 23, 42, 0.85); border: 1px solid #334155; padding: 6px; border-radius: 4px; font-size: 7px; z-index: 70; }
         .start-hint { position: absolute; top: -14px; white-space: nowrap; font-size: 7px; color: #fbbf24; animation: bounce 1.5s infinite; font-weight: 300; width: 100%; text-align: center; }
         @keyframes bounce { 0%, 100% { transform: translateY(0); opacity: 0.5; } 50% { transform: translateY(-3px); opacity: 1; } }
@@ -79,22 +78,22 @@
     </header>
 
     <main class="flex-1 flex flex-col items-center justify-center bg-black relative">
-        <div class="info-tab">
-            <p class="text-blue-300 font-bold mb-1 underline text-[8px] uppercase">Probability & Skill</p>
-            <p>🛡️ Knight: Stun Chance</p>
-            <p class="text-orange-400">🏹 Archer: Long Range</p>
-            <p class="text-blue-400">🧙 Mage: Multi-Hit</p>
-            <p class="text-purple-500 font-bold">🐉 Dragon: Critical</p>
-            <p class="mt-1 text-emerald-400 border-t border-slate-700 pt-1">Regen: <span id="regen-val">0.1</span>/s</p>
+        <div class="info-tab text-slate-300">
+            <p class="text-blue-400 font-bold mb-1 underline text-[8px] uppercase">Unit Skill & Luck</p>
+            <p>🛡️ Knight: Stun Chance (스턴)</p>
+            <p class="text-orange-400">🏹 Archer: Long Range (장거리)</p>
+            <p class="text-blue-300">🧙 Mage: Multi-Target (다중공격)</p>
+            <p class="text-purple-400 font-bold">🐉 Dragon: Critical (치명타)</p>
+            <p class="mt-1 text-emerald-400 border-t border-slate-800 pt-1 uppercase">Mana Regen: <span id="regen-val">0.1</span>/s</p>
         </div>
 
         <div id="unit-control-panel">
             <p id="ui-name" class="text-sm font-bold text-white mb-0.5 uppercase">Unit</p>
-            <p id="ui-lv" class="text-[10px] text-orange-400 mb-3 font-bold">Level 1</p>
+            <p id="ui-lv" class="text-[10px] text-orange-400 mb-3 font-bold uppercase">Level 1</p>
             <div class="grid grid-cols-2 gap-2">
-                <button onclick="upgradeUnit()" class="py-2 bg-emerald-700 rounded text-[10px] font-bold uppercase border-b-2 border-emerald-900 shadow-md">Upgrade (<span id="ui-cost">100</span>G)</button>
-                <button onclick="startMoveMode()" class="py-2 bg-blue-700 rounded text-[10px] font-bold uppercase border-b-2 border-blue-900 shadow-md">Relocate</button>
-                <button onclick="closeUnitPanel()" class="col-span-2 py-1 bg-slate-700 rounded text-[10px] font-bold uppercase mt-1">Close Menu</button>
+                <button onclick="upgradeUnit()" class="py-2 bg-emerald-700 rounded text-[9px] font-bold uppercase border-b-2 border-emerald-900 active:border-0 active:translate-y-1">Upgrade 강화<br>(<span id="ui-cost">100</span>G)</button>
+                <button onclick="startMoveMode()" class="py-2 bg-blue-700 rounded text-[9px] font-bold uppercase border-b-2 border-blue-900 active:border-0 active:translate-y-1">Relocate 이동<br>(10s)</button>
+                <button onclick="closeUnitPanel()" class="col-span-2 py-1 bg-slate-700 rounded text-[9px] font-bold uppercase mt-1">Close 닫기</button>
             </div>
         </div>
 
@@ -116,7 +115,7 @@
             <div id="south-gate"><div id="gate-hp-container"><div id="gate-hp-fill"></div></div></div>
             
             <div id="player" class="unit">
-                <div id="start-label" class="start-hint italic font-light">tap hero</div>
+                <div id="start-label" class="start-hint italic font-light lowercase">tap hero 히어로를 클릭하세요</div>
                 <div class="hp-bar-bg"><div id="player-hp-fill" class="hp-bar-fill"></div></div>
             </div>
             <div id="hero-trigger" class="unit-click-area" style="top:72.72%; left:45.45%; z-index:150;" onclick="handleHeroClick()"></div>
@@ -126,11 +125,11 @@
 
     <div class="ui-panel">
         <div class="flex justify-between items-center gap-2 mb-2">
-            <button id="install-btn" onclick="installGuardian()" class="flex-1 py-3 bg-orange-600 rounded font-bold text-[10px] uppercase hidden border-b-4 border-orange-800 shadow-lg">Deploy (150G)</button>
-            <button id="start-btn" onclick="startWave()" class="flex-1 py-3 bg-blue-600 rounded font-bold text-[11px] uppercase opacity-50 pointer-events-none border-b-4 border-blue-800">Start Wave</button>
+            <button id="install-btn" onclick="installGuardian()" class="flex-1 py-3 bg-orange-600 rounded font-bold text-[10px] uppercase hidden border-b-4 border-orange-800 shadow-lg">Deploy 설치 (150G)</button>
+            <button id="start-btn" onclick="startWave()" class="flex-1 py-3 bg-blue-600 rounded font-bold text-[10px] uppercase opacity-50 pointer-events-none border-b-4 border-blue-800">Start Wave 웨이브 시작</button>
             <div class="flex flex-col flex-1 gap-1 items-center">
                 <p id="mana-display" class="text-[9px] text-blue-400 font-bold uppercase tracking-tighter">Mana: 0/10</p>
-                <button onclick="castMagic()" class="w-full py-2 bg-indigo-600 rounded text-[8px] font-bold uppercase border-b-4 border-indigo-800">Mana Burst</button>
+                <button onclick="castMagic()" class="w-full py-2 bg-indigo-600 rounded text-[8px] font-bold uppercase border-b-4 border-indigo-800 leading-none">Mana Burst<br>마나 버스트</button>
             </div>
         </div>
         
@@ -143,7 +142,7 @@
             </div>
             <div class="bg-slate-900/80 p-2 rounded border border-slate-700 flex-1 ml-4 grid grid-cols-2 gap-1 text-center">
                 <div><p class="text-[6px] text-slate-500 uppercase">Hero HP</p><p id="hero-hp-val" class="text-[9px] text-emerald-400 font-bold">100/100</p></div>
-                <div><p class="text-[6px] text-slate-500 uppercase">Limit</p><p id="guardian-limit" class="text-[9px] text-blue-400 font-bold">0/0</p></div>
+                <div><p class="text-[6px] text-slate-500 uppercase">Limit 설치제한</p><p id="guardian-limit" class="text-[9px] text-blue-400 font-bold">0/0</p></div>
                 <div class="col-span-2 border-t border-slate-800 pt-1 text-[10px] font-bold text-orange-400 uppercase tracking-tighter">Hero ATK: <span id="hero-atk">0</span></div>
             </div>
         </div>
@@ -162,8 +161,9 @@
 
         let user_str = parseInt(localStorage.getItem('user_str')) || 0;
         let user_int = parseInt(localStorage.getItem('user_int')) || 0;
-        let playerHpMax = 100 + (parseInt(JSON.parse(localStorage.getItem('weekly_workout_data'))?.totalHpBonus) || 0);
-        let playerHp = playerHpMax, playerDef = (parseInt(JSON.parse(localStorage.getItem('weekly_workout_data'))?.totalDef) || 0);
+        let weekly = JSON.parse(localStorage.getItem('weekly_workout_data')) || { totalHpBonus: 0 };
+        let playerHpMax = 100 + (weekly.totalHpBonus || 0);
+        let playerHp = playerHpMax;
         let manaMax = 10 + user_int, currentMana = 0;
 
         window.onload = () => {
@@ -180,7 +180,7 @@
                 osc.type = type === 'player' ? 'sine' : 'triangle';
                 osc.frequency.setValueAtTime(type === 'player' ? 330 : 180, audioCtx.currentTime);
                 osc.frequency.exponentialRampToValueAtTime(50, audioCtx.currentTime + 0.1);
-                gain.gain.setValueAtTime(0.05, audioCtx.currentTime);
+                gain.gain.setValueAtTime(0.06, audioCtx.currentTime);
                 gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.1);
                 osc.start(); osc.stop(audioCtx.currentTime + 0.1);
             } catch(e) {}
@@ -302,8 +302,19 @@
             showRange(g.r, g.c, g.range); 
         }
         function closeUnitPanel() { activeUnit = null; document.getElementById('unit-control-panel').style.display='none'; clearRange(); }
-        function upgradeUnit() { if(!activeUnit) return; const cost = activeUnit.lv * 100; if(dCoin < cost) return; dCoin -= cost; activeUnit.lv++; activeUnit.atk += 25; activeUnit.el.innerHTML = getUnitVisual(activeUnit.type, activeUnit.lv); if(activeUnit.type === "Archer") activeUnit.range += 0.3; updateStats(); openUnitPanel(activeUnit); }
-        function startMoveMode() { if(!activeUnit) return; isMoveMode = true; closeUnitPanel(); alert("Click an empty cell to move."); }
+        
+        function upgradeUnit() {
+            if(!activeUnit) return;
+            const cost = activeUnit.lv * 100;
+            if(dCoin < cost) return;
+            dCoin -= cost;
+            activeUnit.lv++;
+            activeUnit.atk += 25;
+            if(activeUnit.type === "Archer") activeUnit.range += 0.3;
+            activeUnit.el.innerHTML = getUnitVisual(activeUnit.type, activeUnit.lv);
+            updateStats(); openUnitPanel(activeUnit);
+        }
+        function startMoveMode() { if(!activeUnit) return; isMoveMode = true; closeUnitPanel(); alert("Click an empty cell to move. 빈 칸을 눌러 이동하세요."); }
 
         function moveHero(dr, dc) {
             if (!gameStarted) return;
@@ -332,6 +343,7 @@
             document.getElementById('south-gate').style.display = "flex";
             document.getElementById('start-btn').classList.add('opacity-50', 'pointer-events-none');
             audioBgm.src = (currentRound % 5 === 0) ? 'music/bossbgm.mp3' : 'music/defensebgm.mp3'; audioBgm.play();
+            
             let count = (currentRound % 5 === 0) ? 1 : 5 + currentRound;
             const spawnInterval = setInterval(() => {
                 if(count-- <= 0) { clearInterval(spawnInterval); return; }
@@ -363,10 +375,16 @@
 
                 if (m.charge) {
                     const step = 0.04;
+                    // 몬스터가 성문(10, 5)을 향해 최외곽 궤도(0, 10)를 따라 이동하게 로직 고정
                     if (gateHp > 0) {
+                        // 현재 가로 테두리(0, 10)에 있을 때
                         if (Math.abs(m.r - 10) > 0.1 && (m.c === 0 || m.c === 10)) { m.r += step; } 
-                        else if (Math.abs(m.c - 5) > 0.1) { m.r = 10; if (m.c < 5) m.c += step; else m.c -= step; }
+                        else if (Math.abs(m.c - 5) > 0.1) { 
+                            m.r = 10; // 아래 테두리에 붙음
+                            if (m.c < 5) m.c += step; else m.c -= step; 
+                        }
                     } else {
+                        // 성문 파괴 후 마을 진입
                         if (m.r > 5) m.r -= step;
                         if (Math.abs(m.c - 5) > 0.1) { if (m.c < 5) m.c += step; else m.c -= step; }
                     }
