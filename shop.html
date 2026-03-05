@@ -8,18 +8,25 @@
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Noto+Sans+KR:wght@400;700&display=swap');
         body { background-color: #020617; color: white; font-family: 'Orbitron', 'Noto Sans KR', sans-serif; margin: 0; padding: 0; height: 100dvh; overflow: hidden; }
+        
+        /* 📱 상단 스탯 대시보드 */
+        .stat-dashboard { background: rgba(15, 23, 42, 0.9); border-bottom: 1px solid #334155; backdrop-filter: blur(10px); }
+        
         .shop-card { background: rgba(15, 23, 42, 0.8); border: 1px solid #1e293b; border-radius: 16px; padding: 15px; transition: all 0.3s ease; }
-        .shop-card:active { transform: scale(0.98); border-color: #38bdf8; }
+        .shop-card.owned { border-color: #10b981; background: rgba(16, 185, 129, 0.05); pointer-events: none; }
+        
         .coin-glow { text-shadow: 0 0 10px #facc15; }
-        .main-content { height: calc(100dvh - 80px); overflow-y: auto; scrollbar-width: none; }
+        .main-content { height: calc(100dvh - 140px); overflow-y: auto; scrollbar-width: none; }
         .main-content::-webkit-scrollbar { display: none; }
+        
         .price-tag { background: rgba(250, 204, 21, 0.1); border: 1px solid rgba(250, 204, 21, 0.3); color: #facc15; }
+        .owned-tag { background: rgba(16, 185, 129, 0.1); border: 1px solid rgba(16, 185, 129, 0.5); color: #10b981; }
     </style>
 </head>
 <body class="flex flex-col">
     <audio id="bgm" loop preload="auto"><source src="music/loginbgm.mp3" type="audio/mpeg"></audio>
 
-    <header class="p-4 bg-slate-900 border-b border-yellow-500/30 flex justify-between items-center shrink-0">
+    <header class="p-4 bg-slate-900 flex justify-between items-center shrink-0">
         <button onclick="location.href='index.html'" class="text-yellow-500 font-bold text-[10px] uppercase text-left">◀ BACK<br>뒤로</button>
         <h1 class="text-xs font-bold tracking-widest text-yellow-400 uppercase text-center">SYSTEM SHOP<br>시스템 상점</h1>
         <div class="text-right">
@@ -28,11 +35,28 @@
         </div>
     </header>
 
+    <div class="stat-dashboard p-3 px-6 flex justify-around items-center shrink-0 text-center">
+        <div class="flex flex-col">
+            <span class="text-[7px] text-slate-500 uppercase">Equip ATK (장비 공격력)</span>
+            <span id="stat-atk" class="text-xs font-bold text-red-500">+0</span>
+        </div>
+        <div class="h-6 w-[1px] bg-slate-800"></div>
+        <div class="flex flex-col">
+            <span class="text-[7px] text-slate-500 uppercase">Total STR (총 근력)</span>
+            <span id="stat-str" class="text-xs font-bold text-orange-500">0</span>
+        </div>
+        <div class="h-6 w-[1px] bg-slate-800"></div>
+        <div class="flex flex-col">
+            <span class="text-[7px] text-slate-500 uppercase">Village HP (마을 체력)</span>
+            <span id="stat-hp" class="text-xs font-bold text-emerald-500">0</span>
+        </div>
+    </div>
+
     <main class="main-content p-4 space-y-6">
         <section class="space-y-3">
             <h2 class="text-[10px] font-bold text-blue-400 tracking-[0.2em] uppercase pl-1">Consumables (강화 소모품)</h2>
             
-            <div onclick="buyItem('Mana Potion', 100, 'mana')" class="shop-card flex justify-between items-center">
+            <div onclick="buyItem('Mana Potion', 100, 'mana', 'mana_pot')" class="shop-card flex justify-between items-center" id="item-mana_pot">
                 <div class="flex items-center gap-4">
                     <span class="text-2xl">🧪</span>
                     <div>
@@ -43,7 +67,7 @@
                 <div class="price-tag px-3 py-1 rounded-full text-[10px] font-bold tracking-tighter">100 G</div>
             </div>
 
-            <div onclick="buyItem('Village Repair Kit', 300, 'hp')" class="shop-card flex justify-between items-center">
+            <div onclick="buyItem('Village Repair Kit', 300, 'hp', 'repair_kit')" class="shop-card flex justify-between items-center" id="item-repair_kit">
                 <div class="flex items-center gap-4">
                     <span class="text-2xl">🛠️</span>
                     <div>
@@ -58,7 +82,7 @@
         <section class="space-y-3">
             <h2 class="text-[10px] font-bold text-red-400 tracking-[0.2em] uppercase pl-1">Equipment (전투 장비)</h2>
             
-            <div onclick="buyItem('Training Sword', 1000, 'atk')" class="shop-card flex justify-between items-center">
+            <div onclick="buyItem('Training Sword', 1000, 'atk', 'sword_1')" class="shop-card flex justify-between items-center" id="item-sword_1">
                 <div class="flex items-center gap-4">
                     <span class="text-2xl">⚔️</span>
                     <div>
@@ -66,10 +90,10 @@
                         <p class="text-[8px] text-red-400 mt-1">ATK +5 (탐험 공격력 상승)</p>
                     </div>
                 </div>
-                <div class="price-tag px-3 py-1 rounded-full text-[10px] font-bold tracking-tighter">1000 G</div>
+                <div class="btn-state px-3 py-1 rounded-full text-[10px] font-bold price-tag">1000 G</div>
             </div>
 
-            <div onclick="buyItem('Heavy Dumbbell', 2500, 'str')" class="shop-card flex justify-between items-center">
+            <div onclick="buyItem('Heavy Dumbbell', 2500, 'str', 'dumbbell_1')" class="shop-card flex justify-between items-center" id="item-dumbbell_1">
                 <div class="flex items-center gap-4">
                     <span class="text-2xl">🏋️</span>
                     <div>
@@ -77,7 +101,7 @@
                         <p class="text-[8px] text-orange-400 mt-1">Permanent STR +10 (영구 근력 상승)</p>
                     </div>
                 </div>
-                <div class="price-tag px-3 py-1 rounded-full text-[10px] font-bold tracking-tighter">2500 G</div>
+                <div class="btn-state px-3 py-1 rounded-full text-[10px] font-bold price-tag">2500 G</div>
             </div>
         </section>
 
@@ -89,40 +113,79 @@
         document.body.addEventListener('click', () => { if (bgm.paused) bgm.play().catch(e => {}); }, { once: true });
 
         window.onload = () => {
-            updateCoinDisplay();
+            refreshUI();
         };
+
+        function refreshUI() {
+            updateCoinDisplay();
+            updateStatDisplay();
+            checkOwnedItems();
+        }
 
         function updateCoinDisplay() {
             const coins = parseInt(localStorage.getItem('user_coin')) || 0;
             document.getElementById('user-coin').innerText = coins.toLocaleString() + " G";
         }
 
-        function buyItem(name, price, type) {
-            let coins = parseInt(localStorage.getItem('user_coin')) || 0;
+        function updateStatDisplay() {
+            const bonusAtk = parseInt(localStorage.getItem('bonus_atk')) || 0;
+            const currentStr = parseInt(localStorage.getItem('user_str')) || 0;
+            const villageHp = parseInt(localStorage.getItem('village_hp')) || 100;
 
-            if (coins < price) {
-                alert(`잔액이 부족합니다! / Insufficient balance!\n(Needs ${price - coins} G more)`);
+            document.getElementById('stat-atk').innerText = "+" + bonusAtk;
+            document.getElementById('stat-str').innerText = currentStr;
+            document.getElementById('stat-hp').innerText = villageHp + "%";
+        }
+
+        // 아이템 보유 여부 체크 (장비류)
+        function checkOwnedItems() {
+            const ownedItems = JSON.parse(localStorage.getItem('owned_shop_items')) || [];
+            ownedItems.forEach(itemId => {
+                const el = document.getElementById('item-' + itemId);
+                if (el) {
+                    el.classList.add('owned');
+                    const btn = el.querySelector('.btn-state') || el.querySelector('.price-tag');
+                    if (btn) {
+                        btn.innerText = "OWNED";
+                        btn.className = "owned-tag px-3 py-1 rounded-full text-[10px] font-bold";
+                    }
+                }
+            });
+        }
+
+        function buyItem(name, price, type, itemId) {
+            let coins = parseInt(localStorage.getItem('user_coin')) || 0;
+            const ownedItems = JSON.parse(localStorage.getItem('owned_shop_items')) || [];
+
+            // 이미 보유한 장비인지 체크
+            if ((type === 'atk' || type === 'str') && ownedItems.includes(itemId)) {
+                alert("이미 보유한 아이템입니다!");
                 return;
             }
 
-            if (confirm(`[${name}]을(를) 구매하시겠습니까?\nDo you want to buy this?`)) {
+            if (coins < price) {
+                alert(`잔액이 부족합니다!\n(부족한 금액: ${price - coins} G)`);
+                return;
+            }
+
+            if (confirm(`[${name}]을(를) 구매하시겠습니까?\n장비는 구매 즉시 적용됩니다.`)) {
                 coins -= price;
                 localStorage.setItem('user_coin', coins);
                 
-                // 아이템 효과 적용
+                // 장비일 경우 보유 목록에 추가
+                if (type === 'atk' || type === 'str') {
+                    ownedItems.push(itemId);
+                    localStorage.setItem('owned_shop_items', JSON.stringify(ownedItems));
+                }
+
                 applyItemEffect(type);
-                
-                alert(`구매 완료! 효과가 적용되었습니다.\nPurchase complete! Effect applied.`);
-                updateCoinDisplay();
+                alert(`구매 완료! 능력치가 상승했습니다.`);
+                refreshUI();
             }
         }
 
         function applyItemEffect(type) {
-            if (type === 'mana') {
-                // 마나 즉시 회복 로직 (index.html에서 마나를 관리하므로 키값만 변경)
-                // 현재 마나는 세션이나 로컬에 저장하지 않으므로, 다음 접속 시 반영되거나
-                // 별도의 키를 만들어 index.html의 updateUI에서 불러오게 설계 가능
-            } else if (type === 'hp') {
+            if (type === 'hp') {
                 let villageHp = parseInt(localStorage.getItem('village_hp')) || 100;
                 localStorage.setItem('village_hp', Math.min(100, villageHp + 20));
             } else if (type === 'str') {
