@@ -24,7 +24,6 @@
 
         #village { position: absolute; top: 36.36%; left: 36.36%; width: 27.27%; height: 27.27%; background: #0f172a; border: 2px solid #38bdf8; z-index: 10; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 24px; }
         #south-gate { position: absolute; bottom: 9.09%; left: 45.45%; width: 9.09%; height: 9.09%; background: #451a03; border: 2px solid #f59e0b; z-index: 20; display: flex; align-items: center; justify-content: center; }
-        #gate-hp-container { position: absolute; top: -5px; width: 100%; height: 3px; background: #450a0a; border-radius: 1px; }
         #gate-hp-fill { height: 100%; background: #eab308; width: 100%; transition: width 0.3s; }
 
         .unit { position: absolute; width: 9.09%; height: 9.09%; z-index: 100; display: flex; align-items: center; justify-content: center; background-size: contain; background-repeat: no-repeat; background-position: center; transition: all 0.3s; pointer-events: none; }
@@ -45,7 +44,7 @@
         
         .dmg-text { position: absolute; color: #ff4d4d; font-weight: 800; font-size: 12px; z-index: 200; pointer-events: none; animation: popUp 0.6s forwards; text-shadow: 1px 1px 2px black; }
         .crit { color: #facc15 !important; font-size: 16px !important; }
-        @keyframes popUp { 0% { transform: translateY(0); opacity: 1; } 100% { transform: translateY(-20px) scale(1.2); opacity: 0; } }
+        @keyframes popUp { 0% { transform: translateY(0) scale(1); opacity: 1; } 100% { transform: translateY(-20px) scale(1.2); opacity: 0; } }
         
         .projectile { position: absolute; width: 6px; height: 6px; border-radius: 50%; z-index: 120; pointer-events: none; box-shadow: 0 0 10px currentColor; }
         .flash-screen { position: absolute; inset: 0; background: white; opacity: 0; pointer-events: none; z-index: 1000; transition: opacity 0.5s; }
@@ -56,7 +55,6 @@
         
         .ui-panel { background: #0f172a; border-top: 2px solid #334155; padding: 10px; flex-shrink: 0; }
         .ctrl-btn { background: #1e293b; color: white; width: 44px; height: 44px; border-radius: 8px; display: flex; align-items: center; justify-content: center; border-bottom: 3px solid #000; font-size: 18px; }
-        
         .start-hint { position: absolute; top: -16px; white-space: nowrap; font-size: 8px; color: #facc15; font-weight: bold; letter-spacing: 1px; text-shadow: 0 0 8px #ca8a04; animation: glow 2s infinite ease-in-out; width: 100%; text-align: center; }
         @keyframes glow { 0%, 100% { opacity: 0.4; } 50% { opacity: 1; } }
     </style>
@@ -129,7 +127,7 @@
             <button id="install-btn" onclick="installGuardian()" class="flex-1 py-3 bg-orange-600 rounded font-bold text-[10px] uppercase hidden border-b-4 border-orange-800 shadow-lg">Deploy 설치 (150G)</button>
             <button id="start-btn" onclick="startWave()" class="flex-1 py-3 bg-blue-600 rounded font-bold text-[10px] uppercase opacity-50 pointer-events-none border-b-4 border-blue-800">Start Wave 시작</button>
             <div class="flex flex-col flex-1 gap-1 items-center">
-                <p id="mana-display" class="text-[9px] text-blue-400 font-bold uppercase tracking-tighter">Mana: 5.0/12.0</p>
+                <p id="mana-display" class="text-[9px] text-blue-400 font-bold uppercase tracking-tighter">Mana: 5.0/10.0</p>
                 <button id="magic-btn" onclick="castMagic()" class="w-full py-2 bg-indigo-600 rounded text-[8px] font-bold uppercase border-b-4 border-indigo-800 leading-none">Mana Burst<br>마나 버스트 (5)</button>
             </div>
         </div>
@@ -141,17 +139,19 @@
                 <button class="ctrl-btn" onclick="moveHero(0, 1)">▶</button>
             </div>
             <div class="bg-slate-900/80 p-2 rounded border border-slate-700 flex-1 ml-4 grid grid-cols-2 gap-1 text-center">
-                <div><p class="text-[6px] text-slate-500 uppercase">Hero INT 지능</p><p id="hero-int-val" class="text-[9px] text-emerald-400 font-bold">2</p></div>
+                <div><p class="text-[6px] text-slate-500 uppercase">Hero INT 지능</p><p id="hero-int-val" class="text-[9px] text-emerald-400 font-bold">0</p></div>
                 <div><p class="text-[6px] text-slate-500 uppercase">Limit 설치한도</p><p id="guardian-limit" class="text-[9px] text-blue-400 font-bold">0/0</p></div>
-                <div class="col-span-2 border-t border-slate-800 pt-1 text-[10px] font-bold text-orange-400 uppercase tracking-tighter">Mana Regen 마력회복: <span id="regen-val-display">0.12</span>/s</div>
+                <div class="col-span-2 border-t border-slate-800 pt-1 text-[10px] font-bold text-orange-400 uppercase tracking-tighter">Mana Regen 마력회복: <span id="regen-val-display">0.00</span>/s</div>
             </div>
         </div>
+        <div id="hero-atk-display" class="w-full text-center mt-1 text-[10px] font-bold text-orange-500 uppercase tracking-widest">Hero ATK: 30</div>
     </div>
 
     <script>
-        // 🛠️ 지능(INT) 데이터 연동 강제 고정
+        // 🛠️ 데이터 연동 최우선 실행
         const raw_int = localStorage.getItem('user_int');
         const user_int = (raw_int !== null && raw_int !== undefined) ? parseInt(raw_int) : 2;
+        const manaRegenRate = 0.1 * (1 + user_int / 10); // 1초당 회복량 미리 계산
 
         const audioBgm = document.getElementById('audio-bgm');
         const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
@@ -160,8 +160,7 @@
         
         let user_str = parseInt(localStorage.getItem('user_str')) || 0;
         let manaMax = 10.0 + user_int; 
-        let currentMana = 5.0; // 시작 마나 5.0 고정
-        let manaRegenRate = 0.1 * (1 + user_int / 10); // INT당 10% 증가
+        let currentMana = 5.0; // 5.0으로 고정 시작
 
         window.onload = () => {
             const inbody = JSON.parse(localStorage.getItem('user_inbody'));
@@ -172,8 +171,9 @@
             // 🔄 핵심 엔진: 1초 단위 업데이트
             setInterval(() => { 
                 if(gameStarted) { 
-                    // 마나 회복 로직 강제 실행
-                    currentMana = Math.min(manaMax, currentMana + manaRegenRate); 
+                    // 마나 회복 강제 계산
+                    currentMana = parseFloat((currentMana + manaRegenRate).toFixed(2));
+                    if (currentMana > manaMax) currentMana = manaMax;
                     
                     if(magicActive > 0) { 
                         magicActive--; 
@@ -181,7 +181,7 @@
                         if(magicActive <= 0) removeBurstTimer(); else updateBurstTimer();
                     }
                     updateStats();
-                    checkWaveFinish(); // 매 초 적군 확인
+                    checkWaveFinish(); // 매 프레임보다 확실한 1초 단위 체크
                 } 
             }, 1000);
         };
@@ -270,10 +270,10 @@
 
         function updateEnemiesCount() { document.getElementById('enemies-count-display').innerText = `Enemies 적: ${monsters.length}`; }
         
-        // 🏁 라운드 종료 체크 엔진
         function checkWaveFinish() { 
-            if(isWaveActive && monsters.length === 0 && waveTimer < 20) {
-                isWaveActive = false; currentRound++; dCoin += 250; updateStats();
+            if(isWaveActive && monsters.length === 0 && waveTimer < 25) {
+                isWaveActive = false; currentRound++; dCoin += 250; 
+                updateStats();
                 document.getElementById('start-btn').classList.remove('opacity-50', 'pointer-events-none');
                 audioBgm.src = 'music/townbgm.mp3'; audioBgm.play();
                 showMsg(`ROUND ${currentRound} READY!`);
@@ -313,7 +313,7 @@
             let isCrit = false;
             if(unit.type === "Dragon" && unit.lv >= 3 && Math.random() < 0.15) { actDmg *= 2; isCrit = true; }
             
-            // 🚀 투사체 임팩트 완벽 복원
+            // 🚀 투사체 생성 (생략 없이 복구)
             const p = document.createElement('div');
             p.className = 'projectile';
             p.style.backgroundColor = color;
@@ -331,7 +331,6 @@
                 t.hp -= actDmg; 
                 if(t.mf) t.mf.style.width = (t.hp/t.maxHp*100)+'%'; 
                 if(t.hpt) t.hpt.innerText = Math.max(0, Math.floor(t.hp));
-                
                 if(unit.type === "Knight" && unit.lv >= 3 && Math.random() < (0.1 + unit.lv * 0.02)) t.stun = 1000;
                 
                 const d = document.createElement('div'); 
@@ -342,28 +341,23 @@
                 document.getElementById('map-container').appendChild(d); 
                 setTimeout(() => d.remove(), 400);
 
-                if(t.hp <= 0) { 
-                    monsters.splice(monsters.indexOf(t), 1); 
-                    t.el.remove(); 
-                    dCoin += 50; dExp += 35; 
-                    updateEnemiesCount(); checkLvUp(); updateStats(); 
-                }
+                if(t.hp <= 0) { monsters.splice(monsters.indexOf(t), 1); t.el.remove(); dCoin += 50; dExp += 35; updateEnemiesCount(); checkLvUp(); updateStats(); }
             };
         }
 
         function checkLvUp() { if(dExp >= dExpNext){ dLevel++; dExp=0; dExpNext=Math.floor(dExpNext*1.5); document.getElementById('flash-overlay').style.opacity = '1'; setTimeout(()=>document.getElementById('flash-overlay').style.opacity = '0', 500); } }
         
         function updateStats() { 
-            // 🛠️ 지능 데이터 및 회복량 정확한 업데이트
+            const hAtk = Math.floor(25 + user_str/4 + (dLevel-1)*15);
             document.getElementById('hero-int-val').innerText = user_int;
             document.getElementById('regen-val-display').innerText = manaRegenRate.toFixed(2);
-            
             document.getElementById('mana-display').innerText = `Mana: ${currentMana.toFixed(1)}/${manaMax.toFixed(1)}`; 
             document.getElementById('level-display').innerText = `LV. ${dLevel}`; 
             document.getElementById('d-coin').innerText = dCoin + " G"; 
             document.getElementById('exp-fill').style.width = (dExp/dExpNext*100)+'%'; 
             document.getElementById('round-text').innerText = `ROUND ${currentRound}/20`; 
             document.getElementById('guardian-limit').innerText = `${guardians.length}/${Math.floor(user_int/5) + currentRound}`; 
+            document.getElementById('hero-atk-display').innerText = `Hero ATK 공격력: ${hAtk}`;
         }
 
         function showRange(r, c, rg) { clearRange(); for(let i=r-Math.floor(rg); i<=r+Math.floor(rg); i++) for(let j=c-Math.floor(rg); j<=c+Math.floor(rg); j++) { const cell = document.getElementById(`grid-${i}-${j}`); if(cell) cell.classList.add('range-highlight'); } }
