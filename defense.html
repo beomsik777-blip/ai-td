@@ -11,13 +11,13 @@
         body { background-color: #020617; color: white; font-family: 'Orbitron', 'Noto Sans KR', sans-serif; overflow: hidden; height: 100dvh; width: 100vw; margin: 0; display: flex; flex-direction: column; }
         
         #map-container {
-            width: 95vw; height: 95vw; max-width: 480px; max-height: 480px;
+            width: 92vw; height: 92vw; max-width: 460px; max-height: 460px;
             background: #0f172a; border: 2px solid #334155; position: relative; margin: 5px auto;
             display: grid; grid-template-columns: repeat(11, 1fr); grid-template-rows: repeat(11, 1fr);
         }
         .grid-cell { border: 0.1px solid rgba(56, 189, 248, 0.05); pointer-events: none; }
         .wall-cell { background: rgba(51, 65, 85, 0.8); border: 1px solid #475569; z-index: 2; }
-        .range-highlight { background: rgba(56, 189, 248, 0.2); border: 1px solid #38bdf8; z-index: 5; }
+        .range-highlight { background: rgba(56, 189, 248, 0.15); border: 1px solid #38bdf8; z-index: 5; }
 
         #village {
             position: absolute; top: 36.36%; left: 36.36%; width: 27.27%; height: 27.27%;
@@ -30,10 +30,10 @@
             background: #78350f; border: 2px solid #f59e0b; z-index: 20; display: flex; flex-direction: column; align-items: center; justify-content: center;
         }
         #gate-hp-container { width: 80%; height: 3px; background: #450a0a; position: absolute; top: -5px; }
-        #gate-hp-fill { height: 100%; background: #eab308; width: 100%; }
+        #gate-hp-fill { height: 100%; background: #eab308; width: 100%; transition: width 0.3s; }
 
-        .unit { position: absolute; width: 9.09%; height: 9.09%; z-index: 100; display: flex; align-items: center; justify-content: center; background-size: contain; background-repeat: no-repeat; background-position: center; transition: all 0.2s linear; }
-        .monster { position: absolute; width: 9.09%; height: 9.09%; z-index: 50; display: flex; align-items: center; justify-content: center; transition: all 0.2s linear; }
+        .unit { position: absolute; width: 9.09%; height: 9.09%; z-index: 100; display: flex; align-items: center; justify-content: center; background-size: contain; background-repeat: no-repeat; background-position: center; transition: all 0.15s linear; }
+        .monster { position: absolute; width: 8%; height: 8%; z-index: 50; display: flex; align-items: center; justify-content: center; transition: all 0.2s linear; }
         
         .hp-bar-bg { width: 80%; height: 3px; background: #450a0a; position: absolute; top: -5px; }
         .hp-bar-fill { height: 100%; background: #22c55e; transition: width 0.2s; }
@@ -43,9 +43,9 @@
 
         .projectile { position: absolute; width: 4px; height: 4px; border-radius: 50%; z-index: 120; pointer-events: none; }
         .dmg-text { position: absolute; color: #ff4d4d; font-weight: bold; font-size: 10px; z-index: 200; pointer-events: none; animation: popUp 0.5s ease-out forwards; }
-        @keyframes popUp { 0% { transform: translateY(0); opacity: 1; } 100% { transform: translateY(-20px); opacity: 0; } }
+        @keyframes popUp { 0% { transform: translateY(0); opacity: 1; } 100% { transform: translateY(-15px); opacity: 0; } }
 
-        .ui-panel { background: #0f172a; border-top: 2px solid #334155; padding: 8px; flex-shrink: 0; }
+        .ui-panel { background: #0f172a; border-top: 2px solid #334155; padding: 10px; flex-shrink: 0; }
         .ctrl-btn { background: #1e293b; color: white; width: 42px; height: 42px; border-radius: 8px; display: flex; align-items: center; justify-content: center; border-bottom: 3px solid #000; }
     </style>
 </head>
@@ -56,28 +56,26 @@
         <div class="text-center flex-1 mx-4">
             <span id="round-text" class="text-blue-400 text-[10px] font-bold uppercase">ROUND 1/20</span>
             <div class="w-full bg-slate-800 h-1 rounded-full overflow-hidden mt-1">
-                <div id="village-hp-bar" class="bg-emerald-500 h-full w-full"></div>
+                <div id="village-hp-bar" class="bg-emerald-500 h-full w-full transition-all"></div>
             </div>
         </div>
         <div class="text-right">
             <p id="d-coin" class="text-[11px] font-bold text-yellow-400">300 G</p>
-            <p id="mana-display" class="text-[8px] text-blue-400 font-bold uppercase">Mana: 10/10</p>
+            <p id="monster-count" class="text-[8px] text-red-400 font-bold uppercase">Enemies: 0</p>
         </div>
     </header>
 
-    <div class="flex-1 flex flex-col items-center justify-center bg-black relative overflow-hidden">
+    <div class="flex-1 flex flex-col items-center justify-center bg-black relative">
         <div id="map-container">
             <script>
-                const container = document.getElementById('map-container');
+                const map = document.getElementById('map-container');
                 for(let i=0; i<121; i++) {
                     const r = Math.floor(i/11), c = i%11;
                     const cell = document.createElement('div');
                     cell.className = 'grid-cell';
-                    if((r === 1 || r === 9 || c === 1 || c === 9) && !(r===0||r===10||c===0||c===10)) {
-                        cell.classList.add('wall-cell');
-                    }
+                    if((r === 1 || r === 9 || c === 1 || c === 9) && !(r===0||r===10||c===0||c===10)) cell.classList.add('wall-cell');
                     cell.id = `grid-${r}-${c}`;
-                    container.appendChild(cell);
+                    map.appendChild(cell);
                 }
             </script>
             <div id="timer-container"><div id="timer-fill"></div></div>
@@ -95,8 +93,10 @@
 
     <div class="ui-panel">
         <div class="flex justify-between items-center gap-2 mb-2">
-            <button onclick="buyGuardian()" class="flex-1 py-2 bg-purple-900/40 border border-purple-500 rounded text-[9px] font-bold uppercase">Summon (150G)</button>
-            <button onclick="startWave()" id="start-btn" class="flex-1 py-2 bg-blue-600 rounded font-bold text-[10px] uppercase">Start Wave</button>
+            <button onclick="buyGuardian()" class="flex-1 py-2 bg-purple-900/40 border border-purple-500 rounded text-[9px] font-bold uppercase">
+                Add Unit (150G) <span id="guardian-limit" class="block text-[7px] text-purple-300">Limit: 0/0</span>
+            </button>
+            <button onclick="startWave()" id="start-btn" class="flex-1 py-3 bg-blue-600 rounded font-bold text-[11px] uppercase">Start Wave</button>
             <button onclick="castSpeedMagic()" class="flex-1 py-2 bg-indigo-600 rounded text-[9px] font-bold uppercase">Burst (Mana 5)</button>
         </div>
         
@@ -109,7 +109,7 @@
             </div>
             
             <div class="bg-slate-900/80 p-2 rounded border border-slate-700 flex-1 ml-4 grid grid-cols-2 gap-1 text-center">
-                <div><p class="text-[6px] text-slate-500 uppercase">HP</p><p id="hero-hp-val" class="text-[9px] text-emerald-400 font-bold">0/0</p></div>
+                <div><p class="text-[6px] text-slate-500 uppercase">Hero HP</p><p id="hero-hp-val" class="text-[9px] text-emerald-400 font-bold">0/0</p></div>
                 <div><p class="text-[6px] text-slate-500 uppercase">ASPD</p><p id="hero-speed-val" class="text-[9px] text-blue-400 font-bold">1.7/s</p></div>
                 <div class="col-span-2 border-t border-slate-800 pt-1 text-[10px] font-bold text-orange-400 uppercase tracking-widest">ATK: <span id="hero-atk">0</span></div>
             </div>
@@ -122,10 +122,10 @@
             const osc = audioCtx.createOscillator();
             const gain = audioCtx.createGain();
             osc.connect(gain); gain.connect(audioCtx.destination);
-            osc.type = 'square'; osc.frequency.setValueAtTime(150, audioCtx.currentTime);
+            osc.type = 'square'; osc.frequency.setValueAtTime(200, audioCtx.currentTime);
             gain.gain.setValueAtTime(0.05, audioCtx.currentTime);
-            gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.1);
-            osc.start(); osc.stop(audioCtx.currentTime + 0.1);
+            gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.08);
+            osc.start(); osc.stop(audioCtx.currentTime + 0.08);
         }
 
         let user_str = parseInt(localStorage.getItem('user_str')) || 0;
@@ -145,7 +145,8 @@
         window.onload = () => {
             const inbody = JSON.parse(localStorage.getItem('user_inbody'));
             document.getElementById('player').style.backgroundImage = inbody?.gender === 'woman' ? "url('image/woman.png')" : "url('image/man/man.png')";
-            updatePlayerUI(); updateStats(); summonRandomGuardian(true);
+            updatePlayerUI(); updateStats();
+            summonRandomGuardian(true); // 초기 수호자
         };
 
         function updateStats() {
@@ -154,6 +155,7 @@
             document.getElementById('hero-speed-val').innerText = `${(1000/playerAtkSpeed).toFixed(1)}/s`;
             document.getElementById('d-coin').innerText = dCoin + " G";
             document.getElementById('mana-display').innerText = `Mana: ${currentMana}/${manaMax}`;
+            document.getElementById('guardian-limit').innerText = `Limit: ${guardians.length}/${Math.floor(user_int/5) + currentRound}`;
         }
 
         function castSpeedMagic() {
@@ -165,7 +167,7 @@
         function movePlayer(dr, dc) {
             const nr = playerPos.r + dr, nc = playerPos.c + dc;
             if (nr >= 0 && nr < 11 && nc >= 0 && nc < 11) {
-                if (nr >= 4 && nr <= 6 && nc >= 4 && nc <= 6) return; 
+                if (nr >= 4 && nr <= 6 && nc >= 4 && nc <= 6) return;
                 const cell = document.getElementById(`grid-${nr}-${nc}`);
                 if (cell.classList.contains('wall-cell') && !(nr === 8 && nc === 5)) return;
                 playerPos.r = nr; playerPos.c = nc;
@@ -179,12 +181,34 @@
             document.getElementById('player-hp-fill').style.width = (playerHp/playerHpMax*100) + "%";
         }
 
+        function buyGuardian() {
+            if (guardians.length >= Math.floor(user_int/5) + currentRound || dCoin < 150) { alert("지능이 부족하거나 코인이 없습니다!"); return; }
+            dCoin -= 150; summonRandomGuardian();
+        }
+
+        function summonRandomGuardian(isFree = false) {
+            const g = document.createElement('div');
+            g.className = `unit guardian`;
+            g.innerHTML = isFree ? '🛡️' : '⚔️';
+            let r, c;
+            do { r = Math.floor(Math.random()*7)+2; c = Math.floor(Math.random()*7)+2; }
+            while ((r >= 4 && r <= 6 && c >= 4 && c <= 6) || (r === playerPos.r && c === playerPos.c));
+            g.unitR = r; g.unitC = c; g.hpMax = 80 + (currentRound*20); g.hp = g.hpMax;
+            g.style.top = (r*9.09)+'%'; g.style.left = (c*9.09)+'%';
+            const hpBg = document.createElement('div'); hpBg.className = 'hp-bar-bg';
+            const hpFill = document.createElement('div'); hpFill.className = 'hp-bar-fill';
+            hpBg.appendChild(hpFill); g.appendChild(hpBg);
+            g.onclick = (e) => { e.stopPropagation(); showRange(g, 2); };
+            g.atk = 25 + currentRound * 2; g.lastShot = 0;
+            document.getElementById('unit-layer').appendChild(g); guardians.push(g); updateStats();
+        }
+
         function showRange(el, range) {
             clearRange();
             const r = el.unitR !== undefined ? el.unitR : playerPos.r;
             const c = el.unitC !== undefined ? el.unitC : playerPos.c;
-            for(let i=r-range; i<=r+range; i++){
-                for(let j=c-range; j<=c+range; j++){
+            for(let i=r-range; i<=r+range; i++) {
+                for(let j=c-range; j<=c+range; j++) {
                     const cell = document.getElementById(`grid-${i}-${j}`);
                     if(cell) cell.classList.add('range-highlight');
                 }
@@ -192,30 +216,11 @@
         }
         function clearRange() { document.querySelectorAll('.grid-cell').forEach(c => c.classList.remove('range-highlight')); }
 
-        function buyGuardian() { if (guardians.length >= Math.floor(user_int/5) + 1 || dCoin < 150) return; dCoin -= 150; summonRandomGuardian(); }
-
-        function summonRandomGuardian(isFree = false) {
-            const g = document.createElement('div');
-            const isHidden = !isFree && Math.random() < 0.1;
-            g.className = `unit guardian ${isHidden ? 'hidden-guardian' : ''}`;
-            g.innerHTML = isHidden ? '🐉' : '🛡️';
-            let r, c;
-            do { r = Math.floor(Math.random()*7)+2; c = Math.floor(Math.random()*7)+2; }
-            while ((r >= 4 && r <= 6 && c >= 4 && c <= 6) || (r === playerPos.r && c === playerPos.c));
-            g.unitR = r; g.unitC = c; g.hpMax = 60 + (currentRound*15); g.hp = g.hpMax;
-            g.style.top = (r*9.09)+'%'; g.style.left = (c*9.09)+'%';
-            const hpBg = document.createElement('div'); hpBg.className = 'hp-bar-bg';
-            const hpFill = document.createElement('div'); hpFill.className = 'hp-bar-fill';
-            hpBg.appendChild(hpFill); g.appendChild(hpBg);
-            g.onclick = (e) => { e.stopPropagation(); showRange(g, 2); };
-            g.atk = isHidden ? 65 : 25; g.lastShot = 0;
-            document.getElementById('unit-layer').appendChild(g); guardians.push(g); updateStats();
-        }
-
         function startWave() {
             if (isWaveActive) return;
             isWaveActive = true; waveTimer = 30; gateHp = 500 + (currentRound*100);
             document.getElementById('gate-hp-fill').style.width = "100%";
+            document.getElementById('south-gate').style.display = "flex";
             document.getElementById('start-btn').classList.add('opacity-50');
             const isBoss = currentRound % 5 === 0;
             let count = isBoss ? 1 : 5 + currentRound;
@@ -234,8 +239,10 @@
             let r, c;
             if(Math.random() < 0.5) { r = Math.random() < 0.5 ? 0 : 10; c = Math.floor(Math.random()*11); }
             else { c = Math.random() < 0.5 ? 0 : 10; r = Math.floor(Math.random()*11); }
-            m.r = r; m.c = c; m.hp = (isBoss ? 3500 : 300) + (currentRound*120); m.maxHp = m.hp;
-            m.atk = (isBoss ? 45 : 15) + currentRound; m.lastAttack = 0; m.isCharging = false;
+            m.r = r; m.c = c; m.hp = (isBoss ? 4000 : 300) + (currentRound*150); m.maxHp = m.hp;
+            m.atk = (isBoss ? 50 : 15) + currentRound; m.lastAttack = 0;
+            // 겹침 방지 오프셋
+            m.offX = (Math.random()-0.5)*2; m.offY = (Math.random()-0.5)*2;
             document.getElementById('map-container').appendChild(m); monsters.push(m);
             document.getElementById('monster-count').innerText = `Enemies: ${monsters.length}`;
         }
@@ -245,12 +252,12 @@
             monsters.forEach((m, idx) => {
                 let target = null;
                 if (m.isCharging) {
-                    const dP = Math.abs(m.r - playerPos.r) + Math.abs(m.c - playerPos.c);
+                    const dP = Math.hypot(m.r - playerPos.r, m.c - playerPos.c);
                     if (dP <= 1.2) target = { type: 'player' };
                     else {
-                        const nG = guardians.find(g => Math.abs(m.r - g.unitR) + Math.abs(m.c - g.unitC) <= 1.2);
+                        const nG = guardians.find(g => Math.hypot(m.r - g.unitR, m.c - g.unitC) <= 1.2);
                         if (nG) target = { type: 'guardian', ref: nG };
-                        else if (gateHp > 0 && Math.abs(m.r - 10) <= 1 && Math.abs(m.c - 5) <= 1) target = { type: 'gate' };
+                        else if (gateHp > 0 && Math.hypot(m.r - 10, m.c - 5) <= 1.2) target = { type: 'gate' };
                     }
                 }
                 if (target) {
@@ -270,20 +277,20 @@
                     const step = 0.04;
                     if (m.r < tr) m.r += step; else if (m.r > tr) m.r -= step;
                     if (m.c < tc) m.c += step; else if (m.c > tc) m.c -= step;
-                    if (gateHp <= 0 && Math.abs(m.r - 5) < 0.2 && Math.abs(m.c - 5) < 0.2) {
+                    if (gateHp <= 0 && Math.hypot(m.r - 5, m.c - 5) < 0.3) {
                         villageHp -= (m.innerHTML === '👹' ? 50 : 10);
                         document.getElementById('village-hp-bar').style.width = villageHp + "%";
                         m.remove(); monsters.splice(idx, 1);
                         if(villageHp <= 0) { alert("VILLAGE DESTROYED!"); location.reload(); }
                     }
                 } else {
-                    const step = 0.05;
+                    const step = 0.055;
                     if(Math.abs(m.r) <= 0.1 && m.c < 10) m.c += step;
                     else if(Math.abs(m.c - 10) <= 0.1 && m.r < 10) m.r += step;
                     else if(Math.abs(m.r - 10) <= 0.1 && m.c > 0) m.c -= step;
                     else if(Math.abs(m.c) <= 0.1 && m.r > 0) m.r -= step;
                 }
-                m.style.top = (m.r * 9.09) + '%'; m.style.left = (m.c * 9.09) + '%';
+                m.style.top = (m.r * 9.09 + m.offY) + '%'; m.style.left = (m.c * 9.09 + m.offX) + '%';
             });
 
             [...guardians, {unitR: playerPos.r, unitC: playerPos.c, atk: Math.floor(25 + user_str/4), lastShot: playerLastShot, isPlayer: true}].forEach(u => {
@@ -298,7 +305,7 @@
             if (playerHp <= 0) { alert("HERO DEFEATED!"); location.reload(); }
             if(isWaveActive && monsters.length === 0 && waveTimer < 25) {
                 isWaveActive = false; document.getElementById('start-btn').classList.remove('opacity-50');
-                currentRound++; dCoin += 200; updateStats();
+                currentRound++; dCoin += 200; summonRandomGuardian(true); updateStats();
             }
             requestAnimationFrame(gameLoop);
         }
