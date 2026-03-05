@@ -3,57 +3,60 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>QuestBody - Ultimate Gate Defense</title>
+    <title>QuestBody - Defense Final Fix</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Noto+Sans+KR:wght@400;700&display=swap');
         * { touch-action: manipulation; -webkit-tap-highlight-color: transparent; box-sizing: border-box; }
         body { background-color: #020617; color: white; font-family: 'Orbitron', 'Noto Sans KR', sans-serif; overflow: hidden; height: 100dvh; width: 100vw; margin: 0; display: flex; flex-direction: column; }
         
-        /* 🗺️ 맵: 11x11 고정 격자 */
         #map-container {
-            width: 95vw; height: 95vw; max-width: 480px; max-height: 480px;
+            width: 92vw; height: 92vw; max-width: 460px; max-height: 460px;
             background: #0f172a; border: 2px solid #334155; position: relative; margin: 5px auto;
             display: grid; grid-template-columns: repeat(11, 1fr); grid-template-rows: repeat(11, 1fr);
         }
-        .grid-cell { border: 0.1px solid rgba(56, 189, 248, 0.05); z-index: 1; position: relative; }
-        .grid-cell.selected { background: rgba(251, 146, 60, 0.3); box-shadow: inset 0 0 10px #fb923c; }
-        .wall-cell { background: #1e293b; border: 1px solid #475569; z-index: 2; }
-        .wall-cell::after { content: '🧱'; position: absolute; font-size: 8px; opacity: 0.3; top: 25%; left: 25%; }
-        .range-highlight { background: rgba(56, 189, 248, 0.15); border: 1px solid #38bdf8; z-index: 5; }
+        .grid-cell { border: 0.1px solid rgba(56, 189, 248, 0.05); z-index: 1; }
+        .grid-cell.selected { background: rgba(251, 146, 60, 0.25); box-shadow: inset 0 0 8px #fb923c; }
+        .wall-cell { background: #1e293b; border: 1px solid #475569; z-index: 2; position: relative; }
+        .wall-cell::after { content: '🧱'; position: absolute; font-size: 8px; opacity: 0.3; top: 50%; left: 50%; transform: translate(-50%, -50%); }
+        .range-highlight { background: rgba(56, 189, 248, 0.2); border: 1px solid #38bdf8; z-index: 5; }
 
-        #village { position: absolute; top: 36.36%; left: 36.36%; width: 27.27%; height: 27.27%; background: #0f172a; border: 2px solid #38bdf8; z-index: 10; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 24px; }
-        #south-gate { position: absolute; bottom: 9.09%; left: 45.45%; width: 9.09%; height: 9.09%; background: #451a03; border: 2px solid #f59e0b; z-index: 20; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+        #village { position: absolute; top: 36.36%; left: 36.36%; width: 27.27%; height: 27.27%; background: #0f172a; border: 2px solid #38bdf8; z-index: 10; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 20px; }
+        #south-gate { position: absolute; bottom: 9.09%; left: 45.45%; width: 9.09%; height: 9.09%; background: #451a03; border: 2px solid #f59e0b; z-index: 20; display: flex; align-items: center; justify-content: center; }
         
         .unit { position: absolute; width: 9.09%; height: 9.09%; z-index: 100; display: flex; align-items: center; justify-content: center; background-size: contain; background-repeat: no-repeat; background-position: center; transition: all 0.2s; pointer-events: none; }
-        .monster { position: absolute; width: 9.09%; height: 9.09%; z-index: 50; display: flex; align-items: center; justify-content: center; font-size: 24px; transition: none; }
+        .unit-click-area { position: absolute; width: 9.09%; height: 9.09%; z-index: 110; cursor: pointer; }
+        .unit.wait { filter: grayscale(1); opacity: 0.6; }
         
-        .hp-bar-bg { width: 80%; height: 3px; background: #450a0a; position: absolute; top: -5px; border-radius: 1px; }
-        .hp-bar-fill { height: 100%; background: #22c55e; transition: width 0.2s; }
-        .dmg-text { position: absolute; color: #ff4d4d; font-weight: bold; font-size: 12px; z-index: 200; pointer-events: none; animation: popUp 0.5s forwards; }
-        @keyframes popUp { 0% { transform: translateY(0); opacity: 1; } 100% { transform: translateY(-20px); opacity: 0; } }
-
-        .ui-panel { background: #0f172a; border-top: 2px solid #334155; padding: 10px; flex-shrink: 0; }
-        .ctrl-btn { background: #1e293b; color: white; width: 44px; height: 44px; border-radius: 8px; display: flex; align-items: center; justify-content: center; border-bottom: 3px solid #000; }
-        #unit-control-panel { position: absolute; bottom: 22%; left: 50%; transform: translateX(-50%); background: rgba(15, 23, 42, 0.98); border: 2px solid #fb923c; padding: 12px; border-radius: 12px; z-index: 250; display: none; min-width: 200px; box-shadow: 0 0 20px #000; }
-        .info-tab { position: absolute; top: 50px; left: 5px; background: rgba(15, 23, 42, 0.9); border: 1px solid #334155; padding: 5px; border-radius: 4px; font-size: 7px; z-index: 70; }
+        .monster { position: absolute; width: 9.09%; height: 9.09%; z-index: 50; display: flex; align-items: center; justify-content: center; font-size: 22px; transition: none; pointer-events: none; }
         
-        #timer-text { position: absolute; top: 6px; right: 10px; font-size: 10px; color: #ef4444; font-weight: bold; z-index: 65; }
+        .hp-bar-bg { width: 80%; height: 3px; background: #450a0a; position: absolute; top: -5px; }
+        .hp-bar-fill { height: 100%; background: #22c55e; transition: width 0.1s; }
+        .dmg-text { position: absolute; color: #ff4d4d; font-weight: bold; font-size: 11px; z-index: 200; pointer-events: none; animation: popUp 0.5s forwards; }
+        @keyframes popUp { 0% { transform: translateY(0); opacity: 1; } 100% { transform: translateY(-15px); opacity: 0; } }
+        
         .lv-up-fx { position: absolute; inset: 0; background: white; opacity: 0; pointer-events: none; z-index: 300; }
         .flash { animation: flashAnim 0.5s; }
         @keyframes flashAnim { 0% { opacity: 0.7; } 100% { opacity: 0; } }
+
+        .ui-panel { background: #0f172a; border-top: 2px solid #334155; padding: 10px; flex-shrink: 0; }
+        .ctrl-btn { background: #1e293b; color: white; width: 44px; height: 44px; border-radius: 8px; display: flex; align-items: center; justify-content: center; border-bottom: 3px solid #000; }
+        
+        #unit-control-panel { position: absolute; bottom: 22%; left: 50%; transform: translateX(-50%); background: rgba(15, 23, 42, 0.98); border: 2px solid #fb923c; padding: 12px; border-radius: 12px; z-index: 250; display: none; min-width: 200px; box-shadow: 0 0 25px #000; }
+        .info-tab { position: absolute; top: 45px; left: 5px; background: rgba(15, 23, 42, 0.9); border: 1px solid #334155; padding: 5px; border-radius: 4px; font-size: 7px; z-index: 70; }
+        #timer-text { position: absolute; top: 6px; right: 10px; font-size: 10px; color: #ef4444; font-weight: bold; z-index: 65; }
     </style>
 </head>
 <body>
 
     <audio id="audio-bgm" loop></audio>
-    <div id="flash-screen" class="lv-up-fx"></div>
+    <div id="lv-up-flash" class="lv-up-fx"></div>
 
     <header class="p-2 bg-slate-900 flex justify-between items-center border-b border-slate-700 shrink-0">
         <button onclick="location.href='index.html'" class="text-slate-400 text-[10px] font-bold uppercase">◀ HUB</button>
         <div class="text-center flex-1 mx-4">
             <div class="flex justify-between items-center mb-0.5">
-                <span id="round-text" class="text-blue-400 text-[9px] font-bold uppercase">ROUND 1/20</span>
+                <span id="round-text" class="text-blue-400 text-[9px] font-bold">ROUND 1/20</span>
                 <span id="level-display" class="text-purple-400 text-[9px] font-bold uppercase">LV. 1</span>
             </div>
             <div class="w-full bg-slate-800 h-1.5 rounded-full overflow-hidden mb-1"><div id="village-hp-bar" class="bg-emerald-500 h-full w-full"></div></div>
@@ -65,12 +68,12 @@
         </div>
     </header>
 
-    <div class="flex-1 flex flex-col items-center justify-center bg-black relative">
+    <main class="flex-1 flex flex-col items-center justify-center bg-black relative">
         <div class="info-tab">
-            <p class="text-blue-300 font-bold mb-1 underline text-[8px]">UNIT CHANCE</p>
-            <p>🛡️ Knight: 50% | 🏹 Archer: 25%</p>
-            <p>🧙 Mage: 20% | 🐉 Dragon: 5%</p>
-            <p class="mt-1 text-emerald-400 border-t border-slate-700">Mana Regen: <span id="regen-val">0.1</span>/s</p>
+            <p class="text-blue-300 font-bold mb-1 underline">UNIT CHANCE</p>
+            <p>🛡️ KNT: 50% | 🏹 ARC: 25%</p>
+            <p>🧙 MAG: 20% | 🐉 DRG: 5%</p>
+            <p class="mt-1 text-emerald-400">Mana Recovery: <span id="regen-val">0.1</span>/s</p>
         </div>
 
         <div id="unit-control-panel">
@@ -96,7 +99,6 @@
                     map.appendChild(cell);
                 }
             </script>
-            <div id="timer-container"><div id="timer-fill"></div></div>
             <div id="timer-text">00:30</div>
             <div id="village">🏰</div>
             <div id="south-gate"><div id="gate-hp-container" class="absolute top-[-5px] w-full h-1 bg-red-900"><div id="gate-hp-fill" class="bg-yellow-500 w-full h-full"></div></div></div>
@@ -104,14 +106,14 @@
                 <div id="start-label" class="start-hint">TAP HERO TO START</div>
                 <div class="hp-bar-bg"><div id="player-hp-fill" class="hp-bar-fill"></div></div>
             </div>
-            <div id="hero-trigger" style="position:absolute; top:72.72%; left:45.45%; width:9.09%; height:9.09%; z-index:150; cursor:pointer;" onclick="handleHeroClick()"></div>
+            <div id="hero-click-area" class="unit-click-area" style="top:72.72%; left:45.45%;" onclick="onHeroClick()"></div>
             <div id="unit-layer"></div>
         </div>
-    </div>
+    </main>
 
     <div class="ui-panel">
         <div class="flex justify-between items-center gap-2 mb-2">
-            <button id="install-btn" onclick="installGuardian()" class="flex-1 py-3 bg-orange-600 rounded font-bold text-[11px] uppercase hidden shadow-lg">Install Unit (150G)</button>
+            <button id="install-btn" onclick="installGuardian()" class="flex-1 py-3 bg-orange-600 rounded font-bold text-[11px] uppercase hidden shadow-lg shadow-orange-900/50">Install Unit</button>
             <button id="start-btn" onclick="startWave()" class="flex-1 py-3 bg-blue-600 rounded font-bold text-[11px] uppercase opacity-50 pointer-events-none">Start Wave</button>
             <div class="flex flex-col flex-1 gap-1 items-center">
                 <p id="mana-display" class="text-[9px] text-blue-400 font-bold uppercase">Mana: 0/10</p>
@@ -143,6 +145,7 @@
         let villageHp = 100, gateHp = 500, gateHpMax = 500;
         let playerPos = { r: 8, c: 5 }, guardians = [], monsters = [];
         let selectedGrid = null, activeUnit = null, isMoveMode = false;
+        let playerLastShot = 0;
 
         let user_str = parseInt(localStorage.getItem('user_str')) || 0;
         let user_int = parseInt(localStorage.getItem('user_int')) || 0;
@@ -158,26 +161,25 @@
             setInterval(() => { if(gameStarted) { currentMana = Math.min(manaMax, currentMana + 0.1 * (1 + user_int/10)); updateStats(); } }, 1000);
         };
 
-        function playAttackSound() {
+        function playHitSound() {
             try {
                 const osc = audioCtx.createOscillator(); const gain = audioCtx.createGain();
                 osc.connect(gain); gain.connect(audioCtx.destination);
-                osc.type = 'sine'; osc.frequency.setValueAtTime(220, audioCtx.currentTime);
-                osc.frequency.exponentialRampToValueAtTime(110, audioCtx.currentTime + 0.1);
-                gain.gain.setValueAtTime(0.05, audioCtx.currentTime);
-                gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.1);
+                osc.type = 'square'; osc.frequency.setValueAtTime(200 + Math.random()*50, audioCtx.currentTime);
+                gain.gain.setValueAtTime(0.04, audioCtx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.1);
                 osc.start(); osc.stop(audioCtx.currentTime + 0.1);
             } catch(e) {}
         }
 
-        function handleHeroClick() {
+        function onHeroClick() {
             if (!gameStarted) {
                 gameStarted = true; audioCtx.resume();
                 document.getElementById('start-label').style.display = 'none';
                 document.getElementById('start-btn').classList.remove('opacity-50', 'pointer-events-none');
                 audioBgm.src = 'music/townbgm.mp3'; audioBgm.play();
                 updateStats();
-            } else { showRange(playerPos.r, playerPos.c, 2); }
+            } else { showRange(playerPos.r, playerPos.c, 2.5); }
         }
 
         function onCellClick(r, c) {
@@ -186,11 +188,12 @@
                 if (isPosBlocked(r, c)) return;
                 activeUnit.r = r; activeUnit.c = c;
                 activeUnit.el.style.top = (r*9.09)+'%'; activeUnit.el.style.left = (c*9.09)+'%';
+                activeUnit.area.style.top = (r*9.09)+'%'; activeUnit.area.style.left = (c*9.09)+'%';
                 activeUnit.wait = 10; activeUnit.el.classList.add('wait');
                 isMoveMode = false; closeUnitPanel(); return;
             }
-            const unit = guardians.find(u => u.r === r && u.c === c);
-            if (unit) { openUnitPanel(unit); } 
+            const existing = guardians.find(g => g.r === r && g.c === c);
+            if (existing) { openUnitPanel(existing); } 
             else {
                 if(selectedGrid) document.getElementById(`grid-${selectedGrid.r}-${selectedGrid.c}`).classList.remove('selected');
                 if(isPosBlocked(r, c, true)) return;
@@ -210,21 +213,23 @@
         }
 
         function installGuardian() {
-            if (guardians.length >= Math.floor(user_int/5) + 1) { alert("Unit Limit!"); return; }
-            if (dCoin < 150) { alert("No Money!"); return; }
+            if (guardians.length >= Math.floor(user_int/5) + 1 || dCoin < 150) return;
             dCoin -= 150;
             const rand = Math.random();
             const type = rand < 0.05 ? "Dragon" : rand < 0.2 ? "Mage" : rand < 0.45 ? "Archer" : "Knight";
             const g = { r: selectedGrid.r, c: selectedGrid.c, lv: 1, type, wait: 0, lShot: 0 };
-            g.atk = type==="Dragon"?120 : type==="Archer"?35 : 25;
+            g.atk = type==="Dragon"?100 : type==="Archer"?35 : 25;
             g.range = type==="Archer"?4 : type==="Mage"?3 : 2;
-            g.cd = type==="Archer"?450 : 1200;
+            g.cd = type==="Archer"?500 : 1200;
             const el = document.createElement('div'); el.className = 'unit guardian';
             el.innerHTML = type==="Dragon"?'🐉' : type==="Mage"?'🧙' : type==="Archer"?'🏹' : '🛡️';
             el.style.top = (g.r*9.09)+'%'; el.style.left = (g.c*9.09)+'%';
-            el.style.pointerEvents = 'auto'; el.onclick = (e) => { e.stopPropagation(); openUnitPanel(g); };
-            document.getElementById('unit-layer').appendChild(el);
-            g.el = el; guardians.push(g);
+            const area = document.createElement('div'); area.className = 'unit-click-area';
+            area.style.top = (g.r*9.09)+'%'; area.style.left = (g.c*9.09)+'%';
+            area.onclick = (e) => { e.stopPropagation(); onCellClick(g.r, g.c); };
+            const hb = document.createElement('div'); hb.className='hp-bar-bg'; const hf = document.createElement('div'); hf.className='hp-bar-fill w-full'; hb.appendChild(hf); el.appendChild(hb);
+            document.getElementById('unit-layer').appendChild(el); document.getElementById('unit-layer').appendChild(area);
+            g.el = el; g.area = area; guardians.push(g);
             document.getElementById(`grid-${selectedGrid.r}-${selectedGrid.c}`).classList.remove('selected');
             document.getElementById('install-btn').classList.add('hidden');
             selectedGrid = null; updateStats();
@@ -233,15 +238,15 @@
         function openUnitPanel(g) {
             activeUnit = g; document.getElementById('unit-control-panel').style.display='block';
             document.getElementById('ui-name').innerText = g.type;
-            document.getElementById('ui-lv').innerText = `Level ${g.lv} (Atk: ${g.atk})`;
+            document.getElementById('ui-lv').innerText = `Lv.${g.lv} (Atk:${g.atk})`;
             showRange(g.r, g.c, g.range);
         }
         function closeUnitPanel() { document.getElementById('unit-control-panel').style.display='none'; clearRange(); }
         function upgradeUnit() {
             const cost = activeUnit.lv * 100; if(dCoin < cost) return;
-            dCoin -= cost; activeUnit.lv++; activeUnit.atk += 20; updateStats(); openUnitPanel(activeUnit);
+            dCoin -= cost; activeUnit.lv++; activeUnit.atk += 15; updateStats(); openUnitPanel(activeUnit);
         }
-        function startMoveMode() { isMoveMode = true; alert("Select empty grid to move."); }
+        function startMoveMode() { isMoveMode = true; alert("Select target empty grid."); }
 
         function moveHero(dr, dc) {
             if (!gameStarted) return;
@@ -257,32 +262,32 @@
         function updatePlayerUI() {
             const p = document.getElementById('player');
             p.style.top = (playerPos.r * 9.09) + '%'; p.style.left = (playerPos.c * 9.09) + '%';
+            document.getElementById('hero-click-area').style.top = (playerPos.r * 9.09) + '%'; 
+            document.getElementById('hero-click-area').style.left = (playerPos.c * 9.09) + '%';
             document.getElementById('player-hp-fill').style.width = (playerHp/playerHpMax*100) + "%";
             document.getElementById('hero-hp-val').innerText = `${Math.floor(playerHp)}/${playerHpMax}`;
-            const trigger = document.getElementById('hero-trigger');
-            trigger.style.top = (playerPos.r * 9.09) + '%'; trigger.style.left = (playerPos.c * 9.09) + '%';
         }
 
         function startWave() {
-            isWaveActive = true; waveTimer = 30; gateHp = gateHpMax + (currentRound*150);
+            if (isWaveActive) return;
+            isWaveActive = true; waveTimer = 30; gateHp = gateHpMax + (currentRound*100);
             document.getElementById('gate-hp-fill').style.width = "100%";
             document.getElementById('south-gate').style.display = "flex";
             document.getElementById('start-btn').classList.add('opacity-50', 'pointer-events-none');
             audioBgm.src = (currentRound % 5 === 0) ? 'music/bossbgm.mp3' : 'music/defensebgm.mp3'; audioBgm.play();
-            let count = (currentRound % 5 === 0) ? 1 : 6 + currentRound;
-            const spawn = setInterval(() => {
-                if(count-- <= 0) { clearInterval(spawn); return; }
-                const m = { r:0, c:0, hp:(currentRound%5===0?5000:350)+(currentRound*160), charge:false, lAtk:0 };
+            let count = (currentRound % 5 === 0) ? 1 : 5 + currentRound;
+            const spawnInterval = setInterval(() => {
+                if(count-- <= 0) { clearInterval(spawnInterval); return; }
+                const m = { r:0, c:0, hp:(currentRound%5===0?5000:300)+(currentRound*150), charge:false, lAtk:0 };
                 const pos = Math.random();
-                if(pos < 0.25) { m.r = 0; m.c = Math.floor(Math.random()*11); }
-                else if(pos < 0.5) { m.r = 10; m.c = Math.floor(Math.random()*11); }
-                else if(pos < 0.75) { m.c = 0; m.r = Math.floor(Math.random()*11); }
-                else { m.c = 10; m.r = Math.floor(Math.random()*11); }
-                m.maxHp = m.hp; m.atk = 25 + currentRound*6; m.offX = (Math.random()-0.5)*2; m.offY = (Math.random()-0.5)*2;
-                const mel = document.createElement('div'); mel.className = 'monster'; mel.innerHTML = (currentRound%5===0)?'👹':'👾';
-                const mb = document.createElement('div'); mb.className='hp-bar-bg'; const mf = document.createElement('div'); mf.className='hp-bar-fill w-full';
-                mb.appendChild(mf); mel.appendChild(mb); document.getElementById('map-container').appendChild(mel);
-                m.el = mel; m.mf = mf; monsters.push(m);
+                if(pos<0.25) { m.r=0; m.c=Math.floor(Math.random()*11); } else if(pos<0.5) { m.r=10; m.c=Math.floor(Math.random()*11); }
+                else if(pos<0.75) { m.c=0; m.r=Math.floor(Math.random()*11); } else { m.c=10; m.r=Math.floor(Math.random()*11); }
+                m.maxHp = m.hp; m.atk = 20 + currentRound*5;
+                m.offX = (Math.random()-0.5)*3; m.offY = (Math.random()-0.5)*3;
+                const el = document.createElement('div'); el.className='monster'; el.innerHTML=(currentRound%5===0)?'👹':'👾';
+                const mb = document.createElement('div'); mb.className='hp-bar-bg'; const mf=document.createElement('div'); mf.className='hp-bar-fill w-full';
+                mb.appendChild(mf); el.appendChild(mb); document.getElementById('map-container').appendChild(el);
+                m.el = el; m.mf = mf; monsters.push(m);
             }, 1000);
             timerInterval = setInterval(() => {
                 waveTimer--; document.getElementById('timer-text').innerText = `00:${waveTimer<10?'0'+waveTimer:waveTimer}`;
@@ -292,6 +297,7 @@
 
         function gameLoop() {
             const now = Date.now();
+            // 몬스터 이동
             monsters.forEach((m, idx) => {
                 if (m.charge) {
                     let tr = gateHp > 0 ? 10 : 5, tc = 5;
@@ -300,13 +306,13 @@
                     else { if (m.r < tr) m.r += step; else if (m.r > tr) m.r -= step; if (m.c < tc) m.c += step; else if (m.c > tc) m.c -= step; }
                     if (gateHp > 0 && Math.hypot(m.r-10, m.c-5) < 0.3) {
                         if(now - m.lAtk > 1500) { gateHp -= m.atk; m.lAtk = now; 
-                            document.getElementById('gate-hp-fill').style.width = (gateHp/(gateHpMax+currentRound*150)*100)+'%';
+                            document.getElementById('gate-hp-fill').style.width = (gateHp/(gateHpMax+currentRound*100)*100)+'%';
                             if(gateHp<=0) document.getElementById('south-gate').style.display='none';
                         }
-                    } else if (gateHp <= 0 && Math.hypot(m.r-5, m.c-5) < 0.3) {
+                    } else if (gateHp <= 0 && Math.hypot(m.r-5, m.c-5) < 0.2) {
                         villageHp -= 10; document.getElementById('village-hp-bar').style.width = villageHp+'%';
                         m.el.remove(); monsters.splice(idx, 1);
-                        if(villageHp <= 0) { alert("GAME OVER"); location.reload(); }
+                        if(villageHp <= 0) { alert("VILLAGE DESTROYED"); location.reload(); }
                     }
                 } else {
                     const step = 0.06;
@@ -316,17 +322,20 @@
                 m.el.style.top = (m.r * 9.09 + m.offY) + '%'; m.el.style.left = (m.c * 9.09 + m.offX) + '%';
             });
 
+            // 공격 로직
             [...guardians, {r:playerPos.r, c:playerPos.c, atk:Math.floor(25+user_str/4+(dLevel-1)*15), isP:true}].forEach(u => {
                 if(u.wait > 0) { u.wait -= 0.016; if(u.wait<=0) u.el.classList.remove('wait'); return; }
                 const cd = u.isP ? playerAtkSpeed : u.cd;
-                if (now - (u.lShot||0) > cd) {
-                    const t = monsters.find(m => Math.hypot(u.r - m.r, u.c - m.c) <= (u.isP?2.8 : u.range));
+                const lt = u.isP ? playerLastShot : u.lShot;
+                if (now - (lt||0) > cd) {
+                    const t = monsters.find(m => Math.hypot(u.r - m.r, u.c - m.c) <= (u.isP?2.8:u.range));
                     if(t) { fire(u.r, u.c, t, u.isP?'#fbbf24':'#38bdf8', u.atk); if(u.isP) playerLastShot=now; else u.lShot=now; }
                 }
             });
 
+            // 웨이브 종료 체크 (안정성 강화)
             if(isWaveActive && monsters.length === 0 && waveTimer < 20) {
-                isWaveActive = false; currentRound++; updateStats();
+                isWaveActive = false; currentRound++; dCoin += 200; updateStats();
                 document.getElementById('start-btn').classList.remove('opacity-50', 'pointer-events-none');
                 audioBgm.src = 'music/townbgm.mp3'; audioBgm.play();
             }
@@ -334,23 +343,23 @@
         }
 
         function fire(sr, sc, t, color, dmg) {
-            playAttackSound();
+            playHitSound();
             const p = document.createElement('div'); p.className = 'projectile'; p.style.backgroundColor = color;
-            p.style.top = (sr*9.09+4.5)+'%'; p.style.left = (sc*9.09+4.5)+'%';
+            p.style.top = (sr*9.09+4)+'%'; p.style.left = (sc*9.09+4)+'%';
             document.getElementById('map-container').appendChild(p);
-            p.animate([{top:p.style.top, left:p.style.left},{top:(t.r*9.09+4.5)+'%', left:(t.c*9.09+4.5)+'%'}], 120).onfinish = () => {
-                p.remove(); t.hp -= dmg; t.mf.style.width = (t.hp/t.maxHp*100)+'%';
+            p.animate([{top:p.style.top, left:p.style.left},{top:(t.r*9.09+4)+'%', left:(t.c*9.09+4)+'%'}], 120).onfinish = () => {
+                p.remove(); t.hp -= dmg; if(t.mf) t.mf.style.width = (t.hp/t.maxHp*100)+'%';
                 const d = document.createElement('div'); d.className='dmg-text'; d.innerText=dmg; d.style.top=(t.r*9.09)+'%'; d.style.left=(t.c*9.09)+'%';
                 document.getElementById('map-container').appendChild(d); setTimeout(()=>d.remove(), 400);
-                if(t.hp<=0) { monsters.splice(monsters.indexOf(t),1); t.el.remove(); dCoin+=45; dExp+=25; checkLvUp(); updateStats(); }
+                if(t.hp<=0 && monsters.includes(t)) { monsters.splice(monsters.indexOf(t),1); t.el.remove(); dCoin+=45; dExp+=25; checkLvUp(); updateStats(); }
             };
         }
 
         function checkLvUp() {
             if(dExp >= dExpNext){
                 dLevel++; dExp=0; dExpNext=Math.floor(dExpNext*1.5); 
-                document.getElementById('lv-up-flash').classList.add('flash');
-                setTimeout(()=>document.getElementById('lv-up-flash').classList.remove('flash'), 500);
+                document.getElementById('flash-screen').classList.add('flash');
+                setTimeout(()=>document.getElementById('flash-screen').classList.remove('flash'), 500);
             }
         }
         function updateStats() {
@@ -359,9 +368,9 @@
             document.getElementById('level-display').innerText = `LV. ${dLevel}`;
             document.getElementById('d-coin').innerText = dCoin + " G";
             document.getElementById('exp-fill').style.width = (dExp/dExpNext*100)+'%';
-            document.getElementById('regen-val').innerText = (0.1 * (1 + user_int/10)).toFixed(1);
+            document.getElementById('round-text').innerText = `ROUND ${currentRound}/20`;
         }
-        function showRange(r, c, rg) { clearRange(); for(let i=r-rg; i<=r+rg; i++) for(let j=c-rg; j<=c+rg; j++) { const cell = document.getElementById(`grid-${i}-${j}`); if(cell) cell.classList.add('range-highlight'); } }
+        function showRange(r, c, rg) { clearRange(); for(let i=r-Math.floor(rg); i<=r+Math.floor(rg); i++) for(let j=c-Math.floor(rg); j<=c+Math.floor(rg); j++) { const cell = document.getElementById(`grid-${i}-${j}`); if(cell) cell.classList.add('range-highlight'); } }
         function clearRange() { document.querySelectorAll('.grid-cell').forEach(c => c.classList.remove('range-highlight')); }
         function castMagic() { if(currentMana>=5){currentMana-=5; playerAtkSpeed=300; setTimeout(()=>playerAtkSpeed=600, 5000);} }
         gameLoop();
