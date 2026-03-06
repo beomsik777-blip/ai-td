@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>QuestBody - Maze Defense Master Elite</title>
+    <title>QuestBody - Maze Defense Master Elite Final</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Noto+Sans+KR:wght@300;400;700&display=swap');
@@ -24,6 +24,7 @@
 
         #village { position: absolute; top: 36.36%; left: 36.36%; width: 27.27%; height: 27.27%; background: #0f172a; border: 2px solid #38bdf8; z-index: 10; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 24px; }
         #south-gate { position: absolute; bottom: 9.09%; left: 45.45%; width: 9.09%; height: 9.09%; background: #451a03; border: 2px solid #f59e0b; z-index: 20; display: flex; align-items: center; justify-content: center; }
+        #gate-hp-container { position: absolute; top: -5px; width: 100%; height: 3px; background: #450a0a; border-radius: 1px; }
         #gate-hp-fill { height: 100%; background: #eab308; width: 100%; transition: width 0.3s; }
 
         .unit { position: absolute; width: 9.09%; height: 9.09%; z-index: 100; display: flex; align-items: center; justify-content: center; background-size: contain; background-repeat: no-repeat; background-position: center; transition: all 0.2s; pointer-events: none; }
@@ -44,9 +45,22 @@
         
         .dmg-text { position: absolute; color: #ff4d4d; font-weight: 800; font-size: 12px; z-index: 200; pointer-events: none; animation: popUp 0.6s forwards; text-shadow: 1px 1px 2px black; }
         .crit { color: #facc15 !important; font-size: 16px !important; }
-        @keyframes popUp { 0% { transform: translateY(0); opacity: 1; } 100% { transform: translateY(-20px) scale(1.2); opacity: 0; } }
+        @keyframes popUp { 0% { transform: translateY(0) scale(1); opacity: 1; } 100% { transform: translateY(-20px) scale(1.2); opacity: 0; } }
         
-        .projectile { position: absolute; width: 6px; height: 6px; border-radius: 50%; z-index: 120; pointer-events: none; box-shadow: 0 0 10px currentColor; }
+        /* 🚀 얼음 칼 투사체 스타일 */
+        .projectile { 
+            position: absolute; 
+            width: 32px; height: 16px; 
+            z-index: 120; 
+            pointer-events: none; 
+            background-image: url('image/ice_sword.png'), url('image/IMG_4669.png'); /* 둘 다 지원되게 순차 적용 */
+            background-size: contain;
+            background-repeat: no-repeat;
+            background-position: center;
+            transform-origin: center center;
+            filter: drop-shadow(0 0 5px #38bdf8);
+        }
+        
         .flash-screen { position: fixed; inset: 0; background: white; opacity: 0; pointer-events: none; z-index: 1000; transition: opacity 0.3s; }
 
         .info-tab { margin: 5px auto; width: 95vw; background: rgba(15, 23, 42, 0.95); border: 1px solid #334155; padding: 8px; border-radius: 6px; font-size: 8px; z-index: 70; }
@@ -155,10 +169,10 @@
     </div>
 
     <script>
-        // 🛠️ 마스터 설정 로드
+        // 🛠️ 지능(INT) 데이터 로드 (최우선 실행)
         const raw_int = localStorage.getItem('user_int');
         const user_int = (raw_int !== null && raw_int !== undefined) ? parseInt(raw_int) : 2;
-        const manaRegenRate = 0.1 * (1 + user_int / 10);
+        const manaRegenRate = 0.1 * (1 + user_int / 10); 
 
         const audioBgm = document.getElementById('audio-bgm');
         const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
@@ -172,22 +186,16 @@
         window.onload = () => {
             const inbody = JSON.parse(localStorage.getItem('user_inbody'));
             document.getElementById('player').style.backgroundImage = inbody?.gender === 'woman' ? "url('image/woman.png')" : "url('image/man/man.png')";
-            updatePlayerUI(); 
-            updateStats();
+            updatePlayerUI(); updateStats();
             
             // 🔄 엔진 통합 관리 (1초 주기)
             setInterval(() => { 
                 if(gameStarted) { 
                     currentMana = parseFloat((currentMana + manaRegenRate).toFixed(2));
                     if (currentMana > manaMax) currentMana = manaMax;
-                    
-                    if(magicActive > 0) { 
-                        magicActive--; 
-                        updateMagicBtn(); 
-                        if(magicActive <= 0) removeBurstTimer(); else updateBurstTimer();
-                    }
+                    if(magicActive > 0) { magicActive--; updateMagicBtn(); if(magicActive <= 0) removeBurstTimer(); else updateBurstTimer(); }
                     updateStats();
-                    checkWaveLogic(); // 라운드 종료 및 타이머 상태 체크
+                    checkWaveLogic(); 
                 } 
             }, 1000);
         };
@@ -197,10 +205,7 @@
         
         function updateBurstTimer() {
             let bt = document.getElementById('player-burst-timer');
-            if(!bt) {
-                bt = document.createElement('div'); bt.id = 'player-burst-timer'; bt.className = 'status-timer burst-timer';
-                document.getElementById('player').appendChild(bt);
-            }
+            if(!bt) { bt = document.createElement('div'); bt.id = 'player-burst-timer'; bt.className = 'status-timer burst-timer'; document.getElementById('player').appendChild(bt); }
             bt.innerText = `BURST! ${magicActive}s`;
         }
         function removeBurstTimer() { const bt = document.getElementById('player-burst-timer'); if(bt) bt.remove(); }
@@ -211,14 +216,7 @@
 
         function handleHeroClick() { 
             if (!gameStarted) { gameStarted = true; audioCtx.resume(); document.getElementById('start-label').style.display = 'none'; document.getElementById('start-btn').classList.remove('opacity-50', 'pointer-events-none'); audioBgm.src = 'music/townbgm.mp3'; audioBgm.play(); updateStats(); } 
-            else { 
-                if(activeUnit === 'hero') closeUnitPanel(); 
-                else { 
-                    closeUnitPanel();
-                    activeUnit = 'hero'; 
-                    showRange(playerPos.r, playerPos.c, 2.5); 
-                } 
-            } 
+            else { if(activeUnit === 'hero') closeUnitPanel(); else { closeUnitPanel(); activeUnit = 'hero'; showRange(playerPos.r, playerPos.c, 2.5); } } 
         }
 
         function onCellClick(r, c) {
@@ -241,7 +239,11 @@
         }
 
         function isPosBlocked(r, c, inst) { if (r===1 || r===9 || c===1 || c===9) return true; if (r >= 4 && r <= 6 && c >= 4 && c <= 6) return true; if (guardians.some(g => g.r === r && g.c === c)) return true; if (playerPos.r === r && playerPos.c === c) return true; return false; }
-        function getUnitVisual(type, lv) { const icons = { "Knight": lv >= 7 ? '👑' : (lv >= 4 ? '⚔️' : '🛡️'), "Archer": lv >= 7 ? '💥' : (lv >= 4 ? '🏹' : '🎯'), "Mage": lv >= 7 ? '☄️' : (lv >= 4 ? '🧙' : '🔮'), "Dragon": lv >= 7 ? '🔥' : (lv >= 4 ? '🐲' : '🐉') }; return icons[type] || '🛡️'; }
+        
+        function getUnitVisual(type, lv) {
+            const icons = { "Knight": lv >= 7 ? '👑' : (lv >= 4 ? '⚔️' : '🛡️'), "Archer": lv >= 7 ? '💥' : (lv >= 4 ? '🏹' : '🎯'), "Mage": lv >= 7 ? '☄️' : (lv >= 4 ? '🧙' : '🔮'), "Dragon": lv >= 7 ? '🔥' : (lv >= 4 ? '🐲' : '🐉') };
+            return icons[type] || '🛡️';
+        }
 
         function installGuardian() {
             const lim = Math.floor(user_int/5) + currentRound; if (guardians.length >= lim || dCoin < 150) return;
@@ -251,9 +253,7 @@
             const area = document.createElement('div'); area.className = 'unit-click-area'; area.style.top = (g.r*9.09)+'%'; area.style.left = (g.c*9.09)+'%'; area.onclick = (e) => { e.stopPropagation(); onCellClick(g.r, g.c); };
             const hb = document.createElement('div'); hb.className='hp-bar-bg'; const hf = document.createElement('div'); hf.className='hp-bar-fill w-full'; hb.appendChild(hf); el.appendChild(hb);
             document.getElementById('unit-layer').appendChild(el); document.getElementById('unit-layer').appendChild(area);
-            g.el = el; g.area = area; g.hf = hf; guardians.push(g);
-            document.getElementById(`grid-${selectedGrid.r}-${selectedGrid.c}`).classList.remove('selected');
-            document.getElementById('install-btn').classList.add('hidden'); selectedGrid = null; updateStats();
+            g.el = el; g.area = area; g.hf = hf; guardians.push(g); document.getElementById(`grid-${selectedGrid.r}-${selectedGrid.c}`).classList.remove('selected'); document.getElementById('install-btn').classList.add('hidden'); selectedGrid = null; updateStats();
         }
 
         function openUnitPanel(g) { if(g.wait > 0) return; activeUnit = g; document.getElementById('unit-control-panel').style.display='block'; document.getElementById('ui-name').innerText = g.type; document.getElementById('ui-lv').innerText = `Lv.${g.lv} (Atk:${g.atk})`; document.getElementById('ui-cost').innerText = g.lv * 100; showRange(g.r, g.c, g.range); }
@@ -268,19 +268,16 @@
                 if (nr >= 4 && nr <= 6 && nc >= 4 && nc <= 6) return; 
                 const cell = document.getElementById(`grid-${nr}-${nc}`); 
                 if (cell.classList.contains('wall-cell')) return; 
-                playerPos.r = nr; playerPos.c = nc; 
-                updatePlayerUI(); 
-                if(activeUnit === 'hero') { showRange(playerPos.r, playerPos.c, 2.5); }
+                playerPos.r = nr; playerPos.c = nc; updatePlayerUI(); 
+                if(activeUnit === 'hero') { showRange(playerPos.r, playerPos.c, 2.5); } // 🚀 실시간 사거리 추적
             } 
         }
         function updatePlayerUI() { const p = document.getElementById('player'); const a = document.getElementById('hero-trigger'); p.style.top = (playerPos.r * 9.09) + '%'; p.style.left = (playerPos.c * 9.09) + '%'; a.style.top = (playerPos.r * 9.09) + '%'; a.style.left = (playerPos.c * 9.09) + '%'; document.getElementById('player-hp-fill').style.width = 100 + "%"; }
 
         function startWave() {
             if (isWaveActive || isSpawning) return; 
-            if (currentRound > 20) { showMsg("CAMPAIGN COMPLETE!"); return; }
-            
-            isWaveActive = true; 
-            isSpawning = true; // 🚀 소환 시작 알림
+            if (currentRound > 20) { showMsg("MISSION COMPLETE!"); return; }
+            isWaveActive = true; isSpawning = true; 
             waveTimer = (currentRound % 5 === 0) ? 60 : 30;
             gateHp = gateHpMax + (currentRound * 150); 
             document.getElementById('south-gate').style.display = "flex"; 
@@ -289,11 +286,7 @@
             
             let count = (currentRound % 5 === 0) ? 1 : 6 + currentRound;
             const spawnInterval = setInterval(() => {
-                if(count-- <= 0) { 
-                    clearInterval(spawnInterval); 
-                    isSpawning = false; // 🚀 소환 종료
-                    return; 
-                }
+                if(count-- <= 0) { clearInterval(spawnInterval); isSpawning = false; return; }
                 let hpBase = (currentRound % 5 === 0) ? 20000 : 450;
                 const m = { r:0, c:0, hp:hpBase + (currentRound * 220), charge:false, lAtk:0, stun:0 };
                 const pos = Math.random(); if(pos<0.25){m.r=0; m.c=Math.floor(Math.random()*11);} else if(pos<0.5){m.r=10; m.c=Math.floor(Math.random()*11);} else if(pos<0.75){m.c=0; m.r=Math.floor(Math.random()*11);} else {m.c=10; m.r=Math.floor(Math.random()*11);}
@@ -310,41 +303,19 @@
                 if(!isWaveActive) { clearInterval(timerObj); return; }
                 waveTimer = Math.max(0, waveTimer - 1);
                 document.getElementById('timer-text').innerText = `00:${waveTimer<10?'0'+waveTimer:waveTimer}`; 
-                if(waveTimer <= 0) { 
-                    clearInterval(timerObj); 
-                    monsters.forEach(m => m.charge = true); 
-                }
+                if(waveTimer <= 0) { clearInterval(timerObj); monsters.forEach(m => m.charge = true); }
             }, 1000);
         }
 
-        function updateEnemiesCount() { 
-            document.getElementById('enemies-count-display').innerText = `Enemies 적: ${monsters.length}`; 
-        }
-        
-        function checkWaveLogic() { 
-            // 🚀 소환 중이 아닐 때만 적군이 0명인지 체크 (라운드 즉시 종료 버그 방지)
-            if(isWaveActive && !isSpawning && monsters.length === 0) {
-                endRound();
-            }
-        }
+        function updateEnemiesCount() { document.getElementById('enemies-count-display').innerText = `Enemies 적: ${monsters.length}`; }
+        function checkWaveLogic() { if(isWaveActive && !isSpawning && monsters.length === 0) endRound(); }
 
         function endRound() {
-            if(!isWaveActive) return;
-            isWaveActive = false; 
-            
-            if (currentRound === 20) {
-                dCoin += 500; updateStats();
-                showMsg("MISSION COMPLETE! (+500G)");
-                audioBgm.pause();
-                document.getElementById('start-btn').innerText = "FINISH";
-                return;
-            }
-            
-            currentRound++; dCoin += 250; 
-            updateStats();
-            document.getElementById('start-btn').classList.remove('opacity-50', 'pointer-events-none');
-            audioBgm.src = 'music/townbgm.mp3'; audioBgm.play();
-            showMsg(`ROUND ${currentRound} READY!`);
+            if(!isWaveActive) return; isWaveActive = false; 
+            let roundReward = (currentRound === 20) ? 500 : 250; dCoin += roundReward; updateStats();
+            if (currentRound === 20) { showMsg("MISSION COMPLETE! (+500G)"); audioBgm.pause(); document.getElementById('start-btn').innerText = "FINISH"; return; }
+            currentRound++; updateStats(); document.getElementById('start-btn').classList.remove('opacity-50', 'pointer-events-none');
+            audioBgm.src = 'music/townbgm.mp3'; audioBgm.play(); showMsg(`ROUND ${currentRound} READY!`);
         }
 
         function gameLoop() {
@@ -352,7 +323,7 @@
             monsters.forEach((m, idx) => {
                 if(m.stun > 0) { m.stun -= 16; m.el.classList.add('stunned'); return; } else { m.el.classList.remove('stunned'); }
                 if (m.charge) {
-                    const step = 0.045; let tR = gateHp > 0 ? 10 : 5;
+                    const step = 0.045;
                     if (gateHp > 0) { if (Math.abs(m.r - 10) > 0.1 && (m.c === 0 || m.c === 10)) { m.r += step; } else if (Math.abs(m.c - 5) > 0.1) { m.r = 10; if (m.c < 5) m.c += step; else m.c -= step; } } 
                     else { if (m.r > 5) m.r -= step; if (Math.abs(m.c - 5) > 0.1) { if (m.c < 5) m.c += step; else m.c -= step; } }
                     if (gateHp > 0 && Math.abs(m.r-10) < 0.3 && Math.abs(m.c-5) < 0.3) { if(now - m.lAtk > 1500) { gateHp -= m.atk; m.lAtk = now; document.getElementById('gate-hp-fill').style.width = (gateHp/(500 + (currentRound-1)*150)*100)+'%'; if(gateHp<=0) document.getElementById('south-gate').style.display='none'; } } 
@@ -379,25 +350,19 @@
             let actDmg = dmg; let isCrit = false;
             if(unit.type === "Dragon" && unit.lv >= 3 && Math.random() < 0.15) { actDmg *= 2; isCrit = true; }
             
-            const p = document.createElement('div');
-            p.className = 'projectile';
-            p.style.backgroundColor = color;
-            p.style.top = (sr * 9.09 + 4.5) + '%';
-            p.style.left = (sc * 9.09 + 4.5) + '%';
-            document.getElementById('map-container').appendChild(p);
+            // 🚀 [복원] 얼음 칼 투사체 연출 (방향 조준 포함)
+            const p = document.createElement('div'); p.className = 'projectile';
+            const dy = (t.r * 9.09 + 4.5) - (sr * 9.09 + 4.5); const dx = (t.c * 9.09 + 4.5) - (sc * 9.09 + 4.5);
+            const angleDeg = Math.atan2(dy, dx) * (180 / Math.PI);
+            p.style.top = (sr * 9.09 + 4.5) + '%'; p.style.left = (sc * 9.09 + 4.5) + '%';
+            p.style.transform = `rotate(${angleDeg}deg)`; document.getElementById('map-container').appendChild(p);
 
             p.animate([{ top: p.style.top, left: p.style.left }, { top: (t.r * 9.09 + 4.5) + '%', left: (t.c * 9.09 + 4.5) + '%' }], 120).onfinish = () => {
-                p.remove();
-                if(!monsters.includes(t)) return;
+                p.remove(); if(!monsters.includes(t)) return;
                 t.hp -= actDmg; if(t.mf) t.mf.style.width = (t.hp/t.maxHp*100)+'%'; if(t.hpt) t.hpt.innerText = Math.max(0, Math.floor(t.hp));
                 if(unit.type === "Knight" && unit.lv >= 3 && Math.random() < (0.1 + unit.lv * 0.02)) t.stun = 1000;
                 const d = document.createElement('div'); d.className = `dmg-text ${isCrit ? 'crit' : ''}`; d.innerText = isCrit ? 'CRIT ' + actDmg : actDmg; d.style.top = (t.r * 9.09) + '%'; d.style.left = (t.c * 9.09) + '%'; document.getElementById('map-container').appendChild(d); setTimeout(() => d.remove(), 400);
-                if(t.hp <= 0) { 
-                    monsters.splice(monsters.indexOf(t), 1); 
-                    t.el.remove(); 
-                    dCoin += 50; dExp += 35; 
-                    updateEnemiesCount(); checkLvUp(); updateStats(); 
-                }
+                if(t.hp <= 0) { monsters.splice(monsters.indexOf(t), 1); t.el.remove(); dCoin += 50; dExp += 35; updateEnemiesCount(); checkLvUp(); updateStats(); }
             };
         }
 
@@ -406,17 +371,14 @@
                 dLevel++; dExp=0; dExpNext=Math.floor(dExpNext*1.5); 
                 document.getElementById('flash-overlay').style.opacity = '1'; 
                 document.getElementById('lv-up-text').classList.add('show');
-                setTimeout(() => { 
-                    document.getElementById('flash-overlay').style.opacity = '0'; 
-                    document.getElementById('lv-up-text').classList.remove('show');
-                }, 800); 
+                setTimeout(() => { document.getElementById('flash-overlay').style.opacity = '0'; document.getElementById('lv-up-text').classList.remove('show'); }, 800); 
             } 
         }
         
         function updateStats() { 
             const hAtk = Math.floor(25 + user_str/4 + (dLevel-1)*15);
             document.getElementById('hero-int-val').innerText = user_int;
-            document.getElementById('regen-val-display').innerText = manaRegenRate.toFixed(2);
+            document.getElementById('regen-val-display').innerText = (0.1 * (1 + user_int/10)).toFixed(2);
             document.getElementById('mana-display').innerText = `Mana: ${currentMana.toFixed(1)}/${manaMax.toFixed(1)}`; 
             document.getElementById('level-display').innerText = `LV. ${dLevel}`; 
             document.getElementById('d-coin').innerText = dCoin + " G"; 
