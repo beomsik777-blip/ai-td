@@ -15,18 +15,19 @@
             display: flex; flex-direction: column; overflow: hidden;
         }
 
-        /* 하이라이트 & 선택 효과 */
+        /* 🔦 하이라이트 & 선택 위치 표시 */
         .highlight-line { background-color: rgba(56, 189, 248, 0.08) !important; }
         .user-cell.selected { background-color: rgba(56, 189, 248, 0.3) !important; box-shadow: inset 0 0 15px #38bdf8; border: 2px solid #38bdf8 !important; }
 
-        /* 구역 완료 효과 */
+        /* ✨ 완료 시 에메랄드 효과 (강화됨) */
         .completed-section { 
-            background-color: rgba(16, 185, 129, 0.2) !important; 
+            background-color: rgba(16, 185, 129, 0.3) !important; 
+            transition: background-color 0.5s ease;
             animation: pulse-green 1s ease-out; 
         }
         @keyframes pulse-green {
-            0% { background-color: rgba(16, 185, 129, 0.5); }
-            100% { background-color: rgba(16, 185, 129, 0.2); }
+            0% { background-color: rgba(16, 185, 129, 0.7); }
+            100% { background-color: rgba(16, 185, 129, 0.3); }
         }
 
         .sudoku-container { flex: 1; display: flex; align-items: center; justify-content: center; padding: 10px; min-height: 0; }
@@ -138,7 +139,6 @@ function initGame(idx) {
 function generateSudoku() {
     solution = createSolvedBoard();
     puzzle = JSON.parse(JSON.stringify(solution));
-    // [난이도 설정] 스테이지가 올라갈수록 제거하는 칸의 수(0의 개수)를 늘림
     let removeCount = 35 + (currentStageIdx * 2); 
     while (removeCount > 0) {
         let r = Math.floor(Math.random()*9), c = Math.floor(Math.random()*9);
@@ -204,8 +204,8 @@ function updateNumPad(){
     const pad=document.getElementById('number-pad'); pad.innerHTML="";
     const counts = Array(10).fill(0);
     for(let r=0; r<9; r++) for(let c=0; c<9; c++) {
-        const td = document.getElementById(`cell-${r}-${c}`) || {innerText: puzzle[r][c]};
-        const val = parseInt(td.innerText || puzzle[r][c]);
+        const td = document.getElementById(`cell-${r}-${c}`);
+        const val = puzzle[r][c] || (td ? parseInt(td.innerText) || 0 : 0);
         if(val > 0) counts[val]++;
     }
     for(let i=1;i<=9;i++){
@@ -238,7 +238,7 @@ function eraseCell(){
     if(!selectedCell) return;
     const {r,c}=selectedCell, td=document.getElementById(`cell-${r}-${c}`);
     if (td.classList.contains('fixed-cell')) return;
-    td.innerText=""; td.classList.remove("wrong","hint-cell");
+    td.innerText=""; td.classList.remove("wrong","hint-cell","completed-section");
     updateNumPad(); checkSectionCompletions();
 }
 
@@ -247,31 +247,42 @@ function triggerDamageEffect() {
     setTimeout(()=> document.getElementById('game-body').classList.remove('damage-flash'), 400);
 }
 
+// 🚀 [완료 로직] 가로, 세로, 3x3 박스가 정답으로 꽉 찼는지 실시간 체크
 function checkSectionCompletions() {
     const board = Array.from({length:9}, (_,r) => Array.from({length:9}, (_,c) => {
         const td = document.getElementById(`cell-${r}-${c}`);
         return puzzle[r][c] || (td ? parseInt(td.innerText) || 0 : 0);
     }));
+
     document.querySelectorAll('td').forEach(td => td.classList.remove('completed-section'));
-    const isDone = (arr) => arr.filter(v=>v!==0).length===9 && new Set(arr.filter(v=>v!==0)).size===9;
-    for (let i=0; i<9; i++) {
-        if (isDone(board[i])) for(let j=0; j<9; j++) getTd(i,j).classList.add('completed-section');
-        const col = board.map(r => r[i]);
-        if (isDone(col)) for (let j = 0; j < 9; j++) getTd(j,i).classList.add('completed-section');
+    const isDone = (arr) => arr.filter(v=>v!==0).length===9 && new Set(arr).size===9 && arr.every((v, idx) => v !== 0);
+
+    // 가로줄 체크
+    for (let r=0; r<9; r++) {
+        if (isDone(board[r])) for(let c=0; c<9; c++) getTd(r,c).classList.add('completed-section');
     }
+    // 세로줄 체크
+    for (let c=0; c<9; c++) {
+        const col = board.map(row => row[c]);
+        if (isDone(col)) for (let r=0; r<9; r++) getTd(r,c).classList.add('completed-section');
+    }
+    // 3x3 박스 체크
     for (let br=0; br<3; br++) for (let bc=0; bc<3; bc++) {
         const box = [];
         for(let r=0; r<3; r++) for(let c=0; c<3; c++) box.push(board[br*3+r][bc*3+c]);
-        if(isDone(box)) for(let r=0; r<3; r++) for(let c=0; c<3; c++) getTd(br*3+r, bc*3+c).classList.add('completed-section');
+        if(isDone(box)) {
+            for(let r=0; r<3; r++) for(let c=0; c<3; c++) getTd(br*3+r, bc*3+c).classList.add('completed-section');
+        }
     }
 }
 
-function getTd(r,c) { return document.getElementById(`cell-${r}-${c}`) || Array.from(document.querySelectorAll('.fixed-cell')).find(el => {
-    // 고정된 셀의 위치를 찾기 위한 보조 로직
-    const cells = document.querySelectorAll('.sudoku-table td');
-    const targetIdx = r * 9 + c;
-    return cells[targetIdx];
-}); }
+function getTd(r,c) {
+    const td = document.getElementById(`cell-${r}-${c}`);
+    if (td) return td;
+    // 고정된 셀(fixed-cell)은 ID가 없으므로 좌표로 찾음
+    const rows = document.querySelectorAll('.sudoku-table tr');
+    return rows[r].querySelectorAll('td')[c];
+}
 
 function checkAllFilled() {
     for(let r=0; r<9; r++) for(let c=0; c<9; c++) {
@@ -289,24 +300,31 @@ function useHint(){
     const {r, c} = selectedCell;
     const td = document.getElementById(`cell-${r}-${c}`);
     
-    if(!td) return; // 이미 채워진 고정 셀인 경우
+    if(!td || td.classList.contains('fixed-cell')) return; 
     if(td.innerText !== "" && !td.classList.contains('wrong')) { alert("이미 정답이 채워진 칸이야!"); return; }
 
     td.innerText = solution[r][c];
     td.classList.remove("wrong");
     td.classList.add("hint-cell");
     
-    hints--;
-    updateStatus();
-    updateNumPad();
-    checkSectionCompletions();
+    hints--; updateStatus(); updateNumPad(); checkSectionCompletions();
     if(checkAllFilled()) checkFinalResult();
 }
 
 function checkFinalResult(){
-    if(!checkAllFilled()) { alert("아직 빈칸이 있어!"); return; }
-    clearInterval(timerInterval); 
-    document.getElementById('ad-overlay').style.display="flex";
+    let isPerfect = true;
+    for(let r=0; r<9; r++) for(let c=0; c<9; c++) {
+        const td = document.getElementById(`cell-${r}-${c}`);
+        const val = puzzle[r][c] || (td ? parseInt(td.innerText) || 0 : 0);
+        if (val !== solution[r][c]) isPerfect = false;
+    }
+
+    if(isPerfect) {
+        clearInterval(timerInterval); 
+        document.getElementById('ad-overlay').style.display="flex";
+    } else {
+        alert("아직 빈칸이 있거나 틀린 숫자가 있어!");
+    }
 }
 
 function finishGameAction(){
