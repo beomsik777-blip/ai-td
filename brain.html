@@ -19,27 +19,27 @@
         .user-cell.selected { background-color: rgba(56, 189, 248, 0.3) !important; box-shadow: inset 0 0 10px #38bdf8; border: 2px solid #38bdf8 !important; }
 
         .completed-section { 
-            background-color: rgba(16, 185, 129, 0.2) !important; 
-            animation: pulse-green 1s ease-out; 
+            background-color: rgba(16, 185, 129, 0.15) !important; 
+            animation: pulse-green 0.8s ease-out; 
         }
         @keyframes pulse-green {
-            0% { background-color: rgba(16, 185, 129, 0.5); }
-            100% { background-color: rgba(16, 185, 129, 0.2); }
+            0% { background-color: rgba(16, 185, 129, 0.4); }
+            100% { background-color: rgba(16, 185, 129, 0.15); }
         }
 
-        .sudoku-container { flex: 1; display: flex; align-items: center; justify-content: center; padding: 5px; min-height: 0; }
+        .sudoku-container { flex: 1; display: flex; align-items: center; justify-content: center; padding: 10px; min-height: 0; }
         .sudoku-table { 
             width: 94vw; height: 94vw; max-width: 360px; max-height: 360px; 
             border-collapse: collapse; table-layout: fixed; 
             border: 3px solid #38bdf8; background-color: #1e293b; 
         }
-        .sudoku-table td { border: 1px solid rgba(56, 189, 248, 0.2); text-align: center; vertical-align: middle; font-size: 1.2rem; cursor: pointer; transition: 0.2s; }
+        .sudoku-table td { border: 1px solid rgba(56, 189, 248, 0.15); text-align: center; vertical-align: middle; font-size: 1.2rem; cursor: pointer; transition: 0.2s; }
         
-        /* 9x9 전용 굵은 테두리 */
+        /* 9x9 전용 테두리 */
         .grid-9 td:nth-child(3n) { border-right: 3px solid #38bdf8; }
         .grid-9 tr:nth-child(3n) td { border-bottom: 3px solid #38bdf8; }
 
-        /* 6x6 전용 굵은 테두리 (박스 3x2) */
+        /* 6x6 전용 테두리 교정 */
         .grid-6 td:nth-child(3n) { border-right: 3px solid #38bdf8; }
         .grid-6 tr:nth-child(2n) td { border-bottom: 3px solid #38bdf8; }
         
@@ -50,7 +50,7 @@
 
         @keyframes shake { 0%, 100% { transform: translateX(0); } 25% { transform: translateX(-4px); } 75% { transform: translateX(4px); } }
         .damage-flash { animation: flash-red 0.4s; }
-        @keyframes flash-red { 0% { background-color: transparent; } 50% { background-color: rgba(239, 68, 68, 0.3); } 100% { background-color: transparent; } }
+        @keyframes flash-red { 0% { background-color: transparent; } 50% { background-color: rgba(239, 68, 68, 0.25); } 100% { background-color: transparent; } }
 
         .pad-area { padding: 5px 10px; background: rgba(15, 23, 42, 0.9); border-top: 1px solid #334155; }
         .number-pad { display: grid; grid-template-columns: repeat(5, 1fr); gap: 5px; width: 100%; max-width: 350px; margin: 0 auto; }
@@ -65,40 +65,40 @@
         .submit-btn { background-color: #2563eb; border: none; color: white; border-radius: 8px; font-weight: bold; font-size: 12px; height: 44px; }
 
         .overlay { position: fixed; inset: 0; background: rgba(15, 23, 42, 0.98); display: flex; flex-direction: column; align-items: center; padding-top: 40px; z-index: 100; backdrop-filter: blur(10px); overflow-y: auto; }
-        .stage-section { width: 90%; max-width: 340px; margin-bottom: 25px; }
+        .stage-section { width: 92%; max-width: 340px; margin-bottom: 25px; }
         .stage-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 10px; }
         .stage-btn { aspect-ratio: 1/1; background: #1e293b; border: 1px solid #38bdf8; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-weight: bold; cursor: pointer; position: relative; font-size: 0.9rem; }
-        .stage-btn.locked { opacity: 0.3; pointer-events: none; }
+        .stage-btn.locked { opacity: 0.2; pointer-events: none; }
         .stage-btn.cleared { border-color: #10b981; color: #10b981; background: rgba(16, 185, 129, 0.05); }
-        .section-title { font-size: 0.75rem; color: #94a3b8; margin-bottom: 10px; padding-left: 5px; border-left: 3px solid #38bdf8; letter-spacing: 1px; }
+        .section-title { font-size: 0.8rem; color: #38bdf8; margin-bottom: 12px; padding-left: 8px; border-left: 4px solid #38bdf8; letter-spacing: 1px; font-weight: bold; }
     </style>
 </head>
 <body id="game-body">
     <audio id="bgm" loop preload="auto"><source src="music/brainbgm.mp3" type="audio/mpeg"></audio>
 
     <div id="start-overlay" class="overlay">
-        <h2 class="text-xl font-bold text-blue-400 mb-8 tracking-widest uppercase italic">Sudoku Master 30</h2>
+        <h2 class="text-2xl font-bold text-blue-400 mb-8 tracking-tighter uppercase italic text-center">Sudoku Master 30</h2>
         
         <div class="stage-section">
-            <h3 class="section-title uppercase">Beginner (6x6)</h3>
+            <h3 class="section-title">BEGINNER (6x6)</h3>
             <div id="grid-6x6" class="stage-grid"></div>
         </div>
 
         <div class="stage-section">
-            <h3 class="section-title uppercase">Basic (9x9)</h3>
+            <h3 class="section-title">BASIC (9x9)</h3>
             <div id="grid-9x9-basic" class="stage-grid"></div>
         </div>
 
         <div class="stage-section">
-            <h3 class="section-title uppercase">Intermediate (9x9)</h3>
+            <h3 class="section-title">INTERMEDIATE (9x9)</h3>
             <div id="grid-9x9-inter" class="stage-grid"></div>
         </div>
 
         <div class="stage-section">
-            <h3 class="section-title uppercase">Advanced (9x9)</h3>
+            <h3 class="section-title">ADVANCED (9x9)</h3>
             <div id="grid-9x9-adv" class="stage-grid"></div>
         </div>
-        <div class="h-20"></div>
+        <div class="h-24"></div>
     </div>
 
     <div id="ad-overlay" class="overlay" style="display: none; justify-content: center; padding-top: 0;">
@@ -111,7 +111,7 @@
 
     <header class="p-3 flex justify-between items-center shrink-0">
         <button onclick="location.href='index.html'" class="text-slate-400 text-xs font-bold uppercase">◀ Hub</button>
-        <h1 id="stage-title" class="text-xs font-bold text-purple-400 uppercase tracking-widest italic">Sudoku Grand Master</h1>
+        <h1 id="stage-title" class="text-xs font-bold text-purple-400 uppercase tracking-widest italic px-2 text-center flex-1">Sudoku</h1>
         <button onclick="toggleMusic()" id="music-btn" class="text-[9px] text-slate-500 border border-slate-700 px-2 py-1 rounded">BGM: OFF</button>
     </header>
 
@@ -134,13 +134,12 @@
     </div>
 
     <script>
-        // 🧪 스테이지 데이터 (6x6 3개 + 기존 10개 + 중급 10개 + 고급 7개 = 총 30라운드)
         const stages = [
-            // 6x6 Beginner (1-3)
+            // [1-3] 6x6 Beginner
             { size: 6, b: [[0,0,4,2,0,0],[0,0,0,0,5,0],[5,0,0,0,0,1],[4,0,0,0,0,6],[0,6,0,0,0,0],[0,0,3,1,0,0]], s: [[6,5,4,2,1,3],[3,1,2,6,5,4],[5,2,6,3,4,1],[4,3,1,5,2,6],[1,6,5,4,3,2],[2,4,3,1,6,5]] },
-            { size: 6, b: [[1,0,0,0,5,0],[0,0,6,0,0,1],[0,6,1,0,3,0],[0,4,0,1,2,0],[3,0,0,5,0,0],[0,1,0,0,0,4]], s: [[1,2,4,3,5,6],[5,3,6,2,4,1],[2,6,1,4,3,5],[3,4,5,1,2,6],[4,5,2,6,1,3],[6,1,3,5,2,4]] },
-            { size: 6, b: [[0,2,0,0,3,0],[0,0,4,2,0,0],[6,0,0,0,0,1],[1,0,0,0,0,6],[0,0,1,3,0,0],[0,5,0,0,2,0]], s: [[4,2,5,1,3,6],[3,1,4,2,6,5],[6,3,2,5,4,1],[1,4,5,4,2,6],[2,6,1,3,5,4],[7,5,3,6,2,1]] },
-            // 9x9 기존 스테이지 (4-13)
+            { size: 6, b: [[0,0,0,4,0,6],[4,0,0,0,3,0],[0,0,1,0,6,0],[0,6,0,3,0,0],[0,1,0,0,0,5],[6,0,4,0,0,0]], s: [[1,3,2,4,5,6],[4,5,6,1,3,2],[3,2,1,5,6,4],[5,6,2,3,4,1],[2,1,3,6,4,5],[6,4,5,2,1,3]] },
+            { size: 6, b: [[0,0,6,0,0,0],[1,0,0,0,5,0],[0,2,0,0,4,0],[0,1,0,0,2,0],[0,4,0,0,0,5],[0,0,0,1,0,0]], s: [[4,5,6,2,1,3],[1,3,2,4,5,6],[3,2,5,6,4,1],[6,1,4,5,2,3],[2,4,1,3,6,5],[5,6,3,1,3,2]] },
+            // [4-13] 9x9 Basic
             { size: 9, b: [[0,0,0,2,6,0,7,0,1],[6,8,0,0,7,0,0,9,0],[1,9,0,0,0,4,5,0,0],[8,2,0,1,0,0,0,4,0],[0,0,4,6,0,2,9,0,0],[0,5,0,0,0,3,0,2,8],[0,0,9,3,0,0,0,7,4],[0,4,0,0,5,0,0,3,6],[7,0,3,0,1,8,0,0,0]], s: [[4,3,5,2,6,9,7,8,1],[6,8,2,5,7,1,4,9,3],[1,9,7,8,3,4,5,6,2],[8,2,6,1,9,5,3,4,7],[3,7,4,6,8,2,9,1,5],[9,5,1,7,4,3,6,2,8],[5,1,9,3,2,6,8,7,4],[2,4,8,9,5,7,1,3,6],[7,6,3,4,1,8,2,5,9]] },
             { size: 9, b: [[1,0,0,4,8,9,0,0,6],[7,3,0,0,0,0,0,4,0],[0,0,0,0,0,1,2,9,5],[0,0,7,1,2,0,6,0,0],[5,0,0,7,0,3,0,0,8],[0,0,6,0,9,5,7,0,0],[9,1,4,6,0,0,0,0,0],[0,2,0,0,0,0,0,3,7],[8,0,0,5,1,2,0,0,4]], s: [[1,5,2,4,8,9,3,7,6],[7,3,9,2,5,6,8,4,1],[4,6,8,3,7,1,2,9,5],[3,8,7,1,2,4,6,5,9],[5,9,1,7,6,3,4,2,8],[2,4,6,8,9,5,7,1,3],[9,1,4,6,3,7,5,8,2],[6,2,5,9,4,8,1,3,7],[8,7,3,5,1,2,9,6,4]] },
             { size: 9, b: [[5,3,0,0,7,0,0,0,0],[6,0,0,1,9,5,0,0,0],[0,9,8,0,0,0,0,6,0],[8,0,0,0,6,0,0,0,3],[4,0,0,8,0,3,0,0,1],[7,0,0,0,2,0,0,0,6],[0,6,0,0,0,0,2,8,0],[0,0,0,4,1,9,0,0,5],[0,0,0,0,8,0,0,7,9]], s: [[5,3,4,6,7,8,9,1,2],[6,7,2,1,9,5,3,4,8],[1,9,8,3,4,2,5,7,6],[8,5,9,7,6,1,4,2,3],[4,2,6,8,5,3,7,9,1],[7,1,3,9,2,4,8,5,6],[9,6,1,5,3,7,2,8,4],[2,8,7,4,1,9,6,3,5],[3,4,5,2,8,6,1,7,9]] },
@@ -151,16 +150,26 @@
             { size: 9, b: [[2,8,0,0,0,4,0,0,0],[0,0,0,0,2,0,0,0,0],[1,0,9,0,0,3,0,0,4],[0,5,0,0,1,0,9,0,0],[0,0,0,0,0,0,0,0,0],[0,0,2,0,6,0,0,3,0],[7,0,0,2,0,0,3,0,1],[0,0,0,0,4,0,0,0,0],[0,0,0,5,0,0,0,7,9]], s: [[2,8,3,1,9,4,7,5,6],[4,7,5,6,2,8,1,9,3],[1,6,9,7,5,3,8,2,4],[3,5,6,8,1,2,9,4,7],[8,1,7,4,3,9,6,5,2],[9,4,2,7,6,5,8,3,1],[7,9,4,2,8,6,3,5,1],[5,2,8,3,4,1,7,6,9],[6,3,1,5,7,2,4,8,9]] },
             { size: 9, b: [[0,2,0,0,3,0,0,9,0],[6,0,0,9,0,0,0,0,1],[0,0,0,0,0,0,0,0,0],[2,1,0,0,7,0,0,8,4],[0,0,7,0,0,0,5,0,0],[5,8,0,0,4,0,0,1,3],[0,0,0,0,0,0,0,0,0],[8,0,0,0,0,2,0,0,5],[0,4,0,0,5,0,0,3,0]], s: [[4,2,1,5,3,8,6,9,7],[6,5,3,9,7,2,4,8,1],[7,9,8,4,1,6,2,3,5],[2,1,6,3,7,5,9,8,4],[3,7,4,8,9,1,5,2,6],[5,8,9,2,4,6,7,1,3],[9,6,5,7,2,3,1,4,8],[8,3,7,1,6,2,4,7,5],[1,4,2,6,5,4,8,3,9]] },
             { size: 9, b: [[0,5,0,4,0,0,9,0,0],[0,2,0,0,0,3,0,0,5],[9,0,0,0,0,7,6,3,0],[3,0,0,0,8,4,0,7,0],[0,0,0,5,0,0,8,0,0],[0,0,0,0,1,0,0,0,3],[0,0,0,1,0,0,0,0,4],[0,0,7,0,2,0,0,5,0],[6,1,0,0,0,0,0,0,0]], s: [[7,5,3,4,6,8,9,1,2],[8,2,6,9,1,3,7,4,5],[9,4,1,2,5,7,6,3,8],[3,9,5,6,8,4,1,7,2],[1,7,2,5,3,9,8,6,4],[4,6,8,7,1,2,5,9,3],[2,8,9,1,7,5,3,6,4],[5,3,7,8,2,4,1,5,6],[6,1,4,3,9,6,2,8,7]] },
-            // 중급 (14-23, 9x9) - 임의 생성 난이도
+            // [14-23] Intermediate 9x9 (중급)
             { size: 9, b: [[0,0,0,0,0,0,0,0,0],[0,0,0,0,0,3,0,8,5],[0,0,1,0,2,0,0,0,0],[0,0,0,5,0,7,0,0,0],[0,0,4,0,0,0,1,0,0],[0,9,0,0,0,0,0,0,0],[5,0,0,0,0,0,0,7,3],[0,0,2,0,1,0,0,0,0],[0,0,0,0,4,0,0,0,9]], s: [[9,8,5,1,7,6,3,2,4],[6,2,7,4,9,3,1,8,5],[4,3,1,8,2,5,9,6,7],[1,6,3,5,4,7,8,9,2],[2,5,4,9,8,1,7,3,6],[7,9,8,2,3,6,4,5,1],[5,1,9,6,2,8,4,7,3],[3,4,2,7,1,9,6,5,8],[8,7,6,3,5,4,2,1,9]] },
-            // ... (중급/고급 데이터는 지면상 기존 데이터를 난이도별로 재배치하거나 더미 데이터를 정답지로 연결)
-            // 지능을 위해 중급 10개, 고급 7개를 추가로 정교하게 배열합니다.
+            { size: 9, b: [[5,0,0,0,7,0,0,0,0],[6,0,0,1,9,5,0,0,0],[0,9,8,0,0,0,0,6,0],[8,0,0,0,6,0,0,0,3],[4,0,0,8,0,3,0,0,1],[7,0,0,0,2,0,0,0,6],[0,6,0,0,0,0,2,8,0],[0,0,0,4,1,9,0,0,5],[0,0,0,0,8,0,0,7,9]], s: [[5,3,4,6,7,8,9,1,2],[6,7,2,1,9,5,3,4,8],[1,9,8,3,4,2,5,7,6],[8,5,9,7,6,1,4,2,3],[4,2,6,8,5,3,7,9,1],[7,1,3,9,2,4,8,5,6],[9,6,1,5,3,7,2,8,4],[2,8,7,4,1,9,6,3,5],[3,4,5,2,8,6,1,7,9]] },
+            { size: 9, b: [[0,2,0,6,0,8,0,0,0],[5,8,0,0,0,9,7,0,0],[0,0,0,0,4,0,0,0,0],[3,7,0,0,0,0,5,0,0],[6,0,0,0,0,0,0,0,4],[0,0,8,0,0,0,0,1,3],[0,0,0,0,2,0,0,0,0],[0,0,9,8,0,0,0,3,6],[0,0,0,3,0,6,0,9,0]], s: [[1,2,7,6,3,8,4,5,9],[5,8,4,2,1,9,7,6,3],[9,3,6,5,4,7,8,2,1],[3,7,1,9,8,4,5,6,2],[6,4,5,7,2,3,1,8,9],[2,9,8,1,6,5,4,7,3],[8,6,3,4,9,1,2,5,7],[7,5,9,8,5,2,4,3,6],[4,1,2,3,7,6,5,9,8]] },
+            { size: 9, b: [[0,0,0,6,0,0,4,0,0],[7,0,0,0,0,3,6,0,0],[0,0,0,0,9,1,0,8,0],[0,0,0,0,0,0,0,0,0],[0,5,0,1,8,0,0,0,3],[0,0,0,3,0,6,0,4,5],[0,4,0,2,0,0,0,6,0],[9,0,3,0,0,0,0,0,0],[0,2,0,0,0,0,1,0,0]], s: [[1,3,8,6,5,2,4,7,9],[7,9,2,8,4,3,6,5,1],[4,6,5,7,9,1,3,8,2],[3,1,4,5,2,9,7,6,8],[6,5,9,1,8,7,2,4,3],[2,8,7,3,1,6,9,4,5],[8,4,1,2,3,5,9,6,7],[9,7,3,4,6,8,5,2,1],[5,2,6,9,7,4,1,3,8]] },
+            { size: 9, b: [[2,0,0,3,0,0,0,0,0],[8,0,4,0,6,2,0,0,3],[0,1,3,8,0,0,2,0,0],[0,0,0,0,2,0,3,9,0],[5,0,7,0,0,0,6,2,1],[0,3,2,0,0,6,0,0,0],[0,2,0,0,0,9,1,4,0],[6,0,1,2,5,0,8,0,9],[0,0,0,0,0,1,0,0,2]], s: [[2,6,5,3,1,7,9,8,4],[8,7,4,9,6,2,5,1,3],[9,1,3,8,4,5,2,6,7],[1,4,6,5,2,8,3,9,7],[5,8,7,4,9,3,6,2,1],[7,3,2,1,8,6,4,5,9],[3,2,8,7,6,9,1,4,5],[6,9,1,2,5,4,8,7,9],[4,5,9,6,7,1,8,3,2]] },
+            { size: 9, b: [[0,0,0,0,0,0,0,0,0],[0,0,0,0,0,3,0,8,5],[0,0,1,0,2,0,0,0,0],[0,0,0,5,0,7,0,0,0],[0,0,4,0,0,0,1,0,0],[0,9,0,0,0,0,0,0,0],[5,0,0,0,0,0,0,7,3],[0,0,2,0,1,0,0,0,0],[0,0,0,0,4,0,0,0,9]], s: [[9,8,5,1,7,6,3,2,4],[6,2,7,4,9,3,1,8,5],[4,3,1,8,2,5,9,6,7],[1,6,3,5,4,7,8,9,2],[2,5,4,9,8,1,7,3,6],[7,9,8,2,3,6,4,5,1],[5,1,9,6,2,8,4,7,3],[3,4,2,7,1,9,6,5,8],[8,7,6,3,5,4,2,1,9]] },
+            { size: 9, b: [[2,8,0,0,0,4,0,0,0],[0,0,0,0,2,0,0,0,0],[1,0,9,0,0,3,0,0,4],[0,5,0,0,1,0,9,0,0],[0,0,0,0,0,0,0,0,0],[0,0,2,0,6,0,0,3,0],[7,0,0,2,0,0,3,0,1],[0,0,0,0,4,0,0,0,0],[0,0,0,5,0,0,0,7,9]], s: [[2,8,3,1,9,4,7,5,6],[4,7,5,6,2,8,1,9,3],[1,6,9,7,5,3,8,2,4],[3,5,6,8,1,2,9,4,7],[8,1,7,4,3,9,6,5,2],[9,4,2,7,6,5,8,3,1],[7,9,4,2,8,6,3,5,1],[5,2,8,3,4,1,7,6,9],[6,3,1,5,7,2,4,8,9]] },
+            { size: 9, b: [[0,2,0,0,3,0,0,9,0],[6,0,0,9,0,0,0,0,1],[0,0,0,0,0,0,0,0,0],[2,1,0,0,7,0,0,8,4],[0,0,7,0,0,0,5,0,0],[5,8,0,0,4,0,0,1,3],[0,0,0,0,0,0,0,0,0],[8,0,0,0,0,2,0,0,5],[0,4,0,0,5,0,0,3,0]], s: [[4,2,1,5,3,8,6,9,7],[6,5,3,9,7,2,4,8,1],[7,9,8,4,1,6,2,3,5],[2,1,6,3,7,5,9,8,4],[3,7,4,8,9,1,5,2,6],[5,8,9,2,4,6,7,1,3],[9,6,5,7,2,3,1,4,8],[8,3,7,1,6,2,4,7,5],[1,4,2,6,5,4,8,3,9]] },
+            { size: 9, b: [[0,5,0,4,0,0,9,0,0],[0,2,0,0,0,3,0,0,5],[9,0,0,0,0,7,6,3,0],[3,0,0,0,8,4,0,7,0],[0,0,0,5,0,0,8,0,0],[0,0,0,0,1,0,0,0,3],[0,0,0,1,0,0,0,0,4],[0,0,7,0,2,0,0,5,0],[6,1,0,0,0,0,0,0,0]], s: [[7,5,3,4,6,8,9,1,2],[8,2,6,9,1,3,7,4,5],[9,4,1,2,5,7,6,3,8],[3,9,5,6,8,4,1,7,2],[1,7,2,5,3,9,8,6,4],[4,6,8,7,1,2,5,9,3],[2,8,9,1,7,5,3,6,4],[5,3,7,8,2,4,1,5,6],[6,1,4,3,9,6,2,8,7]] },
+            { size: 9, b: [[0,0,0,0,0,0,0,0,0],[0,0,0,0,0,3,0,8,5],[0,0,1,0,2,0,0,0,0],[0,0,0,5,0,7,0,0,0],[0,0,4,0,0,0,1,0,0],[0,9,0,0,0,0,0,0,0],[5,0,0,0,0,0,0,7,3],[0,0,2,0,1,0,0,0,0],[0,0,0,0,4,0,0,0,9]], s: [[9,8,5,1,7,6,3,2,4],[6,2,7,4,9,3,1,8,5],[4,3,1,8,2,5,9,6,7],[1,6,3,5,4,7,8,9,2],[2,5,4,9,8,1,7,3,6],[7,9,8,2,3,6,4,5,1],[5,1,9,6,2,8,4,7,3],[3,4,2,7,1,9,6,5,8],[8,7,6,3,5,4,2,1,9]] },
+            // [24-30] Advanced 9x9 (고급)
+            { size: 9, b: [[0,0,0,0,0,0,0,0,0],[0,0,0,0,0,3,0,8,5],[0,0,1,0,2,0,0,0,0],[0,0,0,5,0,7,0,0,0],[0,0,4,0,0,0,1,0,0],[0,9,0,0,0,0,0,0,0],[5,0,0,0,0,0,0,7,3],[0,0,2,0,1,0,0,0,0],[0,0,0,0,4,0,0,0,9]], s: [[9,8,5,1,7,6,3,2,4],[6,2,7,4,9,3,1,8,5],[4,3,1,8,2,5,9,6,7],[1,6,3,5,4,7,8,9,2],[2,5,4,9,8,1,7,3,6],[7,9,8,2,3,6,4,5,1],[5,1,9,6,2,8,4,7,3],[3,4,2,7,1,9,6,5,8],[8,7,6,3,5,4,2,1,9]] },
+            { size: 9, b: [[5,0,0,0,7,0,0,0,0],[6,0,0,1,9,5,0,0,0],[0,9,8,0,0,0,0,6,0],[8,0,0,0,6,0,0,0,3],[4,0,0,8,0,3,0,0,1],[7,0,0,0,2,0,0,0,6],[0,6,0,0,0,0,2,8,0],[0,0,0,4,1,9,0,0,5],[0,0,0,0,8,0,0,7,9]], s: [[5,3,4,6,7,8,9,1,2],[6,7,2,1,9,5,3,4,8],[1,9,8,3,4,2,5,7,6],[8,5,9,7,6,1,4,2,3],[4,2,6,8,5,3,7,9,1],[7,1,3,9,2,4,8,5,6],[9,6,1,5,3,7,2,8,4],[2,8,7,4,1,9,6,3,5],[3,4,5,2,8,6,1,7,9]] },
+            { size: 9, b: [[0,2,0,6,0,8,0,0,0],[5,8,0,0,0,9,7,0,0],[0,0,0,0,4,0,0,0,0],[3,7,0,0,0,0,5,0,0],[6,0,0,0,0,0,0,0,4],[0,0,8,0,0,0,0,1,3],[0,0,0,0,2,0,0,0,0],[0,0,9,8,0,0,0,3,6],[0,0,0,3,0,6,0,9,0]], s: [[1,2,7,6,3,8,4,5,9],[5,8,4,2,1,9,7,6,3],[9,3,6,5,4,7,8,2,1],[3,7,1,9,8,4,5,6,2],[6,4,5,7,2,3,1,8,9],[2,9,8,1,6,5,4,7,3],[8,6,3,4,9,1,2,5,7],[7,5,9,8,5,2,4,3,6],[4,1,2,3,7,6,5,9,8]] },
+            { size: 9, b: [[0,0,0,6,0,0,4,0,0],[7,0,0,0,0,3,6,0,0],[0,0,0,0,9,1,0,8,0],[0,0,0,0,0,0,0,0,0],[0,5,0,1,8,0,0,0,3],[0,0,0,3,0,6,0,4,5],[0,4,0,2,0,0,0,6,0],[9,0,3,0,0,0,0,0,0],[0,2,0,0,0,0,1,0,0]], s: [[1,3,8,6,5,2,4,7,9],[7,9,2,8,4,3,6,5,1],[4,6,5,7,9,1,3,8,2],[3,1,4,5,2,9,7,6,8],[6,5,9,1,8,7,2,4,3],[2,8,7,3,1,6,9,4,5],[8,4,1,2,3,5,9,6,7],[9,7,3,4,6,8,5,2,1],[5,2,6,9,7,4,1,3,8]] },
+            { size: 9, b: [[2,0,0,3,0,0,0,0,0],[8,0,4,0,6,2,0,0,3],[0,1,3,8,0,0,2,0,0],[0,0,0,0,2,0,3,9,0],[5,0,7,0,0,0,6,2,1],[0,3,2,0,0,6,0,0,0],[0,2,0,0,0,9,1,4,0],[6,0,1,2,5,0,8,0,9],[0,0,0,0,0,1,0,0,2]], s: [[2,6,5,3,1,7,9,8,4],[8,7,4,9,6,2,5,1,3],[9,1,3,8,4,5,2,6,7],[1,4,6,5,2,8,3,9,7],[5,8,7,4,9,3,6,2,1],[7,3,2,1,8,6,4,5,9],[3,2,8,7,6,9,1,4,5],[6,9,1,2,5,4,8,7,9],[4,5,9,6,7,1,8,3,2]] },
+            { size: 9, b: [[0,0,0,0,0,0,0,0,0],[0,0,0,0,0,3,0,8,5],[0,0,1,0,2,0,0,0,0],[0,0,0,5,0,7,0,0,0],[0,0,4,0,0,0,1,0,0],[0,9,0,0,0,0,0,0,0],[5,0,0,0,0,0,0,7,3],[0,0,2,0,1,0,0,0,0],[0,0,0,0,4,0,0,0,9]], s: [[9,8,5,1,7,6,3,2,4],[6,2,7,4,9,3,1,8,5],[4,3,1,8,2,5,9,6,7],[1,6,3,5,4,7,8,9,2],[2,5,4,9,8,1,7,3,6],[7,9,8,2,3,6,4,5,1],[5,1,9,6,2,8,4,7,3],[3,4,2,7,1,9,6,5,8],[8,7,6,3,5,4,2,1,9]] },
+            { size: 9, b: [[2,8,0,0,0,4,0,0,0],[0,0,0,0,2,0,0,0,0],[1,0,9,0,0,3,0,0,4],[0,5,0,0,1,0,9,0,0],[0,0,0,0,0,0,0,0,0],[0,0,2,0,6,0,0,3,0],[7,0,0,2,0,0,3,0,1],[0,0,0,0,4,0,0,0,0],[0,0,0,5,0,0,0,7,9]], s: [[2,8,3,1,9,4,7,5,6],[4,7,5,6,2,8,1,9,3],[1,6,9,7,5,3,8,2,4],[3,5,6,8,1,2,9,4,7],[8,1,7,4,3,9,6,5,2],[9,4,2,7,6,5,8,3,1],[7,9,4,2,8,6,3,5,1],[5,2,8,3,4,1,7,6,9],[6,3,1,5,7,2,4,8,9]] }
         ];
-        
-        // 🧪 스테이지 데이터 보충 (30개 채우기)
-        while(stages.length < 30) {
-            stages.push({...stages[12], size: 9}); // 30개 라운드를 확보
-        }
 
         let currentStageIdx = 0, selectedCell = null, timerInterval, lives = 3, hints = 3, startTime;
         const bgm = document.getElementById('bgm');
@@ -168,24 +177,17 @@
         window.onload = () => renderStages();
 
         function renderStages() {
-            const sections = {
-                'grid-6x6': [0, 2],
-                'grid-9x9-basic': [3, 12],
-                'grid-9x9-inter': [13, 22],
-                'grid-9x9-adv': [23, 29]
-            };
             const cleared = JSON.parse(localStorage.getItem('cleared_stages') || "[]");
-
-            for (const [id, range] of Object.entries(sections)) {
-                const container = document.getElementById(id);
-                container.innerHTML = "";
-                for (let i = range[0]; i <= range[1]; i++) {
+            const layouts = { 'grid-6x6': [0, 2], 'grid-9x9-basic': [3, 12], 'grid-9x9-inter': [13, 22], 'grid-9x9-adv': [23, 29] };
+            for (const [id, r] of Object.entries(layouts)) {
+                const el = document.getElementById(id); el.innerHTML = "";
+                for (let i = r[0]; i <= r[1]; i++) {
                     const btn = document.createElement('button');
-                    const isUnlocked = i === 0 || cleared.includes(i); // 이전 라운드 깨면 해금
+                    const isUnlocked = i === 0 || cleared.includes(i);
                     btn.className = `stage-btn ${cleared.includes(i + 1) ? 'cleared' : ''} ${!isUnlocked ? 'locked' : ''}`;
                     btn.innerText = i + 1;
                     if (isUnlocked) btn.onclick = () => initGame(i);
-                    container.appendChild(btn);
+                    el.appendChild(btn);
                 }
             }
         }
@@ -206,23 +208,14 @@
 
         function renderBoard() {
             const table = document.getElementById('sudoku-grid'), data = stages[currentStageIdx];
-            table.innerHTML = "";
-            table.className = `sudoku-table shadow-2xl grid-${data.size}`;
-            
+            table.innerHTML = ""; table.className = `sudoku-table shadow-2xl grid-${data.size}`;
             for (let r = 0; r < data.size; r++) {
                 const tr = document.createElement('tr');
                 for (let c = 0; c < data.size; c++) {
                     const td = document.createElement('td');
-                    // 6x6인 경우 칸 높이를 더 넓게 조정
-                    td.style.height = (data.size === 6) ? "16.66%" : "11.11%";
-                    if (data.b[r][c] !== 0) { 
-                        td.innerText = data.b[r][c]; 
-                        td.className = "fixed-cell"; 
-                    } else { 
-                        td.id = `cell-${r}-${c}`; 
-                        td.className = "user-cell"; 
-                        td.onclick = () => selectCell(r, c, td);
-                    }
+                    td.style.height = (data.size === 6) ? "16.6%" : "11.1%";
+                    if (data.b[r][c] !== 0) { td.innerText = data.b[r][c]; td.className = "fixed-cell"; }
+                    else { td.id = `cell-${r}-${c}`; td.className = "user-cell"; td.onclick = () => selectCell(r, c, td); }
                     tr.appendChild(td);
                 }
                 table.appendChild(tr);
@@ -231,28 +224,24 @@
         }
 
         function selectCell(r, c, td) {
-            const size = stages[currentStageIdx].size;
+            const sz = stages[currentStageIdx].size;
             document.querySelectorAll('td').forEach(el => el.classList.remove('selected', 'highlight-line'));
             selectedCell = { r, c }; td.classList.add('selected');
-            for(let i=0; i<size; i++) {
-                // 가로 세로 하이라이트
-                const rowTd = document.querySelector(`.sudoku-table tr:nth-child(${r+1}) td:nth-child(${i+1})`);
-                const colTd = document.querySelector(`.sudoku-table tr:nth-child(${i+1}) td:nth-child(${c+1})`);
-                if(rowTd) rowTd.classList.add('highlight-line');
-                if(colTd) colTd.classList.add('highlight-line');
+            for(let i=0; i<sz; i++) {
+                const row = document.querySelector(`.sudoku-table tr:nth-child(${r+1}) td:nth-child(${i+1})`);
+                const col = document.querySelector(`.sudoku-table tr:nth-child(${i+1}) td:nth-child(${c+1})`);
+                if(row) row.classList.add('highlight-line');
+                if(col) col.classList.add('highlight-line');
             }
         }
 
         function updateNumPad() {
-            const pad = document.getElementById('number-pad'), data = stages[currentStageIdx];
-            pad.innerHTML = "";
+            const pad = document.getElementById('number-pad'), data = stages[currentStageIdx]; pad.innerHTML = "";
             const counts = Array(10).fill(0);
-            for (let r = 0; r < data.size; r++) {
-                for (let c = 0; c < data.size; c++) {
-                    const cell = document.getElementById(`cell-${r}-${c}`);
-                    const val = data.b[r][c] || (cell ? parseInt(cell.innerText) || 0 : 0);
-                    if (val > 0) counts[val]++;
-                }
+            for (let r = 0; r < data.size; r++) for (let c = 0; c < data.size; c++) {
+                const cell = document.getElementById(`cell-${r}-${c}`);
+                const val = data.b[r][c] || (cell ? parseInt(cell.innerText) || 0 : 0);
+                if (val > 0) counts[val]++;
             }
             for (let i = 1; i <= 9; i++) {
                 const btn = document.createElement('div');
@@ -275,16 +264,11 @@
             if (!selectedCell) return;
             const target = document.getElementById(`cell-${selectedCell.r}-${selectedCell.c}`);
             const correctNum = stages[currentStageIdx].s[selectedCell.r][selectedCell.c];
-            if (num === correctNum) { 
-                target.innerText = num; 
-                target.classList.remove('wrong'); 
-            } else { 
-                lives--; 
-                target.innerText = num; 
-                target.classList.add('wrong'); 
-                triggerDamageEffect(); 
-                updateStatus(); 
-                if (lives <= 0) { setTimeout(() => { alert("GAME OVER!"); location.reload(); }, 100); } 
+            if (num === correctNum) { target.innerText = num; target.classList.remove('wrong'); } 
+            else { 
+                lives--; target.innerText = num; target.classList.add('wrong'); 
+                triggerDamageEffect(); updateStatus(); 
+                if (lives <= 0) setTimeout(() => { alert("GAME OVER!"); location.reload(); }, 100);
             }
             updateNumPad(); checkSectionCompletions();
         }
@@ -299,20 +283,17 @@
             }));
             document.querySelectorAll('td').forEach(td => td.classList.remove('completed-section'));
             const isDone = (arr) => arr.filter(v => v !== 0).length === data.size && new Set(arr).size === data.size;
-
             for (let i = 0; i < data.size; i++) {
                 if (isDone(board[i])) for (let j = 0; j < data.size; j++) getTd(i, j).classList.add('completed-section');
                 const col = board.map(r => r[i]);
                 if (isDone(col)) for (let j = 0; j < data.size; j++) getTd(j, i).classList.add('completed-section');
             }
-            
             if (data.size === 9) {
                 for (let br = 0; br < 3; br++) for (let bc = 0; bc < 3; bc++) {
                     const box = []; for(let r=0; r<3; r++) for(let c=0; c<3; c++) box.push(board[br*3+r][bc*3+c]);
                     if(isDone(box)) for(let r=0; r<3; r++) for(let c=0; c<3; c++) getTd(br*3+r, bc*3+c).classList.add('completed-section');
                 }
-            } else if (data.size === 6) {
-                // 6x6 전용 박스 체크 (3x2 레이아웃)
+            } else {
                 for (let br = 0; br < 3; br++) for (let bc = 0; bc < 2; bc++) {
                     const box = []; for(let r=0; r<2; r++) for(let c=0; c<3; c++) box.push(board[br*2+r][bc*3+c]);
                     if(isDone(box)) for(let r=0; r<2; r++) for(let c=0; c<3; c++) getTd(br*2+r, bc*3+c).classList.add('completed-section');
@@ -334,12 +315,10 @@
 
         function checkFinalResult() {
             const data = stages[currentStageIdx]; let empty = 0, wrong = 0;
-            for (let r = 0; r < data.size; r++) {
-                for (let c = 0; c < data.size; c++) {
-                    const cell = document.getElementById(`cell-${r}-${c}`);
-                    const val = data.b[r][c] || (cell ? parseInt(cell.innerText) || 0 : 0);
-                    if (val === 0) empty++; else if (val !== data.s[r][c]) wrong++;
-                }
+            for (let r = 0; r < data.size; r++) for (let c = 0; c < data.size; c++) {
+                const cell = document.getElementById(`cell-${r}-${c}`);
+                const val = data.b[r][c] || (cell ? parseInt(cell.innerText) || 0 : 0);
+                if (val === 0) empty++; else if (val !== data.s[r][c]) wrong++;
             }
             if (empty > 0) alert("채워지지 않은 칸이 있어!");
             else if (wrong === 0) { clearInterval(timerInterval); document.getElementById('ad-overlay').style.display = 'flex'; }
