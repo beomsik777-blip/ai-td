@@ -6,32 +6,34 @@
     <title>QuestBody - Sudoku Master Hub</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Noto+Sans+KR:wght@400;700&display=swap');
         * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; touch-action: manipulation; }
         
         body { 
-            background-color: #0f172a; color: white; font-family: 'Orbitron', sans-serif;
+            background-color: #0f172a; color: white; font-family: 'Orbitron', 'Noto Sans KR', sans-serif;
             margin: 0; padding: 0; height: 100dvh; width: 100vw;
             display: flex; flex-direction: column; overflow: hidden;
         }
 
+        /* 🔦 하이라이트 & 선택 위치 */
         .highlight-line { background-color: rgba(56, 189, 248, 0.08) !important; }
         .user-cell.selected { background-color: rgba(56, 189, 248, 0.3) !important; box-shadow: inset 0 0 10px #38bdf8; border: 2px solid #38bdf8 !important; }
 
+        /* ✨ 구역 완료 효과 */
         .completed-section { 
-            background-color: rgba(16, 185, 129, 0.25) !important; 
+            background-color: rgba(16, 185, 129, 0.2) !important; 
             animation: pulse-green 1s ease-out; 
         }
         @keyframes pulse-green {
-            0% { background-color: rgba(16, 185, 129, 0.6); }
-            100% { background-color: rgba(16, 185, 129, 0.25); }
+            0% { background-color: rgba(16, 185, 129, 0.5); }
+            100% { background-color: rgba(16, 185, 129, 0.2); }
         }
 
         .sudoku-container { flex: 1; display: flex; align-items: center; justify-content: center; padding: 10px; min-height: 0; }
         .sudoku-table { 
             width: 92vw; height: 92vw; max-width: 340px; max-height: 340px; 
             border-collapse: collapse; table-layout: fixed; 
-            border: 2px solid #38bdf8; background-color: #1e293b; 
+            border: 3px solid #38bdf8; background-color: #1e293b; 
         }
         .sudoku-table td { border: 1px solid rgba(56, 189, 248, 0.2); text-align: center; vertical-align: middle; font-size: 1.1rem; cursor: pointer; height: 11.11%; transition: background-color 0.2s; }
         .sudoku-table td:nth-child(3n) { border-right: 3px solid #38bdf8; }
@@ -43,6 +45,8 @@
         .hint-cell { color: #facc15 !important; background-color: rgba(251, 206, 7, 0.1); font-weight: bold; }
 
         @keyframes shake { 0%, 100% { transform: translateX(0); } 25% { transform: translateX(-4px); } 75% { transform: translateX(4px); } }
+        
+        /* 🚀 타격 연출 */
         .damage-flash { animation: flash-red 0.4s; }
         @keyframes flash-red { 0% { background-color: transparent; } 50% { background-color: rgba(239, 68, 68, 0.3); } 100% { background-color: transparent; } }
 
@@ -50,6 +54,7 @@
         .number-pad { display: grid; grid-template-columns: repeat(5, 1fr); gap: 5px; width: 100%; max-width: 350px; margin: 0 auto; }
         .num-btn { background-color: #1e293b; border: 1px solid #38bdf8; border-radius: 6px; padding: 5px 0; display: flex; flex-direction: column; align-items: center; justify-content: center; transition: 0.2s; min-height: 45px; }
         .num-btn.completed { opacity: 0.2; pointer-events: none; }
+        .num-btn:active { transform: scale(0.9); background-color: #38bdf8; }
         .eraser-btn { background-color: #334155; border-color: #94a3b8; }
 
         .action-area { display: grid; grid-template-columns: 1fr 1.5fr; gap: 8px; width: 100%; max-width: 350px; margin: 8px auto 0; }
@@ -58,7 +63,7 @@
 
         .overlay { position: fixed; inset: 0; background: rgba(15, 23, 42, 0.98); display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 100; backdrop-filter: blur(10px); }
         .stage-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 10px; width: 90%; max-width: 320px; }
-        .stage-btn { aspect-ratio: 1/1; background: #1e293b; border: 1px solid #38bdf8; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-weight: bold; cursor: pointer; }
+        .stage-btn { aspect-ratio: 1/1; background: #1e293b; border: 1px solid #38bdf8; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-weight: bold; cursor: pointer; position: relative; }
         .stage-btn.locked { opacity: 0.3; pointer-events: none; }
         .stage-btn.locked::after { content: "🔒"; position: absolute; top: 2px; right: 2px; font-size: 10px; }
         .stage-btn.cleared { border-color: #10b981; color: #10b981; }
@@ -68,21 +73,21 @@
     <audio id="bgm" loop preload="auto"><source src="music/brainbgm.mp3" type="audio/mpeg"></audio>
 
     <div id="start-overlay" class="overlay">
-        <h2 class="text-xl font-bold text-blue-400 mb-6 tracking-widest uppercase italic">Select Stage</h2>
+        <h2 class="text-xl font-bold text-blue-400 mb-6 tracking-widest uppercase italic text-center">Sudoku Master 10</h2>
         <div id="stage-list" class="stage-grid"></div>
     </div>
 
     <div id="ad-overlay" class="overlay" style="display: none;">
         <div class="w-72 p-6 bg-slate-800 border-2 border-emerald-500 rounded-2xl text-center shadow-[0_0_30px_#10b981]">
-            <h3 class="text-xl font-bold text-emerald-400 mb-2 uppercase text-xs tracking-widest">Training Complete</h3>
-            <p class="text-white text-[10px] mb-6 uppercase tracking-tighter">Reward: INT +1 / Coin +10</p>
-            <button onclick="finishGame()" class="w-full py-3 bg-emerald-600 text-white rounded-lg font-bold shadow-lg">GET REWARD</button>
+            <h3 class="text-xl font-bold text-emerald-400 mb-2 uppercase text-xs tracking-widest text-center">Training Complete</h3>
+            <p class="text-white text-[10px] mb-6 uppercase tracking-tighter text-center">Reward: INT +1 / Coin +10</p>
+            <button onclick="finishGameAction()" class="w-full py-3 bg-emerald-600 text-white rounded-lg font-bold shadow-lg">GET REWARD</button>
         </div>
     </div>
 
     <header class="p-3 flex justify-between items-center shrink-0">
         <button onclick="location.href='index.html'" class="text-slate-400 text-xs font-bold uppercase">◀ Hub</button>
-        <h1 id="stage-title" class="text-xs font-bold text-purple-400 uppercase tracking-widest italic text-center px-4">Sudoku Master</h1>
+        <h1 id="stage-title" class="text-xs font-bold text-purple-400 uppercase tracking-widest italic text-center flex-1">Sudoku</h1>
         <button onclick="toggleMusic()" id="music-btn" class="text-[9px] text-slate-500 border border-slate-700 px-2 py-1 rounded">BGM: OFF</button>
     </header>
 
@@ -102,441 +107,218 @@
             <button onclick="useHint()" id="hint-btn-ui" class="hint-btn uppercase">Hint (3)</button>
             <button onclick="checkFinalResult()" class="submit-btn uppercase italic">CHECK RESULT</button>
         </div>
-    </div><script>
+    </div>
 
-let currentStageIdx = 0
-let selectedCell = null
-let timerInterval
-let lives = 3
-let hints = 3
-let startTime
+<script>
+let currentStageIdx = 0, selectedCell = null, timerInterval, lives = 3, hints = 3, startTime;
+let puzzle = [], solution = [];
+const bgm = document.getElementById('bgm');
 
-let puzzle = []
-let solution = []
-
-const bgm = document.getElementById('bgm')
-
-window.onload = () => renderStages()
-
-/* ===========================
-STAGE UI
-=========================== */
+window.onload = () => renderStages();
 
 function renderStages() {
-
-    const list = document.getElementById('stage-list')
-    const cleared = JSON.parse(localStorage.getItem('cleared_stages') || "[]")
-
-    list.innerHTML = ""
-
+    const list = document.getElementById('stage-list'), cleared = JSON.parse(localStorage.getItem('cleared_stages') || "[]");
+    list.innerHTML = "";
     for (let i = 1; i <= 10; i++) {
-
-        const btn = document.createElement('button')
-        const isUnlocked = i === 1 || cleared.includes(i - 1)
-
-        btn.className = `stage-btn ${cleared.includes(i) ? 'cleared' : ''} ${!isUnlocked ? 'locked' : ''}`
-
-        btn.innerText = i
-
-        if (isUnlocked) {
-            btn.onclick = () => initGame(i - 1)
-        }
-
-        list.appendChild(btn)
+        const btn = document.createElement('button');
+        const isUnlocked = i === 1 || cleared.includes(i - 1);
+        btn.className = `stage-btn ${cleared.includes(i) ? 'cleared' : ''} ${!isUnlocked ? 'locked' : ''}`;
+        btn.innerText = i;
+        if (isUnlocked) btn.onclick = () => initGame(i - 1);
+        list.appendChild(btn);
     }
 }
-
-
-/* ===========================
-GAME INIT
-=========================== */
 
 function initGame(idx) {
-
-    currentStageIdx = idx
-    lives = 3
-    hints = 3
-    selectedCell = null
-
-    document.getElementById('start-overlay').style.display = 'none'
-    document.getElementById('stage-title').innerText = `Stage ${idx + 1}`
-
-    generateSudoku()
-
-    updateStatus()
-    renderBoard()
-    startTimer()
-
-    bgm.play().catch(()=>{})
+    currentStageIdx = idx; lives = 3; hints = 3; selectedCell = null;
+    document.getElementById('start-overlay').style.display = 'none';
+    document.getElementById('stage-title').innerText = `Stage ${idx + 1}`;
+    generateSudoku(); updateStatus(); renderBoard(); startTimer();
+    bgm.play().catch(()=>{});
 }
-
-
-/* ===========================
-SUDOKU GENERATOR
-=========================== */
 
 function generateSudoku() {
-
-    solution = createSolvedBoard()
-
-    puzzle = JSON.parse(JSON.stringify(solution))
-
-    let removeCount = 40
-
+    solution = createSolvedBoard();
+    puzzle = JSON.parse(JSON.stringify(solution));
+    let removeCount = 35 + (currentStageIdx * 2); // 스테이지별 난이도 조절
     while (removeCount > 0) {
-
-        let r = Math.floor(Math.random()*9)
-        let c = Math.floor(Math.random()*9)
-
-        if (puzzle[r][c] !== 0) {
-
-            puzzle[r][c] = 0
-            removeCount--
-        }
+        let r = Math.floor(Math.random()*9), c = Math.floor(Math.random()*9);
+        if (puzzle[r][c] !== 0) { puzzle[r][c] = 0; removeCount--; }
     }
 }
-
 
 function createSolvedBoard() {
-
-    let board = Array.from({length:9},()=>Array(9).fill(0))
-
-    solveSudoku(board)
-
-    return board
+    let board = Array.from({length:9},()=>Array(9).fill(0));
+    solveSudoku(board);
+    return board;
 }
-
-
-/* ===========================
-SOLVER
-=========================== */
 
 function solveSudoku(board) {
-
-    for (let r=0;r<9;r++) {
-        for (let c=0;c<9;c++) {
-
-            if (board[r][c]===0) {
-
-                let nums=[1,2,3,4,5,6,7,8,9]
-                nums.sort(()=>Math.random()-0.5)
-
-                for (let num of nums) {
-
-                    if (isValid(board,r,c,num)) {
-
-                        board[r][c]=num
-
-                        if (solveSudoku(board)) return true
-
-                        board[r][c]=0
-                    }
+    for (let r=0;r<9;r++) for (let c=0;c<9;c++) {
+        if (board[r][c]===0) {
+            let nums=[1,2,3,4,5,6,7,8,9]; nums.sort(()=>Math.random()-0.5);
+            for (let num of nums) {
+                if (isValid(board,r,c,num)) {
+                    board[r][c]=num;
+                    if (solveSudoku(board)) return true;
+                    board[r][c]=0;
                 }
-
-                return false
             }
+            return false;
         }
     }
-
-    return true
+    return true;
 }
-
 
 function isValid(board,r,c,num){
-
-    for(let i=0;i<9;i++){
-
-        if(board[r][i]===num) return false
-        if(board[i][c]===num) return false
-    }
-
-    let br=Math.floor(r/3)*3
-    let bc=Math.floor(c/3)*3
-
-    for(let i=0;i<3;i++){
-        for(let j=0;j<3;j++){
-
-            if(board[br+i][bc+j]===num) return false
-        }
-    }
-
-    return true
+    for(let i=0;i<9;i++){ if(board[r][i]===num || board[i][c]===num) return false; }
+    let br=Math.floor(r/3)*3, bc=Math.floor(c/3)*3;
+    for(let i=0;i<3;i++) for(let j=0;j<3;j++) if(board[br+i][bc+j]===num) return false;
+    return true;
 }
-
-
-/* ===========================
-BOARD RENDER
-=========================== */
 
 function renderBoard(){
-
-    const table=document.getElementById('sudoku-grid')
-    table.innerHTML=""
-
+    const table=document.getElementById('sudoku-grid'); table.innerHTML="";
     for(let r=0;r<9;r++){
-
-        const tr=document.createElement('tr')
-
+        const tr=document.createElement('tr');
         for(let c=0;c<9;c++){
-
-            const td=document.createElement('td')
-
-            if(puzzle[r][c]!==0){
-
-                td.innerText=puzzle[r][c]
-                td.className="fixed-cell"
-
-            }else{
-
-                td.id=`cell-${r}-${c}`
-                td.className="user-cell"
-                td.onclick=()=>selectCell(r,c,td)
-            }
-
-            tr.appendChild(td)
+            const td=document.createElement('td');
+            if(puzzle[r][c]!==0){ td.innerText=puzzle[r][c]; td.className="fixed-cell"; }
+            else { td.id=`cell-${r}-${c}`; td.className="user-cell"; td.onclick=()=>selectCell(r,c,td); }
+            tr.appendChild(td);
         }
-
-        table.appendChild(tr)
+        table.appendChild(tr);
     }
-
-    updateNumPad()
+    updateNumPad(); checkSectionCompletions();
 }
-
-
-/* ===========================
-CELL SELECT
-=========================== */
 
 function selectCell(r,c,td){
-
-    document.querySelectorAll('td').forEach(el=>{
-        el.classList.remove('selected','highlight-line')
-    })
-
-    selectedCell={r,c}
-
-    td.classList.add('selected')
-
-    for(let i=0;i<9;i++){
-
-        document.querySelector(`.sudoku-table tr:nth-child(${r+1}) td:nth-child(${i+1})`).classList.add('highlight-line')
-
-        document.querySelector(`.sudoku-table tr:nth-child(${i+1}) td:nth-child(${c+1})`).classList.add('highlight-line')
+    document.querySelectorAll('td').forEach(el=>el.classList.remove('selected','highlight-line'));
+    selectedCell={r,c}; td.classList.add('selected');
+    for(let i=0; i<9; i++) {
+        document.querySelector(`.sudoku-table tr:nth-child(${r+1}) td:nth-child(${i+1})`).classList.add('highlight-line');
+        document.querySelector(`.sudoku-table tr:nth-child(${i+1}) td:nth-child(${c+1})`).classList.add('highlight-line');
     }
 }
-
-
-/* ===========================
-NUMBER PAD
-=========================== */
 
 function updateNumPad(){
-
-    const pad=document.getElementById('number-pad')
-    pad.innerHTML=""
-
-    for(let i=1;i<=9;i++){
-
-        const btn=document.createElement('button')
-
-        btn.className="num-btn"
-        btn.innerText=i
-
-        btn.onclick=()=>placeNumber(i)
-
-        pad.appendChild(btn)
+    const pad=document.getElementById('number-pad'); pad.innerHTML="";
+    const counts = Array(10).fill(0);
+    for(let r=0; r<9; r++) for(let c=0; c<9; c++) {
+        const td = document.getElementById(`cell-${r}-${c}`) || {innerText: puzzle[r][c]};
+        const val = parseInt(td.innerText || puzzle[r][c]);
+        if(val > 0) counts[val]++;
     }
-
-    const erase=document.createElement('button')
-
-    erase.className="num-btn eraser-btn"
-    erase.innerText="X"
-
-    erase.onclick=eraseCell
-
-    pad.appendChild(erase)
+    for(let i=1;i<=9;i++){
+        const btn=document.createElement('button'); btn.className=`num-btn ${counts[i]>=9?'completed':''}`;
+        btn.innerHTML=`<span class="text-xs font-bold">${i}</span><span class="text-[7px] text-slate-500">${Math.max(0, 9-counts[i])} left</span>`;
+        btn.onclick=()=>placeNumber(i); pad.appendChild(btn);
+    }
+    const erase=document.createElement('button'); erase.className="num-btn eraser-btn"; erase.innerText="X";
+    erase.onclick=eraseCell; pad.appendChild(erase);
 }
-
 
 function placeNumber(num){
-
-    if(!selectedCell) return
-
-    const {r,c}=selectedCell
-
-    const td=document.getElementById(`cell-${r}-${c}`)
-
-    td.innerText=num
-
+    if(!selectedCell) return;
+    const {r,c}=selectedCell, td=document.getElementById(`cell-${r}-${c}`);
+    td.innerText=num;
     if(solution[r][c]!==num){
-
-        td.classList.add("wrong")
-
-        lives--
-
-        updateStatus()
-
-        if(lives<=0){
-
-            alert("Game Over")
-            location.reload()
-        }
-
-    }else{
-
-        td.classList.remove("wrong")
+        td.classList.add("wrong"); lives--; triggerDamageEffect(); updateStatus();
+        if(lives<=0){ alert("GAME OVER!"); location.reload(); }
+    } else {
+        td.classList.remove("wrong"); 
+        checkSectionCompletions(); 
+        if(checkAllFilled()) checkFinalResult();
     }
-
-    checkClear()
+    updateNumPad();
 }
-
 
 function eraseCell(){
-
-    if(!selectedCell) return
-
-    const {r,c}=selectedCell
-
-    const td=document.getElementById(`cell-${r}-${c}`)
-
-    td.innerText=""
+    if(!selectedCell) return;
+    const {r,c}=selectedCell, td=document.getElementById(`cell-${r}-${c}`);
+    td.innerText=""; td.classList.remove("wrong","hint-cell");
+    updateNumPad(); checkSectionCompletions();
 }
 
+function triggerDamageEffect() {
+    document.getElementById('game-body').classList.add('damage-flash');
+    setTimeout(()=> document.getElementById('game-body').classList.remove('damage-flash'), 400);
+}
 
-/* ===========================
-HINT
-=========================== */
+function checkSectionCompletions() {
+    const board = Array.from({length:9}, (_,r) => Array.from({length:9}, (_,c) => {
+        const td = document.getElementById(`cell-${r}-${c}`);
+        return puzzle[r][c] || (td ? parseInt(td.innerText) || 0 : 0);
+    }));
+    document.querySelectorAll('td').forEach(td => td.classList.remove('completed-section'));
+    const isDone = (arr) => arr.filter(v=>v!==0).length===9 && new Set(arr.filter(v=>v!==0)).size===9;
+    for (let i=0; i<9; i++) {
+        if (isDone(board[i])) for(let j=0; j<9; j++) getTd(i,j).classList.add('completed-section');
+        const col = board.map(r => r[i]);
+        if (isDone(col)) for(let j=0; j<9; j++) getTd(j,i).classList.add('completed-section');
+    }
+    for (let br=0; br<3; br++) for (let bc=0; bc<3; bc++) {
+        const box = [];
+        for(let r=0; r<3; r++) for(let c=0; c<3; c++) box.push(board[br*3+r][bc*3+c]);
+        if(isDone(box)) for(let r=0; r<3; r++) for(let c=0; c<3; c++) getTd(br*3+r, bc*3+c).classList.add('completed-section');
+    }
+}
+
+function getTd(r,c) { return document.getElementById(`cell-${r}-${c}`) || Array.from(document.querySelectorAll('.fixed-cell')).find(el => el.innerText == puzzle[r][c]); }
+
+function checkAllFilled() {
+    for(let r=0; r<9; r++) for(let c=0; c<9; c++) {
+        const td = document.getElementById(`cell-${r}-${c}`);
+        if(td && td.innerText === "") return false;
+    }
+    return true;
+}
 
 function useHint(){
-
-    if(hints<=0) return
-
-    let empty=[]
-
-    for(let r=0;r<9;r++){
-        for(let c=0;c<9;c++){
-
-            const td=document.getElementById(`cell-${r}-${c}`)
-
-            if(td && td.innerText===""){
-
-                empty.push({r,c})
-            }
-        }
+    if(hints<=0) return;
+    let empty=[];
+    for(let r=0; r<9; r++) for(let c=0; c<9; c++) {
+        const td=document.getElementById(`cell-${r}-${c}`);
+        if(td && td.innerText==="") empty.push({r,c});
     }
-
-    if(empty.length===0) return
-
-    const rand=empty[Math.floor(Math.random()*empty.length)]
-
-    const td=document.getElementById(`cell-${rand.r}-${rand.c}`)
-
-    td.innerText=solution[rand.r][rand.c]
-
-    td.classList.add("hint-cell")
-
-    hints--
-
-    updateStatus()
-
-    checkClear()
+    if(empty.length===0) return;
+    const rand=empty[Math.floor(Math.random()*empty.length)];
+    const td=document.getElementById(`cell-${rand.r}-${rand.c}`);
+    td.innerText=solution[rand.r][rand.c]; td.classList.add("hint-cell");
+    hints--; updateStatus(); updateNumPad(); checkSectionCompletions();
 }
 
-
-/* ===========================
-CLEAR CHECK
-=========================== */
-
-function checkClear(){
-
-    for(let r=0;r<9;r++){
-        for(let c=0;c<9;c++){
-
-            const td=document.getElementById(`cell-${r}-${c}`)
-
-            if(td){
-
-                if(parseInt(td.innerText)!==solution[r][c]) return
-            }
-        }
-    }
-
-    finishGame()
+function checkFinalResult(){
+    if(!checkAllFilled()) { alert("아직 빈칸이 있어!"); return; }
+    clearInterval(timerInterval); document.getElementById('ad-overlay').style.display="flex";
 }
 
-
-/* ===========================
-FINISH
-=========================== */
-
-function finishGame(){
-
-    clearInterval(timerInterval)
-
-    const cleared = JSON.parse(localStorage.getItem('cleared_stages') || "[]")
-
-    const stage = currentStageIdx + 1
-
-    if (!cleared.includes(stage)) {
-        cleared.push(stage)
-        localStorage.setItem('cleared_stages', JSON.stringify(cleared))
-    }
-
-    document.getElementById('ad-overlay').style.display="flex"
+function finishGameAction(){
+    const cleared = JSON.parse(localStorage.getItem('cleared_stages') || "[]");
+    if (!cleared.includes(currentStageIdx + 1)) cleared.push(currentStageIdx + 1);
+    localStorage.setItem('cleared_stages', JSON.stringify(cleared));
+    localStorage.setItem('user_int', (parseInt(localStorage.getItem('user_int')) || 0) + 1);
+    localStorage.setItem('user_coin', (parseInt(localStorage.getItem('user_coin')) || 100) + 10);
+    location.href = 'index.html';
 }
-
-
-/* ===========================
-STATUS
-=========================== */
 
 function updateStatus(){
-
-    document.getElementById('life-display').innerText=`${lives} / 3`
-    document.getElementById('hint-display').innerText=`${hints} / 3`
+    document.getElementById('life-display').innerText=`${lives} / 3`;
+    document.getElementById('hint-display').innerText=`${hints} / 3`;
 }
-
-
-/* ===========================
-TIMER
-=========================== */
 
 function startTimer(){
-
-    startTime=Date.now()
-
+    startTime=Date.now();
     timerInterval=setInterval(()=>{
-
-        let sec=Math.floor((Date.now()-startTime)/1000)
-
-        let m=Math.floor(sec/60)
-        let s=sec%60
-
-        document.getElementById('timer-display').innerText=
-        `${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`
-
-    },1000)
+        let sec=Math.floor((Date.now()-startTime)/1000);
+        document.getElementById('timer-display').innerText=`${String(Math.floor(sec/60)).padStart(2,'0')}:${String(sec%60).padStart(2,'0')}`;
+    },1000);
 }
-
-
-/* ===========================
-BGM
-=========================== */
 
 function toggleMusic(){
-
-    if(bgm.paused){
-
-        bgm.play()
-        document.getElementById('music-btn').innerText="BGM: ON"
-
-    }else{
-
-        bgm.pause()
-        document.getElementById('music-btn').innerText="BGM: OFF"
-    }
+    if(bgm.paused){ bgm.play(); document.getElementById('music-btn').innerText="BGM: ON"; }
+    else { bgm.pause(); document.getElementById('music-btn').innerText="BGM: OFF"; }
 }
-
 </script>
 </body>
 </html>
