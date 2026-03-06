@@ -15,11 +15,9 @@
             display: flex; flex-direction: column; overflow: hidden;
         }
 
-        /* 🔦 선택 위치 표시 및 하이라이트 */
         .highlight-line { background-color: rgba(56, 189, 248, 0.08) !important; }
         .user-cell.selected { background-color: rgba(56, 189, 248, 0.3) !important; box-shadow: inset 0 0 10px #38bdf8; border: 2px solid #38bdf8 !important; }
 
-        /* ✨ 완료 시 에메랄드 효과 */
         .completed-section { 
             background-color: rgba(16, 185, 129, 0.25) !important; 
             animation: pulse-green 1s ease-out; 
@@ -45,7 +43,6 @@
         .hint-cell { color: #facc15 !important; background-color: rgba(251, 206, 7, 0.1); font-weight: bold; }
 
         @keyframes shake { 0%, 100% { transform: translateX(0); } 25% { transform: translateX(-4px); } 75% { transform: translateX(4px); } }
-        /* 🚀 추가: 라이프 감소 시 시각적 충격 효과 */
         .damage-flash { animation: flash-red 0.4s; }
         @keyframes flash-red { 0% { background-color: transparent; } 50% { background-color: rgba(239, 68, 68, 0.3); } 100% { background-color: transparent; } }
 
@@ -53,7 +50,6 @@
         .number-pad { display: grid; grid-template-columns: repeat(5, 1fr); gap: 5px; width: 100%; max-width: 350px; margin: 0 auto; }
         .num-btn { background-color: #1e293b; border: 1px solid #38bdf8; border-radius: 6px; padding: 5px 0; display: flex; flex-direction: column; align-items: center; justify-content: center; transition: 0.2s; min-height: 45px; }
         .num-btn.completed { opacity: 0.2; pointer-events: none; }
-        .num-btn:active { transform: scale(0.95); background-color: #38bdf8; }
         .eraser-btn { background-color: #334155; border-color: #94a3b8; }
 
         .action-area { display: grid; grid-template-columns: 1fr 1.5fr; gap: 8px; width: 100%; max-width: 350px; margin: 8px auto 0; }
@@ -62,7 +58,7 @@
 
         .overlay { position: fixed; inset: 0; background: rgba(15, 23, 42, 0.98); display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 100; backdrop-filter: blur(10px); }
         .stage-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 10px; width: 90%; max-width: 320px; }
-        .stage-btn { aspect-ratio: 1/1; background: #1e293b; border: 1px solid #38bdf8; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-weight: bold; cursor: pointer; position: relative; }
+        .stage-btn { aspect-ratio: 1/1; background: #1e293b; border: 1px solid #38bdf8; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-weight: bold; cursor: pointer; }
         .stage-btn.locked { opacity: 0.3; pointer-events: none; }
         .stage-btn.locked::after { content: "🔒"; position: absolute; top: 2px; right: 2px; font-size: 10px; }
         .stage-btn.cleared { border-color: #10b981; color: #10b981; }
@@ -92,9 +88,7 @@
 
     <div class="info-panel mx-4 p-2 bg-slate-900/60 border border-slate-700 rounded-lg flex justify-around text-center shrink-0 shadow-lg">
         <div><p class="text-[7px] text-slate-500 uppercase font-bold">Life</p><p id="life-display" class="text-rose-500 font-bold text-[10px]">3 / 3</p></div>
-        <div class="border-x border-slate-700 px-6">
-            <p class="text-[7px] text-slate-500 uppercase font-bold">Hint</p><p id="hint-display" class="text-yellow-500 font-bold text-[10px]">3 / 3</p>
-        </div>
+        <div class="border-x border-slate-700 px-6"><p class="text-[7px] text-slate-500 uppercase font-bold">Hint</p><p id="hint-display" class="text-yellow-500 font-bold text-[10px]">3 / 3</p></div>
         <div><p class="text-[7px] text-slate-500 uppercase font-bold">Time</p><p id="timer-display" class="text-emerald-400 font-bold text-[10px]">00:00</p></div>
     </div>
 
@@ -104,16 +98,14 @@
         <div id="number-pad" class="number-pad"></div>
         <div class="action-area">
             <button onclick="useHint()" id="hint-btn-ui" class="hint-btn uppercase">Hint (3)</button>
-            <button onclick="checkFinalComplete()" class="submit-btn uppercase italic">CHECK RESULT</button>
+            <button onclick="checkFinalResult()" class="submit-btn uppercase italic">CHECK RESULT</button>
         </div>
     </div>
 
     <script>
-        // 🧪 스테이지 데이터 전수 교정 완료 (Stage 3의 중복 숫자 완벽 해결)
         const stages = [
             { b: [[0,0,0,2,6,0,7,0,1],[6,8,0,0,7,0,0,9,0],[1,9,0,0,0,4,5,0,0],[8,2,0,1,0,0,0,4,0],[0,0,4,6,0,2,9,0,0],[0,5,0,0,0,3,0,2,8],[0,0,9,3,0,0,0,7,4],[0,4,0,0,5,0,0,3,6],[7,0,3,0,1,8,0,0,0]], s: [[4,3,5,2,6,9,7,8,1],[6,8,2,5,7,1,4,9,3],[1,9,7,8,3,4,5,6,2],[8,2,6,1,9,5,3,4,7],[3,7,4,6,8,2,9,1,5],[9,5,1,7,4,3,6,2,8],[5,1,9,3,2,6,8,7,4],[2,4,8,9,5,7,1,3,6],[7,6,3,4,1,8,2,5,9]] },
             { b: [[1,0,0,4,8,9,0,0,6],[7,3,0,0,0,0,0,4,0],[0,0,0,0,0,1,2,9,5],[0,0,7,1,2,0,6,0,0],[5,0,0,7,0,3,0,0,8],[0,0,6,0,9,5,7,0,0],[9,1,4,6,0,0,0,0,0],[0,2,0,0,0,0,0,3,7],[8,0,0,5,1,2,0,0,4]], s: [[1,5,2,4,8,9,3,7,6],[7,3,9,2,5,6,8,4,1],[4,6,8,3,7,1,2,9,5],[3,8,7,1,2,4,6,5,9],[5,9,1,7,6,3,4,2,8],[2,4,6,8,9,5,7,1,3],[9,1,4,6,3,7,5,8,2],[6,2,5,9,4,8,1,3,7],[8,7,3,5,1,2,9,6,4]] },
-            // ⭐ 교정된 Stage 3 데이터
             { b: [[5,3,0,0,7,0,0,0,0],[6,0,0,1,9,5,0,0,0],[0,9,8,0,0,0,0,6,0],[8,0,0,0,6,0,0,0,3],[4,0,0,8,0,3,0,0,1],[7,0,0,0,2,0,0,0,6],[0,6,0,0,0,0,2,8,0],[0,0,0,4,1,9,0,0,5],[0,0,0,0,8,0,0,7,9]], s: [[5,3,4,6,7,8,9,1,2],[6,7,2,1,9,5,3,4,8],[1,9,8,3,4,2,5,7,6],[8,5,9,7,6,1,4,2,3],[4,2,6,8,5,3,7,9,1],[7,1,3,9,2,4,8,5,6],[9,6,1,5,3,7,2,8,4],[2,8,7,4,1,9,6,3,5],[3,4,5,2,8,6,1,7,9]] },
             { b: [[0,2,0,6,0,8,0,0,0],[5,8,0,0,0,9,7,0,0],[0,0,0,0,4,0,0,0,0],[3,7,0,0,0,0,5,0,0],[6,0,0,0,0,0,0,0,4],[0,0,8,0,0,0,0,1,3],[0,0,0,0,2,0,0,0,0],[0,0,9,8,0,0,0,3,6],[0,0,0,3,0,6,0,9,0]], s: [[1,2,7,6,3,8,4,5,9],[5,8,4,2,1,9,7,6,3],[9,3,6,5,4,7,8,2,1],[3,7,1,9,8,4,5,6,2],[6,4,5,7,2,3,1,8,9],[2,9,8,1,6,5,4,7,3],[8,6,3,4,9,1,2,5,7],[7,5,9,8,4,2,1,3,6],[4,1,2,3,7,6,5,9,8]] },
             { b: [[0,0,0,6,0,0,4,0,0],[7,0,0,0,0,3,6,0,0],[0,0,0,0,9,1,0,8,0],[0,0,0,0,0,0,0,0,0],[0,5,0,1,8,0,0,0,3],[0,0,0,3,0,6,0,4,5],[0,4,0,2,0,0,0,6,0],[9,0,3,0,0,0,0,0,0],[0,2,0,0,0,0,1,0,0]], s: [[1,3,8,6,5,2,4,7,9],[7,9,2,8,4,3,6,5,1],[4,6,5,7,9,1,3,8,2],[3,1,4,5,2,9,7,6,8],[6,5,9,1,8,7,2,4,3],[2,8,7,3,1,6,9,4,5],[8,4,1,2,3,5,9,6,7],[9,7,3,4,6,8,5,2,1],[5,2,6,9,7,4,1,3,8]] },
@@ -164,10 +156,7 @@
                 for (let c = 0; c < 9; c++) {
                     const td = document.createElement('td');
                     if (data.b[r][c] !== 0) { td.innerText = data.b[r][c]; td.className = "fixed-cell"; }
-                    else { 
-                        td.id = `cell-${r}-${c}`; td.className = "user-cell"; 
-                        td.onclick = () => selectCell(r, c, td);
-                    }
+                    else { td.id = `cell-${r}-${c}`; td.className = "user-cell"; td.onclick = () => selectCell(r, c, td); }
                     tr.appendChild(td);
                 }
                 table.appendChild(tr);
@@ -177,8 +166,7 @@
 
         function selectCell(r, c, td) {
             document.querySelectorAll('td').forEach(el => el.classList.remove('selected', 'highlight-line'));
-            selectedCell = { r, c };
-            td.classList.add('selected');
+            selectedCell = { r, c }; td.classList.add('selected');
             for(let i=0; i<9; i++) {
                 document.querySelector(`.sudoku-table tr:nth-child(${r+1}) td:nth-child(${i+1})`).classList.add('highlight-line');
                 document.querySelector(`.sudoku-table tr:nth-child(${i+1}) td:nth-child(${c+1})`).classList.add('highlight-line');
@@ -189,63 +177,45 @@
             const pad = document.getElementById('number-pad'); pad.innerHTML = "";
             const counts = Array(10).fill(0);
             const data = stages[currentStageIdx];
-            for (let r = 0; r < 9; r++) {
-                for (let c = 0; c < 9; c++) {
-                    const cell = document.getElementById(`cell-${r}-${c}`);
-                    const val = data.b[r][c] || (cell ? parseInt(cell.innerText) || 0 : 0);
-                    if (val > 0) counts[val]++;
-                }
+            for (let r = 0; r < 9; r++) for (let c = 0; c < 9; c++) {
+                const cell = document.getElementById(`cell-${r}-${c}`);
+                const val = data.b[r][c] || (cell ? parseInt(cell.innerText) || 0 : 0);
+                if (val > 0) counts[val]++;
             }
             for (let i = 1; i <= 9; i++) {
                 const btn = document.createElement('div');
                 const rem = Math.max(0, 9 - counts[i]);
                 btn.className = `num-btn ${rem === 0 ? 'completed' : ''}`;
                 btn.innerHTML = `<span class="text-xs font-bold">${i}</span><span class="text-[7px] text-slate-500">${rem} left</span>`;
-                btn.onclick = () => fillNumber(i); // 🚀 즉각 체크 함수 호출
+                btn.onclick = () => fillNumber(i);
                 pad.appendChild(btn);
             }
             const eraBtn = document.createElement('div'); eraBtn.className = "num-btn eraser-btn"; eraBtn.innerHTML = `<span class="text-[9px] font-bold">X</span>`;
             eraBtn.onclick = () => { if(selectedCell) { 
                 const target = document.getElementById(`cell-${selectedCell.r}-${selectedCell.c}`);
-                if (!target.classList.contains('fixed-cell')) {
-                    target.innerText = ""; target.classList.remove('wrong', 'hint-cell');
+                if(!target.classList.contains('fixed-cell')) {
+                    target.innerText = ""; target.classList.remove('wrong', 'hint-cell', 'completed-section');
                     updateNumPad(); checkSectionCompletions();
                 }
             }};
             pad.appendChild(eraBtn);
         }
 
-        // 🚀 숫자를 입력할 때 실시간으로 정답 여부를 판별하고 라이프를 깎는 핵심 로직
         function fillNumber(num) {
             if (!selectedCell) return;
             const target = document.getElementById(`cell-${selectedCell.r}-${selectedCell.c}`);
-            if (target.classList.contains('fixed-cell')) return;
-            
+            if(target.classList.contains('fixed-cell')) return;
             const correctNum = stages[currentStageIdx].s[selectedCell.r][selectedCell.c];
-
-            if (num === correctNum) {
-                target.innerText = num;
-                target.classList.remove('wrong');
-                target.classList.add('user-cell');
-            } else {
-                // 오답일 때: 라이프 감소 및 연출
-                lives--;
-                target.innerText = num;
-                target.classList.add('wrong');
-                triggerDamageEffect(); // 붉은색 플래시
-                updateStatus();
-                if (lives <= 0) {
-                    setTimeout(() => { alert("GAME OVER! 기회를 모두 잃었습니다."); location.reload(); }, 100);
-                }
+            if (num === correctNum) { target.innerText = num; target.classList.remove('wrong'); } 
+            else { 
+                lives--; target.innerText = num; target.classList.add('wrong'); 
+                triggerDamageEffect(); updateStatus(); 
+                if (lives <= 0) setTimeout(() => { alert("GAME OVER!"); location.reload(); }, 100);
             }
             updateNumPad(); checkSectionCompletions();
         }
 
-        function triggerDamageEffect() {
-            const body = document.getElementById('game-body');
-            body.classList.add('damage-flash');
-            setTimeout(() => body.classList.remove('damage-flash'), 400);
-        }
+        function triggerDamageEffect() { document.getElementById('game-body').classList.add('damage-flash'); setTimeout(() => document.getElementById('game-body').classList.remove('damage-flash'), 400); }
 
         function checkSectionCompletions() {
             const board = Array.from({length:9}, (_,r) => Array.from({length:9}, (_,c) => {
@@ -254,15 +224,13 @@
             }));
             document.querySelectorAll('td').forEach(td => td.classList.remove('completed-section'));
             const isDone = (arr) => arr.filter(v => v !== 0).length === 9 && new Set(arr).size === 9;
-
             for (let i = 0; i < 9; i++) {
                 if (isDone(board[i])) for (let j = 0; j < 9; j++) getTd(i, j).classList.add('completed-section');
                 const col = board.map(r => r[i]);
                 if (isDone(col)) for (let j = 0; j < 9; j++) getTd(j, i).classList.add('completed-section');
             }
             for (let br = 0; br < 3; br++) for (let bc = 0; bc < 3; bc++) {
-                const box = [];
-                for(let r=0; r<3; r++) for(let c=0; c<3; c++) box.push(board[br*3+r][bc*3+c]);
+                const box = []; for(let r=0; r<3; r++) for(let c=0; c<3; c++) box.push(board[br*3+r][bc*3+c]);
                 if(isDone(box)) for(let r=0; r<3; r++) for(let c=0; c<3; c++) getTd(br*3+r, bc*3+c).classList.add('completed-section');
             }
         }
@@ -272,29 +240,24 @@
         function useHint() {
             if (!selectedCell || hints <= 0) return;
             const target = document.getElementById(`cell-${selectedCell.r}-${selectedCell.c}`);
-            if (target.classList.contains('fixed-cell')) return;
-            
+            if(target.classList.contains('fixed-cell')) return;
             target.innerText = stages[currentStageIdx].s[selectedCell.r][selectedCell.c];
-            target.classList.add('hint-cell');
-            target.classList.remove('wrong');
+            target.classList.add('hint-cell'); target.classList.remove('wrong');
             hints--; updateStatus(); updateNumPad(); checkSectionCompletions();
         }
 
         function startTimer() { startTime = Date.now(); timerInterval = setInterval(() => { const d = new Date(Date.now()-startTime); document.getElementById('timer-display').innerText = d.toISOString().substr(14, 5); }, 1000); }
 
-        function checkFinalComplete() {
-            const data = stages[currentStageIdx]; let wrong = 0, empty = 0;
-            for (let r = 0; r < 9; r++) {
-                for (let c = 0; c < 9; c++) {
-                    const cell = document.getElementById(`cell-${r}-${c}`);
-                    const val = data.b[r][c] || (cell ? parseInt(cell.innerText) || 0 : 0);
-                    if (val === 0) empty++; 
-                    else if (val !== data.s[r][c]) wrong++;
-                }
+        function checkFinalResult() {
+            const data = stages[currentStageIdx]; let empty = 0, wrong = 0;
+            for (let r = 0; r < 9; r++) for (let c = 0; c < 9; c++) {
+                const cell = document.getElementById(`cell-${r}-${c}`);
+                const val = data.b[r][c] || (cell ? parseInt(cell.innerText) || 0 : 0);
+                if (val === 0) empty++; else if (val !== data.s[r][c]) wrong++;
             }
-            if (empty > 0) alert("아직 채워지지 않은 칸이 있어!");
+            if (empty > 0) alert("채워지지 않은 칸이 있어!");
             else if (wrong === 0) { clearInterval(timerInterval); document.getElementById('ad-overlay').style.display = 'flex'; }
-            else alert("아직 틀린 숫자가 있는 것 같아. 확인해봐!");
+            else alert("오답이 포함되어 있어!");
         }
 
         function finishGame() {
