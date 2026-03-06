@@ -102,179 +102,441 @@
             <button onclick="useHint()" id="hint-btn-ui" class="hint-btn uppercase">Hint (3)</button>
             <button onclick="checkFinalResult()" class="submit-btn uppercase italic">CHECK RESULT</button>
         </div>
-    </div>
+    </div><script>
 
-    <script>
-        // 🧪 스테이지 데이터 전수 교정 완료 (Stage 3의 중복 오류 완벽 해결 및 1~10 수동 검수)
-        const stages = [
-            { b: [[0,0,0,2,6,0,7,0,1],[6,8,0,0,7,0,0,9,0],[1,9,0,0,0,4,5,0,0],[8,2,0,1,0,0,0,4,0],[0,0,4,6,0,2,9,0,0],[0,5,0,0,0,3,0,2,8],[0,0,9,3,0,0,0,7,4],[0,4,0,0,5,0,0,3,6],[7,0,3,0,1,8,0,0,0]], s: [[4,3,5,2,6,9,7,8,1],[6,8,2,5,7,1,4,9,3],[1,9,7,8,3,4,5,6,2],[8,2,6,1,9,5,3,4,7],[3,7,4,6,8,2,9,1,5],[9,5,1,7,4,3,6,2,8],[5,1,9,3,2,6,8,7,4],[2,4,8,9,5,7,1,3,6],[7,6,3,4,1,8,2,5,9]] },
-            { b: [[1,0,0,4,8,9,0,0,6],[7,3,0,0,0,0,0,4,0],[0,0,0,0,0,1,2,9,5],[0,0,7,1,2,0,6,0,0],[5,0,0,7,0,3,0,0,8],[0,0,6,0,9,5,7,0,0],[9,1,4,6,0,0,0,0,0],[0,2,0,0,0,0,0,3,7],[8,0,0,5,1,2,0,0,4]], s: [[1,5,2,4,8,9,3,7,6],[7,3,9,2,5,6,8,4,1],[4,6,8,3,7,1,2,9,5],[3,8,7,1,2,4,6,5,9],[5,9,1,7,6,3,4,2,8],[2,4,6,8,9,5,7,1,3],[9,1,4,6,3,7,5,8,2],[6,2,5,9,4,8,1,3,7],[8,7,3,5,1,2,9,6,4]] },
-            { b: [[5,3,0,0,7,0,0,0,0],[6,0,0,1,9,5,0,0,0],[0,9,8,0,0,0,0,6,0],[8,0,0,0,6,0,0,0,3],[4,0,0,8,0,3,0,0,1],[7,0,0,0,2,0,0,0,6],[0,6,0,0,0,0,2,8,0],[0,0,0,4,1,9,0,0,5],[0,0,0,0,8,0,0,7,9]], s: [[5,3,4,6,7,8,9,1,2],[6,7,2,1,9,5,3,4,8],[1,9,8,3,4,2,5,7,6],[8,5,9,7,6,1,4,2,3],[4,2,6,8,5,3,7,9,1],[7,1,3,9,2,4,8,5,6],[9,6,1,5,3,7,2,8,4],[2,8,7,4,1,9,6,3,5],[3,4,5,2,8,6,1,7,9]] },
-            { b: [[0,2,0,6,0,8,0,0,0],[5,8,0,0,0,9,7,0,0],[0,0,0,0,4,0,0,0,0],[3,7,0,0,0,0,5,0,0],[6,0,0,0,0,0,0,0,4],[0,0,8,0,0,0,0,1,3],[0,0,0,0,2,0,0,0,0],[0,0,9,8,0,0,0,3,6],[0,0,0,3,0,6,0,9,0]], s: [[1,2,7,6,3,8,4,5,9],[5,8,4,2,1,9,7,6,3],[9,3,6,5,4,7,8,2,1],[3,7,1,9,8,4,5,6,2],[6,4,5,7,2,3,1,8,9],[2,9,8,1,6,5,4,7,3],[8,6,3,4,9,1,2,5,7],[7,5,9,8,4,2,1,3,6],[4,1,2,3,7,6,5,9,8]] },
-            { b: [[0,0,0,6,0,0,4,0,0],[7,0,0,0,0,3,6,0,0],[0,0,0,0,9,1,0,8,0],[0,0,0,0,0,0,0,0,0],[0,5,0,1,8,0,0,0,3],[0,0,0,3,0,6,0,4,5],[0,4,0,2,0,0,0,6,0],[9,0,3,0,0,0,0,0,0],[0,2,0,0,0,0,1,0,0]], s: [[1,3,8,6,5,2,4,7,9],[7,9,2,8,4,3,6,5,1],[4,6,5,7,9,1,3,8,2],[3,1,4,5,2,9,7,6,8],[6,5,9,1,8,7,2,4,3],[2,8,7,3,1,6,9,4,5],[8,4,1,2,3,5,9,6,7],[9,7,3,4,6,8,5,2,1],[5,2,6,9,7,4,1,3,8]] },
-            { b: [[2,0,0,3,0,0,0,0,0],[8,0,4,0,6,2,0,0,3],[0,1,3,8,0,0,2,0,0],[0,0,0,0,2,0,3,9,0],[5,0,7,0,0,0,6,2,1],[0,3,2,0,0,6,0,0,0],[0,2,0,0,0,9,1,4,0],[6,0,1,2,5,0,8,0,9],[0,0,0,0,0,1,0,0,2]], s: [[2,6,5,3,1,7,9,8,4],[8,7,4,9,6,2,5,1,3],[9,1,3,8,4,5,2,6,7],[1,4,6,5,2,8,3,9,7],[5,8,7,4,9,3,6,2,1],[7,3,2,1,8,6,4,5,9],[3,2,8,7,6,9,1,4,5],[6,9,1,2,5,4,8,7,9],[4,5,9,6,7,1,8,3,2]] },
-            { b: [[0,0,0,0,0,0,0,0,0],[0,0,0,0,0,3,0,8,5],[0,0,1,0,2,0,0,0,0],[0,0,0,5,0,7,0,0,0],[0,0,4,0,0,0,1,0,0],[0,9,0,0,0,0,0,0,0],[5,0,0,0,0,0,0,7,3],[0,0,2,0,1,0,0,0,0],[0,0,0,0,4,0,0,0,9]], s: [[9,8,5,1,7,6,3,2,4],[6,2,7,4,9,3,1,8,5],[4,3,1,8,2,5,9,6,7],[1,6,3,5,4,7,8,9,2],[2,5,4,9,8,1,7,3,6],[7,9,8,2,3,6,4,5,1],[5,1,9,6,2,8,4,7,3],[3,4,2,7,1,9,6,5,8],[8,7,6,3,5,4,2,1,9]] },
-            { b: [[2,8,0,0,0,4,0,0,0],[0,0,0,0,2,0,0,0,0],[1,0,9,0,0,3,0,0,4],[0,5,0,0,1,0,9,0,0],[0,0,0,0,0,0,0,0,0],[0,0,2,0,6,0,0,3,0],[7,0,0,2,0,0,3,0,1],[0,0,0,0,4,0,0,0,0],[0,0,0,5,0,0,0,7,9]], s: [[2,8,3,1,9,4,7,5,6],[4,7,5,6,2,8,1,9,3],[1,6,9,7,5,3,8,2,4],[3,5,6,8,1,2,9,4,7],[8,1,7,4,3,9,6,5,2],[9,4,2,7,6,5,8,3,1],[7,9,4,2,8,6,3,5,1],[5,2,8,3,4,1,7,6,9],[6,3,1,5,7,2,4,8,9]] },
-            { b: [[0,2,0,0,3,0,0,9,0],[6,0,0,9,0,0,0,0,1],[0,0,0,0,0,0,0,0,0],[2,1,0,0,7,0,0,8,4],[0,0,7,0,0,0,5,0,0],[5,8,0,0,4,0,0,1,3],[0,0,0,0,0,0,0,0,0],[8,0,0,0,0,2,0,0,5],[0,4,0,0,5,0,0,3,0]], s: [[4,2,1,5,3,8,6,9,7],[6,5,3,9,7,2,4,8,1],[7,9,8,4,1,6,2,3,5],[2,1,6,3,7,5,9,8,4],[3,7,4,8,9,1,5,2,6],[5,8,9,2,4,6,7,1,3],[9,6,5,7,2,3,1,4,8],[8,3,7,4,6,2,1,9,5],[1,4,2,6,5,4,8,3,9]] },
-            { b: [[0,5,0,4,0,0,9,0,0],[0,2,0,0,0,3,0,0,5],[9,0,0,0,0,7,6,3,0],[3,0,0,0,8,4,0,7,0],[0,0,0,5,0,0,8,0,0],[0,0,0,0,1,0,0,0,3],[0,0,0,1,0,0,0,0,4],[0,0,7,0,2,0,0,5,0],[6,1,0,0,0,0,0,0,0]], s: [[7,5,3,4,6,8,9,1,2],[8,2,6,9,1,3,7,4,5],[9,4,1,2,5,7,6,3,8],[3,9,5,6,8,4,1,7,2],[1,7,2,5,3,9,8,6,4],[4,6,8,7,1,2,5,9,3],[2,8,9,1,7,5,3,6,4],[5,3,7,8,2,4,1,5,6],[6,1,4,3,9,6,2,8,7]] }
-        ];
+let currentStageIdx = 0
+let selectedCell = null
+let timerInterval
+let lives = 3
+let hints = 3
+let startTime
 
-        let currentStageIdx = 0, selectedCell = null, timerInterval, lives = 3, hints = 3, startTime;
-        const bgm = document.getElementById('bgm');
+let puzzle = []
+let solution = []
 
-        window.onload = () => renderStages();
+const bgm = document.getElementById('bgm')
 
-        function renderStages() {
-            const list = document.getElementById('stage-list'), cleared = JSON.parse(localStorage.getItem('cleared_stages') || "[]");
-            list.innerHTML = "";
-            for (let i = 1; i <= 10; i++) {
-                const btn = document.createElement('button');
-                const isUnlocked = i === 1 || cleared.includes(i - 1);
-                btn.className = `stage-btn ${cleared.includes(i) ? 'cleared' : ''} ${!isUnlocked ? 'locked' : ''}`;
-                btn.innerText = i;
-                if (isUnlocked) btn.onclick = () => initGame(i-1);
-                list.appendChild(btn);
-            }
+window.onload = () => renderStages()
+
+/* ===========================
+STAGE UI
+=========================== */
+
+function renderStages() {
+
+    const list = document.getElementById('stage-list')
+    const cleared = JSON.parse(localStorage.getItem('cleared_stages') || "[]")
+
+    list.innerHTML = ""
+
+    for (let i = 1; i <= 10; i++) {
+
+        const btn = document.createElement('button')
+        const isUnlocked = i === 1 || cleared.includes(i - 1)
+
+        btn.className = `stage-btn ${cleared.includes(i) ? 'cleared' : ''} ${!isUnlocked ? 'locked' : ''}`
+
+        btn.innerText = i
+
+        if (isUnlocked) {
+            btn.onclick = () => initGame(i - 1)
         }
 
-        function initGame(idx) {
-            currentStageIdx = idx; lives = 3; hints = 3; selectedCell = null;
-            document.getElementById('start-overlay').style.display = 'none';
-            document.getElementById('stage-title').innerText = `Stage ${idx + 1}`;
-            updateStatus(); renderBoard(); startTimer();
-            bgm.play().catch(()=>{});
-        }
+        list.appendChild(btn)
+    }
+}
 
-        function updateStatus() {
-            document.getElementById('life-display').innerText = `${lives} / 3`;
-            document.getElementById('hint-display').innerText = `${hints} / 3`;
-            document.getElementById('hint-btn-ui').innerText = `Hint (${hints})`;
-        }
 
-        function renderBoard() {
-            const table = document.getElementById('sudoku-grid'), data = stages[currentStageIdx];
-            table.innerHTML = "";
-            for (let r = 0; r < 9; r++) {
-                const tr = document.createElement('tr');
-                for (let c = 0; c < 9; c++) {
-                    const td = document.createElement('td');
-                    if (data.b[r][c] !== 0) { td.innerText = data.b[r][c]; td.className = "fixed-cell"; }
-                    else { td.id = `cell-${r}-${c}`; td.className = "user-cell"; td.onclick = () => selectCell(r, c, td); }
-                    tr.appendChild(td);
+/* ===========================
+GAME INIT
+=========================== */
+
+function initGame(idx) {
+
+    currentStageIdx = idx
+    lives = 3
+    hints = 3
+    selectedCell = null
+
+    document.getElementById('start-overlay').style.display = 'none'
+    document.getElementById('stage-title').innerText = `Stage ${idx + 1}`
+
+    generateSudoku()
+
+    updateStatus()
+    renderBoard()
+    startTimer()
+
+    bgm.play().catch(()=>{})
+}
+
+
+/* ===========================
+SUDOKU GENERATOR
+=========================== */
+
+function generateSudoku() {
+
+    solution = createSolvedBoard()
+
+    puzzle = JSON.parse(JSON.stringify(solution))
+
+    let removeCount = 40
+
+    while (removeCount > 0) {
+
+        let r = Math.floor(Math.random()*9)
+        let c = Math.floor(Math.random()*9)
+
+        if (puzzle[r][c] !== 0) {
+
+            puzzle[r][c] = 0
+            removeCount--
+        }
+    }
+}
+
+
+function createSolvedBoard() {
+
+    let board = Array.from({length:9},()=>Array(9).fill(0))
+
+    solveSudoku(board)
+
+    return board
+}
+
+
+/* ===========================
+SOLVER
+=========================== */
+
+function solveSudoku(board) {
+
+    for (let r=0;r<9;r++) {
+        for (let c=0;c<9;c++) {
+
+            if (board[r][c]===0) {
+
+                let nums=[1,2,3,4,5,6,7,8,9]
+                nums.sort(()=>Math.random()-0.5)
+
+                for (let num of nums) {
+
+                    if (isValid(board,r,c,num)) {
+
+                        board[r][c]=num
+
+                        if (solveSudoku(board)) return true
+
+                        board[r][c]=0
+                    }
                 }
-                table.appendChild(tr);
-            }
-            updateNumPad(); checkSectionCompletions();
-        }
 
-        function selectCell(r, c, td) {
-            document.querySelectorAll('td').forEach(el => el.classList.remove('selected', 'highlight-line'));
-            selectedCell = { r, c }; td.classList.add('selected');
-            for(let i=0; i<9; i++) {
-                document.querySelector(`.sudoku-table tr:nth-child(${r+1}) td:nth-child(${i+1})`).classList.add('highlight-line');
-                document.querySelector(`.sudoku-table tr:nth-child(${i+1}) td:nth-child(${c+1})`).classList.add('highlight-line');
+                return false
             }
         }
+    }
 
-        function updateNumPad() {
-            const pad = document.getElementById('number-pad'); pad.innerHTML = "";
-            const counts = Array(10).fill(0);
-            for (let r = 0; r < 9; r++) for (let c = 0; c < 9; c++) {
-                const cell = document.getElementById(`cell-${r}-${c}`);
-                const val = stages[currentStageIdx].b[r][c] || (cell ? parseInt(cell.innerText) || 0 : 0);
-                if (val > 0) counts[val]++;
+    return true
+}
+
+
+function isValid(board,r,c,num){
+
+    for(let i=0;i<9;i++){
+
+        if(board[r][i]===num) return false
+        if(board[i][c]===num) return false
+    }
+
+    let br=Math.floor(r/3)*3
+    let bc=Math.floor(c/3)*3
+
+    for(let i=0;i<3;i++){
+        for(let j=0;j<3;j++){
+
+            if(board[br+i][bc+j]===num) return false
+        }
+    }
+
+    return true
+}
+
+
+/* ===========================
+BOARD RENDER
+=========================== */
+
+function renderBoard(){
+
+    const table=document.getElementById('sudoku-grid')
+    table.innerHTML=""
+
+    for(let r=0;r<9;r++){
+
+        const tr=document.createElement('tr')
+
+        for(let c=0;c<9;c++){
+
+            const td=document.createElement('td')
+
+            if(puzzle[r][c]!==0){
+
+                td.innerText=puzzle[r][c]
+                td.className="fixed-cell"
+
+            }else{
+
+                td.id=`cell-${r}-${c}`
+                td.className="user-cell"
+                td.onclick=()=>selectCell(r,c,td)
             }
-            for (let i = 1; i <= 9; i++) {
-                const btn = document.createElement('div');
-                const rem = Math.max(0, 9 - counts[i]);
-                btn.className = `num-btn ${rem === 0 ? 'completed' : ''}`;
-                btn.innerHTML = `<span class="text-xs font-bold">${i}</span><span class="text-[7px] text-slate-500">${rem} left</span>`;
-                btn.onclick = () => fillNumber(i);
-                pad.appendChild(btn);
+
+            tr.appendChild(td)
+        }
+
+        table.appendChild(tr)
+    }
+
+    updateNumPad()
+}
+
+
+/* ===========================
+CELL SELECT
+=========================== */
+
+function selectCell(r,c,td){
+
+    document.querySelectorAll('td').forEach(el=>{
+        el.classList.remove('selected','highlight-line')
+    })
+
+    selectedCell={r,c}
+
+    td.classList.add('selected')
+
+    for(let i=0;i<9;i++){
+
+        document.querySelector(`.sudoku-table tr:nth-child(${r+1}) td:nth-child(${i+1})`).classList.add('highlight-line')
+
+        document.querySelector(`.sudoku-table tr:nth-child(${i+1}) td:nth-child(${c+1})`).classList.add('highlight-line')
+    }
+}
+
+
+/* ===========================
+NUMBER PAD
+=========================== */
+
+function updateNumPad(){
+
+    const pad=document.getElementById('number-pad')
+    pad.innerHTML=""
+
+    for(let i=1;i<=9;i++){
+
+        const btn=document.createElement('button')
+
+        btn.className="num-btn"
+        btn.innerText=i
+
+        btn.onclick=()=>placeNumber(i)
+
+        pad.appendChild(btn)
+    }
+
+    const erase=document.createElement('button')
+
+    erase.className="num-btn eraser-btn"
+    erase.innerText="X"
+
+    erase.onclick=eraseCell
+
+    pad.appendChild(erase)
+}
+
+
+function placeNumber(num){
+
+    if(!selectedCell) return
+
+    const {r,c}=selectedCell
+
+    const td=document.getElementById(`cell-${r}-${c}`)
+
+    td.innerText=num
+
+    if(solution[r][c]!==num){
+
+        td.classList.add("wrong")
+
+        lives--
+
+        updateStatus()
+
+        if(lives<=0){
+
+            alert("Game Over")
+            location.reload()
+        }
+
+    }else{
+
+        td.classList.remove("wrong")
+    }
+
+    checkClear()
+}
+
+
+function eraseCell(){
+
+    if(!selectedCell) return
+
+    const {r,c}=selectedCell
+
+    const td=document.getElementById(`cell-${r}-${c}`)
+
+    td.innerText=""
+}
+
+
+/* ===========================
+HINT
+=========================== */
+
+function useHint(){
+
+    if(hints<=0) return
+
+    let empty=[]
+
+    for(let r=0;r<9;r++){
+        for(let c=0;c<9;c++){
+
+            const td=document.getElementById(`cell-${r}-${c}`)
+
+            if(td && td.innerText===""){
+
+                empty.push({r,c})
             }
-            const eraBtn = document.createElement('div'); eraBtn.className = "num-btn eraser-btn"; eraBtn.innerHTML = `<span class="text-[9px] font-bold">X</span>`;
-            eraBtn.onclick = () => { if(selectedCell) { 
-                const target = document.getElementById(`cell-${selectedCell.r}-${selectedCell.c}`);
-                if (!target.classList.contains('fixed-cell')) {
-                    target.innerText = ""; target.classList.remove('wrong', 'hint-cell', 'completed-section');
-                    updateNumPad(); checkSectionCompletions();
-                }
-            }};
-            pad.appendChild(eraBtn);
         }
+    }
 
-        function fillNumber(num) {
-            if (!selectedCell) return;
-            const target = document.getElementById(`cell-${selectedCell.r}-${selectedCell.c}`);
-            if(target.classList.contains('fixed-cell')) return;
-            const correctNum = stages[currentStageIdx].s[selectedCell.r][selectedCell.c];
-            if (num === correctNum) { target.innerText = num; target.classList.remove('wrong'); } 
-            else { 
-                lives--; target.innerText = num; target.classList.add('wrong'); 
-                triggerDamageEffect(); updateStatus(); 
-                if (lives <= 0) setTimeout(() => { alert("GAME OVER!"); location.reload(); }, 100);
-            }
-            updateNumPad(); checkSectionCompletions();
-        }
+    if(empty.length===0) return
 
-        function triggerDamageEffect() { document.getElementById('game-body').classList.add('damage-flash'); setTimeout(() => document.getElementById('game-body').classList.remove('damage-flash'), 400); }
+    const rand=empty[Math.floor(Math.random()*empty.length)]
 
-        function checkSectionCompletions() {
-            const board = Array.from({length:9}, (_,r) => Array.from({length:9}, (_,c) => {
-                const cell = document.getElementById(`cell-${r}-${c}`);
-                return stages[currentStageIdx].b[r][c] || (cell ? parseInt(cell.innerText) || 0 : 0);
-            }));
-            document.querySelectorAll('td').forEach(td => td.classList.remove('completed-section'));
-            const isDone = (arr) => arr.filter(v => v !== 0).length === 9 && new Set(arr).size === 9;
-            for (let i = 0; i < 9; i++) {
-                if (isDone(board[i])) for (let j = 0; j < 9; j++) getTd(i, j).classList.add('completed-section');
-                const col = board.map(r => r[i]);
-                if (isDone(col)) for (let j = 0; j < 9; j++) getTd(j, i).classList.add('completed-section');
-            }
-            for (let br = 0; br < 3; br++) for (let bc = 0; bc < 3; bc++) {
-                const box = []; for(let r=0; r<3; r++) for(let c=0; c<3; c++) box.push(board[br*3+r][bc*3+c]);
-                if(isDone(box)) for(let r=0; r<3; r++) for(let c=0; c<3; c++) getTd(br*3+r, bc*3+c).classList.add('completed-section');
+    const td=document.getElementById(`cell-${rand.r}-${rand.c}`)
+
+    td.innerText=solution[rand.r][rand.c]
+
+    td.classList.add("hint-cell")
+
+    hints--
+
+    updateStatus()
+
+    checkClear()
+}
+
+
+/* ===========================
+CLEAR CHECK
+=========================== */
+
+function checkClear(){
+
+    for(let r=0;r<9;r++){
+        for(let c=0;c<9;c++){
+
+            const td=document.getElementById(`cell-${r}-${c}`)
+
+            if(td){
+
+                if(parseInt(td.innerText)!==solution[r][c]) return
             }
         }
+    }
 
-        function getTd(r, c) { return document.querySelector(`.sudoku-table tr:nth-child(${r+1}) td:nth-child(${c+1})`); }
+    finishGame()
+}
 
-        function useHint() {
-            if (!selectedCell || hints <= 0) return;
-            const target = document.getElementById(`cell-${selectedCell.r}-${selectedCell.c}`);
-            if(target.classList.contains('fixed-cell')) return;
-            target.innerText = stages[currentStageIdx].s[selectedCell.r][selectedCell.c];
-            target.classList.add('hint-cell'); target.classList.remove('wrong');
-            hints--; updateStatus(); updateNumPad(); checkSectionCompletions();
-        }
 
-        function startTimer() { startTime = Date.now(); timerInterval = setInterval(() => { const d = new Date(Date.now()-startTime); document.getElementById('timer-display').innerText = d.toISOString().substr(14, 5); }, 1000); }
+/* ===========================
+FINISH
+=========================== */
 
-        function checkFinalResult() {
-            const data = stages[currentStageIdx]; let empty = 0, wrong = 0;
-            for (let r = 0; r < 9; r++) for (let c = 0; c < 9; c++) {
-                const cell = document.getElementById(`cell-${r}-${c}`);
-                const val = data.b[r][c] || (cell ? parseInt(cell.innerText) || 0 : 0);
-                if (val === 0) empty++; else if (val !== data.s[r][c]) wrong++;
-            }
-            if (empty > 0) alert("채워지지 않은 칸이 있어!");
-            else if (wrong === 0) { clearInterval(timerInterval); document.getElementById('ad-overlay').style.display = 'flex'; }
-            else alert("오답이 포함되어 있어!");
-        }
+function finishGame(){
 
-        function finishGame() {
-            const cleared = JSON.parse(localStorage.getItem('cleared_stages') || "[]");
-            if (!cleared.includes(currentStageIdx + 1)) cleared.push(currentStageIdx + 1);
-            localStorage.setItem('cleared_stages', JSON.stringify(cleared));
-            localStorage.setItem('user_int', (parseInt(localStorage.getItem('user_int')) || 0) + 1);
-            localStorage.setItem('user_coin', (parseInt(localStorage.getItem('user_coin')) || 100) + 10);
-            location.href = 'index.html';
-        }
+    clearInterval(timerInterval)
 
-        function toggleMusic() {
-            if (bgm.paused) { bgm.play(); document.getElementById('music-btn').innerText = "BGM: ON"; }
-            else { bgm.pause(); document.getElementById('music-btn').innerText = "BGM: OFF"; }
-        }
-    </script>
+    const cleared = JSON.parse(localStorage.getItem('cleared_stages') || "[]")
+
+    const stage = currentStageIdx + 1
+
+    if (!cleared.includes(stage)) {
+        cleared.push(stage)
+        localStorage.setItem('cleared_stages', JSON.stringify(cleared))
+    }
+
+    document.getElementById('ad-overlay').style.display="flex"
+}
+
+
+/* ===========================
+STATUS
+=========================== */
+
+function updateStatus(){
+
+    document.getElementById('life-display').innerText=`${lives} / 3`
+    document.getElementById('hint-display').innerText=`${hints} / 3`
+}
+
+
+/* ===========================
+TIMER
+=========================== */
+
+function startTimer(){
+
+    startTime=Date.now()
+
+    timerInterval=setInterval(()=>{
+
+        let sec=Math.floor((Date.now()-startTime)/1000)
+
+        let m=Math.floor(sec/60)
+        let s=sec%60
+
+        document.getElementById('timer-display').innerText=
+        `${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`
+
+    },1000)
+}
+
+
+/* ===========================
+BGM
+=========================== */
+
+function toggleMusic(){
+
+    if(bgm.paused){
+
+        bgm.play()
+        document.getElementById('music-btn').innerText="BGM: ON"
+
+    }else{
+
+        bgm.pause()
+        document.getElementById('music-btn').innerText="BGM: OFF"
+    }
+}
+
+</script>
 </body>
 </html>
