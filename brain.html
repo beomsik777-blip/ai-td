@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>QuestBody - Sudoku Master Hub</title>
+    <title>QuestBody - Sudoku Master Elite</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Noto+Sans+KR:wght@400;700&display=swap');
@@ -15,11 +15,11 @@
             display: flex; flex-direction: column; overflow: hidden;
         }
 
-        /* 🔦 하이라이트 & 선택 위치 */
+        /* 하이라이트 & 선택 효과 */
         .highlight-line { background-color: rgba(56, 189, 248, 0.08) !important; }
-        .user-cell.selected { background-color: rgba(56, 189, 248, 0.3) !important; box-shadow: inset 0 0 10px #38bdf8; border: 2px solid #38bdf8 !important; }
+        .user-cell.selected { background-color: rgba(56, 189, 248, 0.3) !important; box-shadow: inset 0 0 15px #38bdf8; border: 2px solid #38bdf8 !important; }
 
-        /* ✨ 구역 완료 효과 */
+        /* 구역 완료 효과 */
         .completed-section { 
             background-color: rgba(16, 185, 129, 0.2) !important; 
             animation: pulse-green 1s ease-out; 
@@ -35,7 +35,7 @@
             border-collapse: collapse; table-layout: fixed; 
             border: 3px solid #38bdf8; background-color: #1e293b; 
         }
-        .sudoku-table td { border: 1px solid rgba(56, 189, 248, 0.2); text-align: center; vertical-align: middle; font-size: 1.1rem; cursor: pointer; height: 11.11%; transition: background-color 0.2s; }
+        .sudoku-table td { border: 1px solid rgba(56, 189, 248, 0.2); text-align: center; vertical-align: middle; font-size: 1.1rem; cursor: pointer; height: 11.11%; transition: 0.2s; }
         .sudoku-table td:nth-child(3n) { border-right: 3px solid #38bdf8; }
         .sudoku-table tr:nth-child(3n) td { border-bottom: 3px solid #38bdf8; }
         
@@ -45,12 +45,10 @@
         .hint-cell { color: #facc15 !important; background-color: rgba(251, 206, 7, 0.1); font-weight: bold; }
 
         @keyframes shake { 0%, 100% { transform: translateX(0); } 25% { transform: translateX(-4px); } 75% { transform: translateX(4px); } }
-        
-        /* 🚀 타격 연출 */
         .damage-flash { animation: flash-red 0.4s; }
         @keyframes flash-red { 0% { background-color: transparent; } 50% { background-color: rgba(239, 68, 68, 0.3); } 100% { background-color: transparent; } }
 
-        .pad-area { padding: 5px 10px; background: rgba(15, 23, 42, 0.8); }
+        .pad-area { padding: 5px 10px; background: rgba(15, 23, 42, 0.8); border-top: 1px solid #334155; }
         .number-pad { display: grid; grid-template-columns: repeat(5, 1fr); gap: 5px; width: 100%; max-width: 350px; margin: 0 auto; }
         .num-btn { background-color: #1e293b; border: 1px solid #38bdf8; border-radius: 6px; padding: 5px 0; display: flex; flex-direction: column; align-items: center; justify-content: center; transition: 0.2s; min-height: 45px; }
         .num-btn.completed { opacity: 0.2; pointer-events: none; }
@@ -79,8 +77,8 @@
 
     <div id="ad-overlay" class="overlay" style="display: none;">
         <div class="w-72 p-6 bg-slate-800 border-2 border-emerald-500 rounded-2xl text-center shadow-[0_0_30px_#10b981]">
-            <h3 class="text-xl font-bold text-emerald-400 mb-2 uppercase text-xs tracking-widest text-center">Training Complete</h3>
-            <p class="text-white text-[10px] mb-6 uppercase tracking-tighter text-center">Reward: INT +1 / Coin +10</p>
+            <h3 class="text-xl font-bold text-emerald-400 mb-2 uppercase text-xs tracking-widest">Training Complete</h3>
+            <p class="text-white text-[10px] mb-6 uppercase tracking-tighter">Reward: INT +1 / Coin +10</p>
             <button onclick="finishGameAction()" class="w-full py-3 bg-emerald-600 text-white rounded-lg font-bold shadow-lg">GET REWARD</button>
         </div>
     </div>
@@ -140,7 +138,8 @@ function initGame(idx) {
 function generateSudoku() {
     solution = createSolvedBoard();
     puzzle = JSON.parse(JSON.stringify(solution));
-    let removeCount = 35 + (currentStageIdx * 2); // 스테이지별 난이도 조절
+    // [난이도 설정] 스테이지가 올라갈수록 제거하는 칸의 수(0의 개수)를 늘림
+    let removeCount = 35 + (currentStageIdx * 2); 
     while (removeCount > 0) {
         let r = Math.floor(Math.random()*9), c = Math.floor(Math.random()*9);
         if (puzzle[r][c] !== 0) { puzzle[r][c] = 0; removeCount--; }
@@ -221,12 +220,14 @@ function updateNumPad(){
 function placeNumber(num){
     if(!selectedCell) return;
     const {r,c}=selectedCell, td=document.getElementById(`cell-${r}-${c}`);
+    if (td.classList.contains('fixed-cell')) return;
+
     td.innerText=num;
     if(solution[r][c]!==num){
         td.classList.add("wrong"); lives--; triggerDamageEffect(); updateStatus();
-        if(lives<=0){ alert("GAME OVER!"); location.reload(); }
+        if(lives<=0){ setTimeout(() => { alert("GAME OVER!"); location.reload(); }, 100); }
     } else {
-        td.classList.remove("wrong"); 
+        td.classList.remove("wrong", "hint-cell"); 
         checkSectionCompletions(); 
         if(checkAllFilled()) checkFinalResult();
     }
@@ -236,6 +237,7 @@ function placeNumber(num){
 function eraseCell(){
     if(!selectedCell) return;
     const {r,c}=selectedCell, td=document.getElementById(`cell-${r}-${c}`);
+    if (td.classList.contains('fixed-cell')) return;
     td.innerText=""; td.classList.remove("wrong","hint-cell");
     updateNumPad(); checkSectionCompletions();
 }
@@ -255,7 +257,7 @@ function checkSectionCompletions() {
     for (let i=0; i<9; i++) {
         if (isDone(board[i])) for(let j=0; j<9; j++) getTd(i,j).classList.add('completed-section');
         const col = board.map(r => r[i]);
-        if (isDone(col)) for(let j=0; j<9; j++) getTd(j,i).classList.add('completed-section');
+        if (isDone(col)) for (let j = 0; j < 9; j++) getTd(j,i).classList.add('completed-section');
     }
     for (let br=0; br<3; br++) for (let bc=0; bc<3; bc++) {
         const box = [];
@@ -264,7 +266,12 @@ function checkSectionCompletions() {
     }
 }
 
-function getTd(r,c) { return document.getElementById(`cell-${r}-${c}`) || Array.from(document.querySelectorAll('.fixed-cell')).find(el => el.innerText == puzzle[r][c]); }
+function getTd(r,c) { return document.getElementById(`cell-${r}-${c}`) || Array.from(document.querySelectorAll('.fixed-cell')).find(el => {
+    // 고정된 셀의 위치를 찾기 위한 보조 로직
+    const cells = document.querySelectorAll('.sudoku-table td');
+    const targetIdx = r * 9 + c;
+    return cells[targetIdx];
+}); }
 
 function checkAllFilled() {
     for(let r=0; r<9; r++) for(let c=0; c<9; c++) {
@@ -274,23 +281,32 @@ function checkAllFilled() {
     return true;
 }
 
+// 🚀 [수정] 랜덤이 아닌 선택한 칸의 정답을 보여주는 힌트 로직
 function useHint(){
+    if(!selectedCell) { alert("힌트를 사용할 칸을 먼저 선택해줘!"); return; }
     if(hints<=0) return;
-    let empty=[];
-    for(let r=0; r<9; r++) for(let c=0; c<9; c++) {
-        const td=document.getElementById(`cell-${r}-${c}`);
-        if(td && td.innerText==="") empty.push({r,c});
-    }
-    if(empty.length===0) return;
-    const rand=empty[Math.floor(Math.random()*empty.length)];
-    const td=document.getElementById(`cell-${rand.r}-${rand.c}`);
-    td.innerText=solution[rand.r][rand.c]; td.classList.add("hint-cell");
-    hints--; updateStatus(); updateNumPad(); checkSectionCompletions();
+
+    const {r, c} = selectedCell;
+    const td = document.getElementById(`cell-${r}-${c}`);
+    
+    if(!td) return; // 이미 채워진 고정 셀인 경우
+    if(td.innerText !== "" && !td.classList.contains('wrong')) { alert("이미 정답이 채워진 칸이야!"); return; }
+
+    td.innerText = solution[r][c];
+    td.classList.remove("wrong");
+    td.classList.add("hint-cell");
+    
+    hints--;
+    updateStatus();
+    updateNumPad();
+    checkSectionCompletions();
+    if(checkAllFilled()) checkFinalResult();
 }
 
 function checkFinalResult(){
     if(!checkAllFilled()) { alert("아직 빈칸이 있어!"); return; }
-    clearInterval(timerInterval); document.getElementById('ad-overlay').style.display="flex";
+    clearInterval(timerInterval); 
+    document.getElementById('ad-overlay').style.display="flex";
 }
 
 function finishGameAction(){
@@ -305,9 +321,11 @@ function finishGameAction(){
 function updateStatus(){
     document.getElementById('life-display').innerText=`${lives} / 3`;
     document.getElementById('hint-display').innerText=`${hints} / 3`;
+    document.getElementById('hint-btn-ui').innerText=`Hint (${hints})`;
 }
 
 function startTimer(){
+    if(timerInterval) clearInterval(timerInterval);
     startTime=Date.now();
     timerInterval=setInterval(()=>{
         let sec=Math.floor((Date.now()-startTime)/1000);
