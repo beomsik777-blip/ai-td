@@ -1,88 +1,98 @@
 <!DOCTYPE html>
 <html lang="ko">
-
 <head>
 
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="viewport" content="width=device-width, initial-scale=1">
 
-<title>Dragon Dungeon Builder</title>
-
-<script src="https://cdn.tailwindcss.com"></script>
+<title>Dragon Dungeon</title>
 
 <style>
 
 body{
+margin:0;
 background:#020617;
 color:white;
 font-family:sans-serif;
 text-align:center;
 }
 
-#map{
-
-width:440px;
-height:440px;
-margin:auto;
-display:grid;
-grid-template-columns:repeat(11,1fr);
-grid-template-rows:repeat(11,1fr);
-
-background:#0f172a;
-
-border:2px solid #334155;
-
-}
-
-.cell{
-
-border:1px solid #1e293b;
-position:relative;
-
-}
-
-.room{
-
-background:#1e293b;
-
-}
-
-.monster{
-
-position:absolute;
-font-size:18px;
-
-}
-
-.hero{
-
-position:absolute;
-font-size:20px;
-
-}
-
-.hp{
-
-position:absolute;
-top:-6px;
-font-size:9px;
-
-}
-
-.gold{
-
-color:#facc15;
-font-weight:bold;
-
+#topbar{
+background:#020617;
+padding:10px;
+border-bottom:2px solid #334155;
 }
 
 button{
-
-padding:8px;
-background:#1e293b;
-border-radius:6px;
+padding:8px 14px;
 margin:4px;
+border:none;
+border-radius:8px;
+background:#1e293b;
+color:white;
+font-size:14px;
+}
 
+#map{
+width:95vw;
+max-width:500px;
+height:95vw;
+max-height:500px;
+margin:auto;
+
+display:grid;
+grid-template-columns:repeat(10,1fr);
+grid-template-rows:repeat(10,1fr);
+
+background:#0f172a;
+}
+
+.cell{
+border:1px solid #1e293b;
+position:relative;
+}
+
+.room{
+background:#1e293b;
+}
+
+.monster{
+position:absolute;
+font-size:20px;
+left:50%;
+top:50%;
+transform:translate(-50%,-50%);
+}
+
+.hero{
+position:absolute;
+font-size:20px;
+left:50%;
+top:50%;
+transform:translate(-50%,-50%);
+}
+
+.dragon{
+font-size:24px;
+}
+
+#startScreen{
+position:fixed;
+top:0;
+left:0;
+width:100%;
+height:100%;
+background:#020617;
+display:flex;
+flex-direction:column;
+justify-content:center;
+align-items:center;
+}
+
+#startBtn{
+font-size:20px;
+padding:16px 30px;
+background:#7c3aed;
 }
 
 </style>
@@ -91,12 +101,29 @@ margin:4px;
 
 <body>
 
-<h1 class="text-2xl mt-2">🐉 Dragon Dungeon</h1>
+<div id="startScreen">
 
-<div class="gold">Gold : <span id="gold">200</span></div>
+<h1>🐉 Dragon Dungeon</h1>
+<p>던전을 만들고 영웅을 막아라</p>
 
-<button onclick="buildRoom()">🧱 방 만들기 (50)</button>
-<button onclick="spawnMonster()">👾 몬스터 배치 (100)</button>
+<button id="startBtn" onclick="startGame()">게임 시작</button>
+
+</div>
+
+
+<div id="topbar">
+
+<h2>🐉 Dragon Dungeon</h2>
+
+Gold : <span id="gold">200</span>
+
+<br>
+
+<button onclick="buildMode()">🧱 방 만들기 (50)</button>
+<button onclick="monsterMode()">👾 몬스터 (100)</button>
+<button onclick="dragonAttack()">🔥 드래곤 불</button>
+
+</div>
 
 <div id="map"></div>
 
@@ -106,10 +133,11 @@ const map=document.getElementById("map")
 
 let gold=200
 
+let build=false
+let monster=false
+
 let rooms=[]
-
 let monsters=[]
-
 let heroes=[]
 
 function updateUI(){
@@ -118,10 +146,21 @@ document.getElementById("gold").innerText=gold
 
 }
 
-for(let i=0;i<121;i++){
+function startGame(){
+
+document.getElementById("startScreen").style.display="none"
+
+createMap()
+
+spawnHeroLoop()
+
+}
+
+function createMap(){
+
+for(let i=0;i<100;i++){
 
 const cell=document.createElement("div")
-
 cell.className="cell"
 
 cell.onclick=()=>cellClick(i)
@@ -130,56 +169,61 @@ map.appendChild(cell)
 
 }
 
-let selectedCell=null
+}
 
-function cellClick(i){
+function buildMode(){
 
-selectedCell=i
+build=true
+monster=false
 
 }
 
-function buildRoom(){
+function monsterMode(){
+
+monster=true
+build=false
+
+}
+
+function cellClick(i){
+
+if(build){
 
 if(gold<50)return
 
-if(selectedCell==null)return
+if(rooms.includes(i))return
+
+rooms.push(i)
+
+map.children[i].classList.add("room")
 
 gold-=50
-
-rooms.push(selectedCell)
-
-map.children[selectedCell].classList.add("room")
 
 updateUI()
 
 }
 
-function spawnMonster(){
+if(monster){
 
 if(gold<100)return
 
-if(selectedCell==null)return
-
-if(!rooms.includes(selectedCell))return
+if(!rooms.includes(i))return
 
 gold-=100
 
 const m={
 
-cell:selectedCell,
-
+cell:i,
 hp:40,
 atk:5
 
 }
 
 const el=document.createElement("div")
-
 el.className="monster"
-
 el.innerText="👾"
 
-map.children[selectedCell].appendChild(el)
+map.children[i].appendChild(el)
 
 m.el=el
 
@@ -189,21 +233,20 @@ updateUI()
 
 }
 
+}
+
 function spawnHero(){
 
 const h={
 
 cell:0,
-
 hp:60,
 atk:6
 
 }
 
 const el=document.createElement("div")
-
 el.className="hero"
-
 el.innerText="🧙"
 
 map.children[0].appendChild(el)
@@ -214,11 +257,17 @@ heroes.push(h)
 
 }
 
+function spawnHeroLoop(){
+
+setInterval(spawnHero,5000)
+
+}
+
 function moveHeroes(){
 
 heroes.forEach(h=>{
 
-if(h.cell>=120)return
+if(h.cell>=99)return
 
 map.children[h.cell].removeChild(h.el)
 
@@ -239,13 +288,11 @@ monsters.forEach((m,mi)=>{
 if(h.cell==m.cell){
 
 m.hp-=h.atk
-
 h.hp-=m.atk
 
 if(m.hp<=0){
 
 m.el.remove()
-
 monsters.splice(mi,1)
 
 }
@@ -253,7 +300,6 @@ monsters.splice(mi,1)
 if(h.hp<=0){
 
 h.el.remove()
-
 heroes.splice(hi,1)
 
 gold+=30
@@ -270,16 +316,30 @@ updateUI()
 
 }
 
-setInterval(()=>{
+function dragonAttack(){
 
-spawnHero()
+heroes.forEach((h,hi)=>{
 
-},5000)
+h.hp-=30
+
+if(h.hp<=0){
+
+h.el.remove()
+heroes.splice(hi,1)
+
+gold+=20
+
+updateUI()
+
+}
+
+})
+
+}
 
 setInterval(()=>{
 
 moveHeroes()
-
 battle()
 
 },1000)
@@ -289,5 +349,4 @@ updateUI()
 </script>
 
 </body>
-
 </html>
