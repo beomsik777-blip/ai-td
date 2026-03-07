@@ -1,11 +1,12 @@
 <!DOCTYPE html>
 <html lang="ko">
+
 <head>
 
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 
-<title>Dungeon Idle</title>
+<title>Dragon Dungeon Builder</title>
 
 <script src="https://cdn.tailwindcss.com"></script>
 
@@ -16,86 +17,72 @@ background:#020617;
 color:white;
 font-family:sans-serif;
 text-align:center;
-overflow:hidden;
 }
 
 #map{
-width:420px;
-height:500px;
+
+width:440px;
+height:440px;
 margin:auto;
+display:grid;
+grid-template-columns:repeat(11,1fr);
+grid-template-rows:repeat(11,1fr);
+
 background:#0f172a;
-border:3px solid #334155;
-position:relative;
-overflow:hidden;
+
+border:2px solid #334155;
+
 }
 
-.hero{
-position:absolute;
-width:48px;
-height:48px;
-background:url("https://i.imgur.com/Y9a3G8R.png");
-background-size:cover;
+.cell{
+
+border:1px solid #1e293b;
+position:relative;
+
+}
+
+.room{
+
+background:#1e293b;
+
 }
 
 .monster{
-position:absolute;
-width:40px;
-height:40px;
-background:url("https://i.imgur.com/Z9q3K7S.png");
-background-size:cover;
-}
-
-.boss{
-background:url("https://i.imgur.com/o7QKQ8X.png");
-background-size:cover;
-width:70px;
-height:70px;
-}
-
-.damage{
 
 position:absolute;
-color:#ff4444;
-font-weight:bold;
-animation:float 1s forwards;
+font-size:18px;
 
 }
 
-@keyframes float{
-
-0%{opacity:1;transform:translateY(0)}
-100%{opacity:0;transform:translateY(-40px)}
-
-}
-
-.attack{
+.hero{
 
 position:absolute;
-width:24px;
-height:24px;
-background:yellow;
-border-radius:50%;
-animation:shot .4s linear forwards;
+font-size:20px;
 
 }
 
-@keyframes shot{
+.hp{
 
-0%{transform:scale(.5)}
-100%{transform:scale(2);opacity:0}
+position:absolute;
+top:-6px;
+font-size:9px;
 
 }
 
 .gold{
+
 color:#facc15;
 font-weight:bold;
+
 }
 
 button{
-padding:10px;
+
+padding:8px;
 background:#1e293b;
-border-radius:8px;
+border-radius:6px;
 margin:4px;
+
 }
 
 </style>
@@ -104,241 +91,203 @@ margin:4px;
 
 <body>
 
-<h1 class="text-2xl font-bold mt-3">🏰 Dungeon Idle</h1>
+<h1 class="text-2xl mt-2">🐉 Dragon Dungeon</h1>
 
-<div>
+<div class="gold">Gold : <span id="gold">200</span></div>
 
-Gold : <span id="gold" class="gold">0</span>
+<button onclick="buildRoom()">🧱 방 만들기 (50)</button>
+<button onclick="spawnMonster()">👾 몬스터 배치 (100)</button>
 
-</div>
-
-<div>
-
-Dungeon LV : <span id="dungeonLv">1</span>
-
-</div>
-
-<div>
-
-Hero ATK : <span id="atk">10</span>
-
-</div>
-
-<div class="mt-2">
-
-<button onclick="upgradeAtk()">⚔ 공격력 (50)</button>
-
-<button onclick="upgradeDungeon()">🏰 던전 (200)</button>
-
-<button onclick="spawnBoss()">🐉 보스</button>
-
-</div>
-
-<div id="map">
-
-<div id="hero" class="hero"></div>
-
-</div>
+<div id="map"></div>
 
 <script>
 
-let gold=0
-let heroAtk=10
-let dungeonLv=1
+const map=document.getElementById("map")
+
+let gold=200
+
+let rooms=[]
 
 let monsters=[]
 
-const heroX=190
-const heroY=220
-
-const map=document.getElementById("map")
-
-const hero=document.getElementById("hero")
-
-hero.style.left=heroX+"px"
-hero.style.top=heroY+"px"
+let heroes=[]
 
 function updateUI(){
 
-goldEl.innerText=gold
-atkEl.innerText=heroAtk
-lvEl.innerText=dungeonLv
+document.getElementById("gold").innerText=gold
 
 }
 
-const goldEl=document.getElementById("gold")
-const atkEl=document.getElementById("atk")
-const lvEl=document.getElementById("dungeonLv")
+for(let i=0;i<121;i++){
 
-function spawnMonster(){
+const cell=document.createElement("div")
 
-const hp=30+dungeonLv*10
+cell.className="cell"
 
-const m={
-hp:hp,
-x:Math.random()*380,
-y:Math.random()*450,
-speed:0.3
-}
+cell.onclick=()=>cellClick(i)
 
-const el=document.createElement("div")
-el.className="monster"
-
-el.style.left=m.x+"px"
-el.style.top=m.y+"px"
-
-map.appendChild(el)
-
-m.el=el
-
-monsters.push(m)
+map.appendChild(cell)
 
 }
 
-function spawnBoss(){
+let selectedCell=null
 
-const m={
-hp:300+dungeonLv*100,
-x:200,
-y:20,
-speed:0.15,
-boss:true
-}
+function cellClick(i){
 
-const el=document.createElement("div")
-
-el.className="monster boss"
-
-el.style.left=m.x+"px"
-el.style.top=m.y+"px"
-
-map.appendChild(el)
-
-m.el=el
-
-monsters.push(m)
+selectedCell=i
 
 }
 
-function moveMonsters(){
-
-monsters.forEach(m=>{
-
-const dx=heroX-m.x
-const dy=heroY-m.y
-
-const dist=Math.sqrt(dx*dx+dy*dy)
-
-m.x+=dx/dist*m.speed
-m.y+=dy/dist*m.speed
-
-m.el.style.left=m.x+"px"
-m.el.style.top=m.y+"px"
-
-})
-
-}
-
-function heroAttack(){
-
-monsters.forEach((m,i)=>{
-
-const dx=m.x-heroX
-const dy=m.y-heroY
-
-const dist=Math.sqrt(dx*dx+dy*dy)
-
-if(dist<140){
-
-m.hp-=heroAtk
-
-showDamage(heroAtk,m.x,m.y)
-
-showAttack(m.x,m.y)
-
-if(m.hp<=0){
-
-gold+=m.boss?200:10
-
-m.el.remove()
-
-monsters.splice(i,1)
-
-updateUI()
-
-}
-
-}
-
-})
-
-}
-
-function showDamage(dmg,x,y){
-
-const d=document.createElement("div")
-
-d.className="damage"
-
-d.innerText=dmg
-
-d.style.left=x+"px"
-d.style.top=y+"px"
-
-map.appendChild(d)
-
-setTimeout(()=>d.remove(),900)
-
-}
-
-function showAttack(x,y){
-
-const a=document.createElement("div")
-
-a.className="attack"
-
-a.style.left=x+"px"
-a.style.top=y+"px"
-
-map.appendChild(a)
-
-setTimeout(()=>a.remove(),400)
-
-}
-
-function upgradeAtk(){
+function buildRoom(){
 
 if(gold<50)return
 
+if(selectedCell==null)return
+
 gold-=50
 
-heroAtk+=5
+rooms.push(selectedCell)
+
+map.children[selectedCell].classList.add("room")
 
 updateUI()
 
 }
 
-function upgradeDungeon(){
+function spawnMonster(){
 
-if(gold<200)return
+if(gold<100)return
 
-gold-=200
+if(selectedCell==null)return
 
-dungeonLv++
+if(!rooms.includes(selectedCell))return
+
+gold-=100
+
+const m={
+
+cell:selectedCell,
+
+hp:40,
+atk:5
+
+}
+
+const el=document.createElement("div")
+
+el.className="monster"
+
+el.innerText="👾"
+
+map.children[selectedCell].appendChild(el)
+
+m.el=el
+
+monsters.push(m)
 
 updateUI()
 
 }
 
-setInterval(spawnMonster,2000)
+function spawnHero(){
 
-setInterval(heroAttack,700)
+const h={
 
-setInterval(moveMonsters,30)
+cell:0,
+
+hp:60,
+atk:6
+
+}
+
+const el=document.createElement("div")
+
+el.className="hero"
+
+el.innerText="🧙"
+
+map.children[0].appendChild(el)
+
+h.el=el
+
+heroes.push(h)
+
+}
+
+function moveHeroes(){
+
+heroes.forEach(h=>{
+
+if(h.cell>=120)return
+
+map.children[h.cell].removeChild(h.el)
+
+h.cell++
+
+map.children[h.cell].appendChild(h.el)
+
+})
+
+}
+
+function battle(){
+
+heroes.forEach((h,hi)=>{
+
+monsters.forEach((m,mi)=>{
+
+if(h.cell==m.cell){
+
+m.hp-=h.atk
+
+h.hp-=m.atk
+
+if(m.hp<=0){
+
+m.el.remove()
+
+monsters.splice(mi,1)
+
+}
+
+if(h.hp<=0){
+
+h.el.remove()
+
+heroes.splice(hi,1)
+
+gold+=30
+
+updateUI()
+
+}
+
+}
+
+})
+
+})
+
+}
+
+setInterval(()=>{
+
+spawnHero()
+
+},5000)
+
+setInterval(()=>{
+
+moveHeroes()
+
+battle()
+
+},1000)
 
 updateUI()
 
 </script>
 
 </body>
+
 </html>
