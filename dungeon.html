@@ -1,8 +1,10 @@
 <!DOCTYPE html>
 <html lang="ko">
 <head>
+
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+
 <title>Dungeon Idle</title>
 
 <script src="https://cdn.tailwindcss.com"></script>
@@ -14,34 +16,74 @@ background:#020617;
 color:white;
 font-family:sans-serif;
 text-align:center;
+overflow:hidden;
 }
 
 #map{
 width:420px;
-height:420px;
+height:500px;
 margin:auto;
 background:#0f172a;
-border:2px solid #334155;
+border:3px solid #334155;
 position:relative;
+overflow:hidden;
 }
 
 .hero{
 position:absolute;
-font-size:32px;
-left:190px;
-top:190px;
+width:48px;
+height:48px;
+background:url("https://i.imgur.com/Y9a3G8R.png");
+background-size:cover;
 }
 
 .monster{
 position:absolute;
-font-size:26px;
+width:40px;
+height:40px;
+background:url("https://i.imgur.com/Z9q3K7S.png");
+background-size:cover;
 }
 
-.hpbar{
+.boss{
+background:url("https://i.imgur.com/o7QKQ8X.png");
+background-size:cover;
+width:70px;
+height:70px;
+}
+
+.damage{
+
 position:absolute;
-top:-5px;
-height:4px;
-background:#22c55e;
+color:#ff4444;
+font-weight:bold;
+animation:float 1s forwards;
+
+}
+
+@keyframes float{
+
+0%{opacity:1;transform:translateY(0)}
+100%{opacity:0;transform:translateY(-40px)}
+
+}
+
+.attack{
+
+position:absolute;
+width:24px;
+height:24px;
+background:yellow;
+border-radius:50%;
+animation:shot .4s linear forwards;
+
+}
+
+@keyframes shot{
+
+0%{transform:scale(.5)}
+100%{transform:scale(2);opacity:0}
+
 }
 
 .gold{
@@ -62,39 +104,39 @@ margin:4px;
 
 <body>
 
-<h1 class="text-2xl font-bold mt-4">🏰 Dungeon Idle</h1>
+<h1 class="text-2xl font-bold mt-3">🏰 Dungeon Idle</h1>
 
-<div class="mt-2">
+<div>
+
 Gold : <span id="gold" class="gold">0</span>
+
 </div>
 
 <div>
+
 Dungeon LV : <span id="dungeonLv">1</span>
+
+</div>
+
+<div>
+
+Hero ATK : <span id="atk">10</span>
+
 </div>
 
 <div class="mt-2">
-Hero ATK : <span id="atk">10</span>
-</div>
 
-<div class="mt-3">
+<button onclick="upgradeAtk()">⚔ 공격력 (50)</button>
 
-<button onclick="upgradeAtk()">
-⚔ 공격력 업그레이드 (50G)
-</button>
+<button onclick="upgradeDungeon()">🏰 던전 (200)</button>
 
-<button onclick="upgradeDungeon()">
-🏰 던전 업그레이드 (200G)
-</button>
-
-<button onclick="spawnBoss()">
-🐉 보스 등장
-</button>
+<button onclick="spawnBoss()">🐉 보스</button>
 
 </div>
 
 <div id="map">
 
-<div id="hero" class="hero">🧙</div>
+<div id="hero" class="hero"></div>
 
 </div>
 
@@ -106,55 +148,41 @@ let dungeonLv=1
 
 let monsters=[]
 
+const heroX=190
+const heroY=220
+
 const map=document.getElementById("map")
 
-function saveGame(){
+const hero=document.getElementById("hero")
 
-localStorage.setItem("dungeonSave",JSON.stringify({
-gold,
-heroAtk,
-dungeonLv
-}))
-
-}
-
-function loadGame(){
-
-const save=localStorage.getItem("dungeonSave")
-
-if(!save) return
-
-const data=JSON.parse(save)
-
-gold=data.gold
-heroAtk=data.heroAtk
-dungeonLv=data.dungeonLv
-
-}
+hero.style.left=heroX+"px"
+hero.style.top=heroY+"px"
 
 function updateUI(){
 
-document.getElementById("gold").innerText=gold
-document.getElementById("atk").innerText=heroAtk
-document.getElementById("dungeonLv").innerText=dungeonLv
+goldEl.innerText=gold
+atkEl.innerText=heroAtk
+lvEl.innerText=dungeonLv
 
 }
 
+const goldEl=document.getElementById("gold")
+const atkEl=document.getElementById("atk")
+const lvEl=document.getElementById("dungeonLv")
+
 function spawnMonster(){
 
-const hp=30+(dungeonLv*10)
+const hp=30+dungeonLv*10
 
 const m={
 hp:hp,
 x:Math.random()*380,
-y:Math.random()*380
+y:Math.random()*450,
+speed:0.3
 }
 
 const el=document.createElement("div")
-
 el.className="monster"
-
-el.innerHTML="👾"
 
 el.style.left=m.x+"px"
 el.style.top=m.y+"px"
@@ -169,20 +197,17 @@ monsters.push(m)
 
 function spawnBoss(){
 
-const hp=200+(dungeonLv*50)
-
 const m={
-hp:hp,
+hp:300+dungeonLv*100,
 x:200,
-y:40,
+y:20,
+speed:0.15,
 boss:true
 }
 
 const el=document.createElement("div")
 
-el.className="monster"
-
-el.innerHTML="🐉"
+el.className="monster boss"
 
 el.style.left=m.x+"px"
 el.style.top=m.y+"px"
@@ -195,18 +220,41 @@ monsters.push(m)
 
 }
 
+function moveMonsters(){
+
+monsters.forEach(m=>{
+
+const dx=heroX-m.x
+const dy=heroY-m.y
+
+const dist=Math.sqrt(dx*dx+dy*dy)
+
+m.x+=dx/dist*m.speed
+m.y+=dy/dist*m.speed
+
+m.el.style.left=m.x+"px"
+m.el.style.top=m.y+"px"
+
+})
+
+}
+
 function heroAttack(){
 
 monsters.forEach((m,i)=>{
 
-const dx=m.x-190
-const dy=m.y-190
+const dx=m.x-heroX
+const dy=m.y-heroY
 
 const dist=Math.sqrt(dx*dx+dy*dy)
 
-if(dist<130){
+if(dist<140){
 
 m.hp-=heroAtk
+
+showDamage(heroAtk,m.x,m.y)
+
+showAttack(m.x,m.y)
 
 if(m.hp<=0){
 
@@ -216,19 +264,51 @@ m.el.remove()
 
 monsters.splice(i,1)
 
+updateUI()
+
 }
 
 }
 
 })
 
-updateUI()
+}
+
+function showDamage(dmg,x,y){
+
+const d=document.createElement("div")
+
+d.className="damage"
+
+d.innerText=dmg
+
+d.style.left=x+"px"
+d.style.top=y+"px"
+
+map.appendChild(d)
+
+setTimeout(()=>d.remove(),900)
+
+}
+
+function showAttack(x,y){
+
+const a=document.createElement("div")
+
+a.className="attack"
+
+a.style.left=x+"px"
+a.style.top=y+"px"
+
+map.appendChild(a)
+
+setTimeout(()=>a.remove(),400)
 
 }
 
 function upgradeAtk(){
 
-if(gold<50) return
+if(gold<50)return
 
 gold-=50
 
@@ -236,13 +316,11 @@ heroAtk+=5
 
 updateUI()
 
-saveGame()
-
 }
 
 function upgradeDungeon(){
 
-if(gold<200) return
+if(gold<200)return
 
 gold-=200
 
@@ -250,29 +328,13 @@ dungeonLv++
 
 updateUI()
 
-saveGame()
-
 }
 
-setInterval(()=>{
+setInterval(spawnMonster,2000)
 
-spawnMonster()
+setInterval(heroAttack,700)
 
-},2000)
-
-setInterval(()=>{
-
-heroAttack()
-
-},700)
-
-setInterval(()=>{
-
-saveGame()
-
-},5000)
-
-loadGame()
+setInterval(moveMonsters,30)
 
 updateUI()
 
