@@ -1,0 +1,282 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Dungeon Idle</title>
+
+<script src="https://cdn.tailwindcss.com"></script>
+
+<style>
+
+body{
+background:#020617;
+color:white;
+font-family:sans-serif;
+text-align:center;
+}
+
+#map{
+width:420px;
+height:420px;
+margin:auto;
+background:#0f172a;
+border:2px solid #334155;
+position:relative;
+}
+
+.hero{
+position:absolute;
+font-size:32px;
+left:190px;
+top:190px;
+}
+
+.monster{
+position:absolute;
+font-size:26px;
+}
+
+.hpbar{
+position:absolute;
+top:-5px;
+height:4px;
+background:#22c55e;
+}
+
+.gold{
+color:#facc15;
+font-weight:bold;
+}
+
+button{
+padding:10px;
+background:#1e293b;
+border-radius:8px;
+margin:4px;
+}
+
+</style>
+
+</head>
+
+<body>
+
+<h1 class="text-2xl font-bold mt-4">🏰 Dungeon Idle</h1>
+
+<div class="mt-2">
+Gold : <span id="gold" class="gold">0</span>
+</div>
+
+<div>
+Dungeon LV : <span id="dungeonLv">1</span>
+</div>
+
+<div class="mt-2">
+Hero ATK : <span id="atk">10</span>
+</div>
+
+<div class="mt-3">
+
+<button onclick="upgradeAtk()">
+⚔ 공격력 업그레이드 (50G)
+</button>
+
+<button onclick="upgradeDungeon()">
+🏰 던전 업그레이드 (200G)
+</button>
+
+<button onclick="spawnBoss()">
+🐉 보스 등장
+</button>
+
+</div>
+
+<div id="map">
+
+<div id="hero" class="hero">🧙</div>
+
+</div>
+
+<script>
+
+let gold=0
+let heroAtk=10
+let dungeonLv=1
+
+let monsters=[]
+
+const map=document.getElementById("map")
+
+function saveGame(){
+
+localStorage.setItem("dungeonSave",JSON.stringify({
+gold,
+heroAtk,
+dungeonLv
+}))
+
+}
+
+function loadGame(){
+
+const save=localStorage.getItem("dungeonSave")
+
+if(!save) return
+
+const data=JSON.parse(save)
+
+gold=data.gold
+heroAtk=data.heroAtk
+dungeonLv=data.dungeonLv
+
+}
+
+function updateUI(){
+
+document.getElementById("gold").innerText=gold
+document.getElementById("atk").innerText=heroAtk
+document.getElementById("dungeonLv").innerText=dungeonLv
+
+}
+
+function spawnMonster(){
+
+const hp=30+(dungeonLv*10)
+
+const m={
+hp:hp,
+x:Math.random()*380,
+y:Math.random()*380
+}
+
+const el=document.createElement("div")
+
+el.className="monster"
+
+el.innerHTML="👾"
+
+el.style.left=m.x+"px"
+el.style.top=m.y+"px"
+
+map.appendChild(el)
+
+m.el=el
+
+monsters.push(m)
+
+}
+
+function spawnBoss(){
+
+const hp=200+(dungeonLv*50)
+
+const m={
+hp:hp,
+x:200,
+y:40,
+boss:true
+}
+
+const el=document.createElement("div")
+
+el.className="monster"
+
+el.innerHTML="🐉"
+
+el.style.left=m.x+"px"
+el.style.top=m.y+"px"
+
+map.appendChild(el)
+
+m.el=el
+
+monsters.push(m)
+
+}
+
+function heroAttack(){
+
+monsters.forEach((m,i)=>{
+
+const dx=m.x-190
+const dy=m.y-190
+
+const dist=Math.sqrt(dx*dx+dy*dy)
+
+if(dist<130){
+
+m.hp-=heroAtk
+
+if(m.hp<=0){
+
+gold+=m.boss?200:10
+
+m.el.remove()
+
+monsters.splice(i,1)
+
+}
+
+}
+
+})
+
+updateUI()
+
+}
+
+function upgradeAtk(){
+
+if(gold<50) return
+
+gold-=50
+
+heroAtk+=5
+
+updateUI()
+
+saveGame()
+
+}
+
+function upgradeDungeon(){
+
+if(gold<200) return
+
+gold-=200
+
+dungeonLv++
+
+updateUI()
+
+saveGame()
+
+}
+
+setInterval(()=>{
+
+spawnMonster()
+
+},2000)
+
+setInterval(()=>{
+
+heroAttack()
+
+},700)
+
+setInterval(()=>{
+
+saveGame()
+
+},5000)
+
+loadGame()
+
+updateUI()
+
+</script>
+
+</body>
+</html>
