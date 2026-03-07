@@ -3,7 +3,7 @@
 <head>
 
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="viewport" content="width=device-width,initial-scale=1">
 
 <title>Dragon Dungeon</title>
 
@@ -17,82 +17,96 @@ font-family:sans-serif;
 text-align:center;
 }
 
-#topbar{
-background:#020617;
+#top{
 padding:10px;
 border-bottom:2px solid #334155;
 }
 
 button{
-padding:8px 14px;
-margin:4px;
-border:none;
-border-radius:8px;
+padding:8px 12px;
+margin:3px;
 background:#1e293b;
+border:none;
+border-radius:6px;
 color:white;
-font-size:14px;
 }
 
 #map{
+
 width:95vw;
-max-width:500px;
+max-width:520px;
+
 height:95vw;
-max-height:500px;
+max-height:520px;
+
 margin:auto;
 
 display:grid;
+
 grid-template-columns:repeat(10,1fr);
 grid-template-rows:repeat(10,1fr);
 
 background:#0f172a;
+
 }
 
 .cell{
+
 border:1px solid #1e293b;
 position:relative;
+
 }
 
 .room{
+
 background:#1e293b;
+
+}
+
+.treasure{
+
+background:#78350f;
+
 }
 
 .monster{
+
 position:absolute;
-font-size:20px;
 left:50%;
 top:50%;
 transform:translate(-50%,-50%);
+font-size:20px;
+
 }
 
 .hero{
+
 position:absolute;
-font-size:20px;
 left:50%;
 top:50%;
 transform:translate(-50%,-50%);
-}
+font-size:20px;
 
-.dragon{
-font-size:24px;
 }
 
 #startScreen{
+
 position:fixed;
+
 top:0;
 left:0;
+
 width:100%;
 height:100%;
+
 background:#020617;
+
 display:flex;
 flex-direction:column;
+
 justify-content:center;
 align-items:center;
-}
 
-#startBtn{
-font-size:20px;
-padding:16px 30px;
-background:#7c3aed;
 }
 
 </style>
@@ -104,24 +118,31 @@ background:#7c3aed;
 <div id="startScreen">
 
 <h1>🐉 Dragon Dungeon</h1>
-<p>던전을 만들고 영웅을 막아라</p>
 
-<button id="startBtn" onclick="startGame()">게임 시작</button>
+<button onclick="startGame()">게임 시작</button>
 
 </div>
 
 
-<div id="topbar">
-
-<h2>🐉 Dragon Dungeon</h2>
+<div id="top">
 
 Gold : <span id="gold">200</span>
 
 <br>
 
-<button onclick="buildMode()">🧱 방 만들기 (50)</button>
-<button onclick="monsterMode()">👾 몬스터 (100)</button>
-<button onclick="dragonAttack()">🔥 드래곤 불</button>
+<button onclick="buildRoom()">🧱 방</button>
+<button onclick="buildTreasure()">💰 보물방</button>
+
+<button onclick="spawnMonster('goblin')">👾 고블린</button>
+<button onclick="spawnMonster('orc')">👹 오크</button>
+<button onclick="spawnMonster('slime')">🟢 슬라임</button>
+<button onclick="spawnMonster('lich')">💀 리치</button>
+
+<br>
+
+<button onclick="dragonFire()">🔥 드래곤 브레스</button>
+<button onclick="saveGame()">💾 저장</button>
+<button onclick="exitGame()">🚪 나가기</button>
 
 </div>
 
@@ -133,10 +154,12 @@ const map=document.getElementById("map")
 
 let gold=200
 
-let build=false
-let monster=false
+let mode=null
+let selectedMonster=null
 
 let rooms=[]
+let treasures=[]
+
 let monsters=[]
 let heroes=[]
 
@@ -152,6 +175,8 @@ document.getElementById("startScreen").style.display="none"
 
 createMap()
 
+loadGame()
+
 spawnHeroLoop()
 
 }
@@ -160,34 +185,21 @@ function createMap(){
 
 for(let i=0;i<100;i++){
 
-const cell=document.createElement("div")
-cell.className="cell"
+const c=document.createElement("div")
 
-cell.onclick=()=>cellClick(i)
+c.className="cell"
 
-map.appendChild(cell)
+c.onclick=()=>cellClick(i)
 
-}
-
-}
-
-function buildMode(){
-
-build=true
-monster=false
+map.appendChild(c)
 
 }
-
-function monsterMode(){
-
-monster=true
-build=false
 
 }
 
 function cellClick(i){
 
-if(build){
+if(mode=="room"){
 
 if(gold<50)return
 
@@ -203,35 +215,71 @@ updateUI()
 
 }
 
-if(monster){
+if(mode=="treasure"){
 
-if(gold<100)return
+if(gold<150)return
 
-if(!rooms.includes(i))return
+treasures.push(i)
 
-gold-=100
+map.children[i].classList.add("treasure")
 
-const m={
-
-cell:i,
-hp:40,
-atk:5
-
-}
-
-const el=document.createElement("div")
-el.className="monster"
-el.innerText="👾"
-
-map.children[i].appendChild(el)
-
-m.el=el
-
-monsters.push(m)
+gold-=150
 
 updateUI()
 
 }
+
+if(mode=="monster"){
+
+if(!rooms.includes(i))return
+
+createMonster(i,selectedMonster)
+
+}
+
+}
+
+function buildRoom(){mode="room"}
+function buildTreasure(){mode="treasure"}
+
+function spawnMonster(type){
+
+mode="monster"
+selectedMonster=type
+
+}
+
+function createMonster(cell,type){
+
+let data={}
+
+if(type=="goblin") data={hp:40,atk:5,icon:"👾"}
+if(type=="orc") data={hp:70,atk:8,icon:"👹"}
+if(type=="slime") data={hp:30,atk:3,icon:"🟢"}
+if(type=="lich") data={hp:100,atk:12,icon:"💀"}
+
+if(gold<100)return
+
+gold-=100
+
+const el=document.createElement("div")
+
+el.className="monster"
+
+el.innerText=data.icon
+
+map.children[cell].appendChild(el)
+
+monsters.push({
+
+cell:cell,
+hp:data.hp,
+atk:data.atk,
+el:el
+
+})
+
+updateUI()
 
 }
 
@@ -240,12 +288,13 @@ function spawnHero(){
 const h={
 
 cell:0,
-hp:60,
-atk:6
+hp:80,
+atk:7
 
 }
 
 const el=document.createElement("div")
+
 el.className="hero"
 el.innerText="🧙"
 
@@ -259,19 +308,37 @@ heroes.push(h)
 
 function spawnHeroLoop(){
 
-setInterval(spawnHero,5000)
+setInterval(spawnHero,6000)
 
 }
 
-function moveHeroes(){
+function neighbors(i){
+
+let list=[]
+
+let x=i%10
+let y=Math.floor(i/10)
+
+if(x>0) list.push(i-1)
+if(x<9) list.push(i+1)
+if(y>0) list.push(i-10)
+if(y<9) list.push(i+10)
+
+return list
+
+}
+
+function heroMove(){
 
 heroes.forEach(h=>{
 
-if(h.cell>=99)return
+let next=neighbors(h.cell).find(n=>rooms.includes(n)||treasures.includes(n))
+
+if(next==undefined)return
 
 map.children[h.cell].removeChild(h.el)
 
-h.cell++
+h.cell=next
 
 map.children[h.cell].appendChild(h.el)
 
@@ -300,9 +367,10 @@ monsters.splice(mi,1)
 if(h.hp<=0){
 
 h.el.remove()
+
 heroes.splice(hi,1)
 
-gold+=30
+gold+=40
 
 updateUI()
 
@@ -316,30 +384,72 @@ updateUI()
 
 }
 
-function dragonAttack(){
+function dragonFire(){
 
 heroes.forEach((h,hi)=>{
 
-h.hp-=30
+h.hp-=40
 
 if(h.hp<=0){
 
 h.el.remove()
+
 heroes.splice(hi,1)
 
 gold+=20
+
+}
+
+})
 
 updateUI()
 
 }
 
-})
+function saveGame(){
+
+localStorage.setItem("dungeon",JSON.stringify({
+
+gold,
+rooms,
+treasures
+
+}))
+
+alert("저장됨")
+
+}
+
+function loadGame(){
+
+const data=localStorage.getItem("dungeon")
+
+if(!data)return
+
+const d=JSON.parse(data)
+
+gold=d.gold
+
+rooms=d.rooms
+treasures=d.treasures
+
+rooms.forEach(i=>map.children[i].classList.add("room"))
+
+treasures.forEach(i=>map.children[i].classList.add("treasure"))
+
+updateUI()
+
+}
+
+function exitGame(){
+
+location.reload()
 
 }
 
 setInterval(()=>{
 
-moveHeroes()
+heroMove()
 battle()
 
 },1000)
@@ -349,4 +459,5 @@ updateUI()
 </script>
 
 </body>
+
 </html>
