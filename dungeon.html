@@ -5,340 +5,173 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="mobile-web-app-capable" content="yes">
 <title>🐉 Dragon's Lair</title>
 <link href="https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@700&family=Cinzel:wght@400;600&display=swap" rel="stylesheet">
 <style>
-:root {
-  --bg: #050810;
-  --surface: #0d1117;
-  --border: #1f2d3d;
-  --gold: #f59e0b;
-  --gold-dim: #92400e;
-  --red: #ef4444;
-  --green: #22c55e;
-  --purple: #a855f7;
-  --text: #e2e8f0;
-  --text-dim: #64748b;
-  --room-color: #1e3a5f;
-  --corridor-color: #16213e;
-  --trap-color: #7f1d1d;
-  --wall-color: #0f0f1a;
-  --cell: 36px;
+:root{
+  --bg:#06080f;--surface:#0f1520;--border:#263548;
+  --gold:#f5a623;--gold-dim:#7a4f10;
+  --red:#f44444;--green:#2ecc71;--purple:#b05ef7;--blue:#4a9eff;
+  --text:#dde6f0;--text-dim:#6b8099;
+  --wall:#090c17;--wall-border:#141c2e;
+  --corridor-bg:#0d2d50;--corridor-border:#2680cc;
+  --room-bg:#0d3320;--room-border:#28a850;
+  --trap-bg:#3d0f0f;--trap-border:#cc2828;
 }
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--text);font-family:'Cinzel',serif;user-select:none;}
 
-- { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent; touch-action:manipulation; }
-  html, body { height:100%; overflow:hidden; background:var(–bg); color:var(–text); font-family:‘Cinzel’,serif; user-select:none; }
+/* HUD */
+#hud{position:fixed;top:0;left:0;right:0;z-index:30;background:linear-gradient(180deg,#0f1520,rgba(15,21,32,.97));border-bottom:2px solid var(–border);padding:7px 10px 5px;}
+#hud-row{display:flex;align-items:center;gap:6px;margin-bottom:4px;}
+#title{font-family:‘Cinzel Decorative’,cursive;font-size:13px;background:linear-gradient(135deg,#f5a623,#ffe080,#f5a623);-webkit-background-clip:text;-webkit-text-fill-color:transparent;flex-shrink:0;letter-spacing:1px;}
+.stats{display:flex;gap:4px;flex:1;justify-content:flex-end;flex-wrap:wrap;}
+.stat{display:flex;align-items:center;gap:3px;background:rgba(255,255,255,.06);border:1px solid var(–border);border-radius:5px;padding:3px 6px;font-size:11px;white-space:nowrap;}
+.stat .sv{font-weight:700;color:var(–gold);}
+.stat.s-hp .sv{color:#ff6060;}.stat.s-wave .sv{color:var(–purple);}
+#dbar-wrap{height:5px;background:rgba(255,255,255,.1);border-radius:3px;overflow:hidden;}
+#dbar{height:100%;width:100%;background:linear-gradient(90deg,#f44,#f80);border-radius:3px;transition:width .3s;}
 
-/* ── TOP HUD ── */
-#hud {
-position:fixed; top:0; left:0; right:0; z-index:30;
-background:linear-gradient(180deg,#0d1117 0%,rgba(13,17,23,0.95) 100%);
-border-bottom:1px solid var(–border);
-padding:8px 12px 6px;
-display:flex; flex-direction:column; gap:5px;
-}
-#hud-top { display:flex; align-items:center; gap:8px; }
-#title {
-font-family:‘Cinzel Decorative’,cursive; font-size:14px;
-background:linear-gradient(135deg,#f59e0b,#fde68a,#f59e0b);
--webkit-background-clip:text; -webkit-text-fill-color:transparent;
-flex-shrink:0;
-}
-.stats { display:flex; gap:6px; flex:1; justify-content:flex-end; flex-wrap:wrap; }
-.stat {
-display:flex; align-items:center; gap:3px;
-background:rgba(255,255,255,0.04); border:1px solid var(–border);
-border-radius:5px; padding:3px 7px; font-size:11px;
-}
-.stat .sv { font-weight:700; color:var(–gold); }
-.stat.hp .sv { color:var(–red); }
-.stat.wave .sv { color:var(–purple); }
+/* PANEL */
+#panel{position:fixed;bottom:0;left:0;right:0;z-index:30;background:linear-gradient(0deg,#0f1520,rgba(15,21,32,.97));border-top:2px solid var(–border);padding:7px 8px 10px;display:flex;flex-direction:column;gap:6px;}
+#tabs{display:flex;gap:5px;}
+.tab{flex:1;padding:6px 2px;text-align:center;background:rgba(255,255,255,.05);border:1px solid var(–border);border-radius:7px;cursor:pointer;color:var(–text-dim);display:flex;flex-direction:column;align-items:center;gap:1px;transition:all .15s;}
+.tab .ti{font-size:16px;}.tab .tl{font-size:9px;}
+.tab.ag{background:rgba(245,166,35,.18);border-color:var(–gold);color:var(–gold);}
+.tab.ap{background:rgba(176,94,247,.18);border-color:var(–purple);color:var(–purple);}
+.tab.ab{background:rgba(74,158,255,.18);border-color:var(–blue);color:var(–blue);}
+.tc{display:none;flex-direction:column;gap:6px;}.tc.vis{display:flex;}
+.tool-row{display:flex;gap:5px;}
+.tbtn{flex:1;padding:7px 3px;background:rgba(255,255,255,.05);border:1.5px solid var(–border);border-radius:8px;cursor:pointer;transition:all .15s;display:flex;flex-direction:column;align-items:center;gap:2px;min-height:54px;justify-content:center;}
+.tbtn .bi{font-size:19px;}.tbtn .bl{font-size:9px;color:var(–text-dim);}.tbtn .bc{font-size:9px;color:var(–gold-dim);}
+.tbtn.cg{background:rgba(245,166,35,.2);border-color:var(–gold);}.tbtn.cg .bl,.tbtn.cg .bc{color:var(–gold);}
+.tbtn.cb{background:rgba(74,158,255,.2);border-color:var(–blue);}.tbtn.cb .bl,.tbtn.cb .bc{color:var(–blue);}
+.tbtn.cr{background:rgba(244,68,68,.2);border-color:var(–red);}.tbtn.cr .bl,.tbtn.cr .bc{color:var(–red);}
+.tbtn.cp{background:rgba(176,94,247,.2);border-color:var(–purple);}.tbtn.cp .bl,.tbtn.cp .bc{color:var(–purple);}
+.tbtn.cx{background:rgba(150,150,150,.15);border-color:#888;}.tbtn.cx .bl,.tbtn.cx .bc{color:#bbb;}
+.wave-btn{width:100%;padding:12px;font-family:‘Cinzel’,serif;font-size:14px;font-weight:700;color:#fff;cursor:pointer;border-radius:9px;letter-spacing:1px;background:linear-gradient(135deg,#7c3aed,#4f46e5);border:1px solid #6d28d9;box-shadow:0 2px 18px rgba(124,58,237,.5);transition:all .2s;}
+.wave-btn:disabled{opacity:.35;cursor:default;box-shadow:none;}
+.wave-btn:active:not(:disabled){transform:scale(.97);}
+.upg-row{display:flex;gap:5px;}
+.ubtn{flex:1;padding:7px 4px;background:rgba(255,255,255,.04);border:1px solid var(–border);border-radius:7px;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:2px;font-family:‘Cinzel’,serif;}
+.ubtn .ui{font-size:16px;}.ubtn .un{font-size:9px;color:var(–text-dim);text-align:center;}.ubtn .uc{font-size:9px;color:var(–gold);}
+.ubtn:disabled{opacity:.3;cursor:default;}.ubtn.bought{border-color:var(–green);background:rgba(46,204,113,.1);}.ubtn.bought .uc{color:var(–green);}
 
-/* Dragon HP bar */
-#dragon-bar-wrap {
-height:4px; background:rgba(255,255,255,0.08);
-border-radius:2px; overflow:hidden;
-}
-#dragon-bar {
-height:100%; width:100%;
-background:linear-gradient(90deg,#ef4444,#f97316);
-border-radius:2px; transition:width 0.3s;
-}
+/* MAP */
+#map-wrap{position:fixed;left:0;right:0;overflow:auto;background:var(–bg);-webkit-overflow-scrolling:touch;}
+#map-wrap::-webkit-scrollbar{display:none;}
+#map{display:grid;position:relative;touch-action:none;}
 
-/* ── BOTTOM PANEL ── */
-#panel {
-position:fixed; bottom:0; left:0; right:0; z-index:30;
-background:linear-gradient(0deg,#0d1117 0%,rgba(13,17,23,0.97) 100%);
-border-top:1px solid var(–border);
-padding:8px 8px 10px;
-display:flex; flex-direction:column; gap:7px;
-}
+/* CELLS */
+.cell{position:relative;background:var(–wall);border:1px solid var(–wall-border);}
 
-/* Tab bar */
-#tabs { display:flex; gap:5px; }
-.tab {
-flex:1; padding:7px 4px; text-align:center;
-background:rgba(255,255,255,0.04); border:1px solid var(–border);
-border-radius:7px; font-size:10px; cursor:pointer;
-transition:all 0.15s; color:var(–text-dim);
-display:flex; flex-direction:column; align-items:center; gap:1px;
-}
-.tab .tab-icon { font-size:16px; }
-.tab.active {
-background:rgba(245,158,11,0.15); border-color:var(–gold);
-color:var(–gold);
-}
-.tab.active-purple {
-background:rgba(168,85,247,0.15); border-color:var(–purple);
-color:var(–purple);
-}
+/* Wall — dark, faint grid lines */
+.cell.wall{background:var(–wall);border-color:var(–wall-border);}
 
-/* Tool rows */
-.tool-row { display:flex; gap:5px; }
-.tool-btn {
-flex:1; padding:8px 4px; text-align:center;
-background:rgba(255,255,255,0.04); border:1px solid var(–border);
-border-radius:7px; cursor:pointer; transition:all 0.15s;
-display:flex; flex-direction:column; align-items:center; gap:2px;
-min-height:52px; justify-content:center;
-}
-.tool-btn .tb-icon { font-size:18px; }
-.tool-btn .tb-label { font-size:9px; color:var(–text-dim); }
-.tool-btn .tb-cost { font-size:9px; color:var(–gold-dim); }
-.tool-btn.active {
-background:rgba(245,158,11,0.15); border-color:var(–gold);
-}
-.tool-btn.active .tb-label,.tool-btn.active .tb-cost { color:var(–gold); }
-.tool-btn.active-m {
-background:rgba(168,85,247,0.15); border-color:var(–purple);
-}
-.tool-btn.active-m .tb-label,.tool-btn.active-m .tb-cost { color:var(–purple); }
+/* Corridor — bold blue */
+.cell.corridor{background:var(–corridor-bg);border-color:var(–corridor-border);}
+.cell.corridor::after{content:’’;position:absolute;inset:4px;border:1px solid rgba(38,128,204,.5);border-radius:2px;pointer-events:none;}
 
-.wave-btn {
-width:100%; padding:11px; font-family:‘Cinzel’,serif; font-size:14px;
-font-weight:700; color:white; cursor:pointer; border-radius:8px;
-background:linear-gradient(135deg,#7c3aed,#4f46e5);
-border:1px solid #6d28d9;
-box-shadow:0 2px 16px rgba(124,58,237,0.5);
-transition:all 0.2s;
-letter-spacing:1px;
-}
-.wave-btn:disabled { opacity:0.35; cursor:default; box-shadow:none; }
-.wave-btn:active:not(:disabled) { transform:scale(0.97); }
+/* Room — bold green */
+.cell.room{background:var(–room-bg);border-color:var(–room-border);}
+.cell.room::after{content:’’;position:absolute;inset:2px;border:1.5px solid rgba(40,168,80,.6);border-radius:3px;pointer-events:none;}
 
-/* Upgrade buttons */
-.upg-row { display:flex; gap:5px; }
-.upg-btn {
-flex:1; padding:7px 6px;
-background:rgba(255,255,255,0.04); border:1px solid var(–border);
-border-radius:7px; cursor:pointer; transition:all 0.15s;
-display:flex; flex-direction:column; align-items:center; gap:2px;
-}
-.upg-btn .ub-icon { font-size:16px; }
-.upg-btn .ub-name { font-size:9px; color:var(–text-dim); text-align:center; }
-.upg-btn .ub-cost { font-size:9px; color:var(–gold); }
-.upg-btn:disabled { opacity:0.3; cursor:default; }
-.upg-btn.bought { border-color:var(–green); background:rgba(34,197,94,0.1); }
-.upg-btn.bought .ub-cost { color:var(–green); }
+/* Trap — bold red */
+.cell.trap{background:var(–trap-bg);border-color:var(–trap-border);}
+.cell.trap::before{content:‘⚙’;position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:15px;opacity:.75;pointer-events:none;z-index:1;}
 
-/* Tab content */
-.tab-content { display:none; flex-direction:column; gap:6px; }
-.tab-content.visible { display:flex; }
+/* Nest */
+.cell.nest{background:radial-gradient(circle,#1a5c28,#0a2a10);border-color:#28a850;box-shadow:0 0 10px rgba(46,204,113,.5),inset 0 0 0 1px rgba(46,204,113,.4);}
 
-/* ── MAP AREA ── */
-#map-wrap {
-position:fixed; left:0; right:0;
-overflow:auto; background:var(–bg);
--webkit-overflow-scrolling:touch;
-}
-#map-wrap::-webkit-scrollbar { display:none; }
+/* Entrance */
+.cell.entrance{background:#14164a;border-color:#5561cc;box-shadow:0 0 8px rgba(85,97,204,.4);}
 
-#map {
-display:grid;
-grid-template-columns:repeat(20, var(–cell));
-grid-template-rows:repeat(20, var(–cell));
-position:relative;
-touch-action:none;
-}
+.nest-icon{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:22px;z-index:2;pointer-events:none;animation:dp 3s infinite;}
+@keyframes dp{0%,100%{filter:drop-shadow(0 0 4px rgba(46,204,113,.9));}50%{filter:drop-shadow(0 0 10px rgba(245,166,35,1));}}
 
-.cell {
-width:var(–cell); height:var(–cell);
-position:relative; background:var(–wall-color);
-border:0.5px solid rgba(30,45,70,0.5);
-}
-.cell.corridor { background:var(–corridor-color); border-color:rgba(59,130,246,0.15); }
-.cell.room     { background:var(–room-color);     border-color:rgba(59,130,246,0.25); }
-.cell.trap     { background:var(–trap-color);      border-color:rgba(239,68,68,0.3); }
-.cell.nest     {
-background:radial-gradient(circle,#166534,#14532d);
-border-color:rgba(34,197,94,0.4);
-box-shadow:0 0 8px rgba(34,197,94,0.3);
-}
-.cell.entrance { background:#1e1b4b; border-color:rgba(99,102,241,0.4); }
-.cell.selected-preview { filter:brightness(1.6); }
+.entity{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:17px;pointer-events:none;z-index:4;}
+.hpbar-wrap{position:absolute;bottom:1px;left:1px;right:1px;height:3px;background:rgba(0,0,0,.7);border-radius:2px;z-index:5;pointer-events:none;}
+.hpbar{height:100%;border-radius:2px;background:var(–green);transition:width .15s;}
 
-/* Trap icon */
-.trap-icon {
-position:absolute; inset:0; display:flex;
-align-items:center; justify-content:center;
-font-size:16px; opacity:0.5; pointer-events:none; z-index:1;
-}
+.floaty{position:absolute;pointer-events:none;z-index:20;font-weight:700;font-size:11px;animation:fup .7s ease forwards;text-shadow:0 1px 4px rgba(0,0,0,1);}
+@keyframes fup{0%{opacity:1;transform:translateY(0);}60%{opacity:1;transform:translateY(-13px);}100%{opacity:0;transform:translateY(-22px);}}
+@keyframes cf{0%,100%{filter:none;}50%{filter:brightness(2.8);}}
+.flash{animation:cf .15s ease;}
 
-/* Entity */
-.entity {
-position:absolute; inset:0; display:flex;
-align-items:center; justify-content:center;
-font-size:16px; pointer-events:none; z-index:4;
-}
+/* D-PAD */
+#dpad{position:fixed;z-index:35;display:grid;grid-template-columns:repeat(3,46px);grid-template-rows:repeat(3,46px);gap:3px;right:8px;}
+.dp{width:46px;height:46px;background:rgba(20,35,60,.85);border:1.5px solid rgba(74,158,255,.4);border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:20px;cursor:pointer;-webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px);transition:background .1s,transform .1s;color:#9bbfdd;}
+.dp:active{background:rgba(74,158,255,.4);transform:scale(.88);}
+.dp.center{background:rgba(245,166,35,.2);border-color:var(–gold);font-size:13px;color:var(–gold);}
+.dp.empty{background:transparent;border:none;pointer-events:none;}
 
-/* HP bar */
-.hpbar-wrap {
-position:absolute; bottom:1px; left:1px; right:1px;
-height:3px; background:rgba(0,0,0,0.6);
-border-radius:2px; z-index:5; pointer-events:none;
-}
-.hpbar {
-height:100%; border-radius:2px;
-background:var(–green); transition:width 0.15s;
-}
+/* LEGEND */
+#legend{position:fixed;left:8px;z-index:25;background:rgba(9,12,23,.88);border:1px solid var(–border);border-radius:8px;padding:6px 9px;display:flex;flex-direction:column;gap:4px;font-size:9px;}
+.leg{display:flex;align-items:center;gap:5px;}
+.leg-box{width:13px;height:13px;border-radius:2px;border:1.5px solid;flex-shrink:0;}
 
-/* Floaty damage */
-.floaty {
-position:absolute; pointer-events:none; z-index:20;
-font-family:‘Cinzel’,serif; font-weight:700; font-size:11px;
-animation:floatUp 0.75s ease forwards;
-text-shadow:0 1px 3px rgba(0,0,0,0.9);
-}
-@keyframes floatUp {
-0%  { opacity:1; transform:translateY(0) scale(1); }
-60% { opacity:1; transform:translateY(-14px) scale(1.1); }
-100%{ opacity:0; transform:translateY(-22px) scale(0.8); }
-}
+/* MODE IND */
+#mind{position:fixed;left:50%;transform:translateX(-50%);background:rgba(15,21,32,.94);border:1px solid var(–border);border-radius:20px;padding:4px 14px;font-size:11px;color:var(–gold);z-index:25;pointer-events:none;white-space:nowrap;transition:opacity .3s;}
+#mind.hidden{opacity:0;}
 
-/* Nest dragon animation */
-.nest-icon {
-position:absolute; inset:0; display:flex;
-align-items:center; justify-content:center;
-font-size:20px; z-index:2; pointer-events:none;
-animation:dragonPulse 3s infinite;
-}
-@keyframes dragonPulse {
-0%,100%{ filter:drop-shadow(0 0 3px rgba(34,197,94,0.8)); }
-50%    { filter:drop-shadow(0 0 8px rgba(245,158,11,0.9)); }
-}
+/* LOG */
+#log-btn{position:fixed;left:8px;z-index:35;background:rgba(9,12,23,.9);border:1px solid var(–border);border-radius:20px;padding:5px 11px;font-size:11px;color:var(–text-dim);cursor:pointer;}
+#log-panel{position:fixed;left:0;right:0;bottom:0;z-index:40;background:rgba(6,8,15,.97);border-top:1px solid var(–border);padding:12px;max-height:50vh;overflow-y:auto;transform:translateY(100%);transition:transform .3s;}
+#log-panel.open{transform:translateY(0);}
+#log-close{float:right;cursor:pointer;background:none;border:none;color:var(–text-dim);font-family:‘Cinzel’,serif;font-size:12px;}
+.log-e{font-size:11px;color:var(–text-dim);padding:3px 0;border-bottom:1px solid rgba(255,255,255,.04);line-height:1.5;}
+.log-e.danger{color:#f88;}.log-e.gold-c{color:var(–gold);}.log-e.good{color:var(–green);}.log-e.wave-c{color:var(–purple);font-weight:600;}
 
-/* Cell flash */
-@keyframes cellFlash {
-0%,100%{ filter:none; }
-50%    { filter:brightness(2.5); }
-}
-.flash { animation:cellFlash 0.15s ease; }
-
-/* Mode indicator */
-#mode-indicator {
-position:fixed; top:72px; left:50%; transform:translateX(-50%);
-background:rgba(13,17,23,0.9); border:1px solid var(–border);
-border-radius:20px; padding:4px 14px; font-size:11px;
-color:var(–gold); z-index:25; pointer-events:none;
-transition:opacity 0.3s; white-space:nowrap;
-}
-#mode-indicator.hidden { opacity:0; }
-
-/* Log overlay (swipe up) */
-#log-btn {
-position:fixed; right:10px; z-index:35;
-background:rgba(13,17,23,0.9); border:1px solid var(–border);
-border-radius:20px; padding:5px 10px; font-size:11px;
-color:var(–text-dim); cursor:pointer;
-}
-#log-panel {
-position:fixed; left:0; right:0; bottom:0; z-index:40;
-background:rgba(5,8,16,0.97); border-top:1px solid var(–border);
-padding:12px; max-height:50vh; overflow-y:auto;
-transform:translateY(100%); transition:transform 0.3s;
-}
-#log-panel.open { transform:translateY(0); }
-#log-close {
-float:right; cursor:pointer; color:var(–text-dim); font-size:12px;
-background:none; border:none; color:var(–text-dim); font-family:‘Cinzel’,serif;
-}
-.log-entry {
-font-size:11px; color:var(–text-dim);
-padding:3px 0; border-bottom:1px solid rgba(255,255,255,0.04);
-line-height:1.5; animation:fadeIn 0.3s ease;
-}
-.log-entry.danger { color:#f87171; }
-.log-entry.gold-c { color:var(–gold); }
-.log-entry.good   { color:var(–green); }
-.log-entry.wave-c { color:var(–purple); font-weight:600; }
-@keyframes fadeIn { from{opacity:0;transform:translateY(-3px)} to{opacity:1;transform:none} }
-
-/* Overlay */
-#overlay {
-display:none; position:fixed; inset:0; z-index:50;
-background:rgba(0,0,0,0.88);
-align-items:center; justify-content:center; flex-direction:column; gap:14px;
-}
-#overlay.show { display:flex; }
-#overlay-title { font-family:‘Cinzel Decorative’,cursive; font-size:36px; animation:pulseGlow 2s infinite; }
-@keyframes pulseGlow {
-0%,100%{ text-shadow:0 0 20px currentColor; }
-50%    { text-shadow:0 0 40px currentColor, 0 0 70px currentColor; }
-}
-#overlay-sub { font-size:14px; color:var(–text-dim); text-align:center; padding:0 20px; }
-#overlay-btn {
-padding:13px 36px; font-family:‘Cinzel’,serif; font-size:14px;
-font-weight:700; color:white; cursor:pointer; border-radius:8px;
-background:linear-gradient(135deg,#7c3aed,#4f46e5);
-border:1px solid #6d28d9;
-}
-
-/* Tutorial toast */
-#toast {
-position:fixed; top:72px; left:10px; right:10px; z-index:35;
-background:rgba(30,58,95,0.95); border:1px solid rgba(59,130,246,0.3);
-border-radius:10px; padding:10px 14px; font-size:11px;
-color:#93c5fd; line-height:1.6;
-transition:opacity 0.5s;
-}
-#toast.hidden { opacity:0; pointer-events:none; }
-#toast-close { float:right; cursor:pointer; font-size:14px; }
+/* OVERLAY */
+#overlay{display:none;position:fixed;inset:0;z-index:50;background:rgba(0,0,0,.9);align-items:center;justify-content:center;flex-direction:column;gap:14px;}
+#overlay.show{display:flex;}
+#ov-title{font-family:‘Cinzel Decorative’,cursive;font-size:34px;animation:pg 2s infinite;}
+@keyframes pg{0%,100%{text-shadow:0 0 20px currentColor;}50%{text-shadow:0 0 50px currentColor;}}
+#ov-sub{font-size:13px;color:var(–text-dim);text-align:center;padding:0 20px;line-height:1.6;}
+#ov-btn{padding:13px 36px;font-family:‘Cinzel’,serif;font-size:14px;font-weight:700;color:#fff;cursor:pointer;border-radius:8px;background:linear-gradient(135deg,#7c3aed,#4f46e5);border:1px solid #6d28d9;}
 </style>
 
 </head>
 <body>
 
-<!-- HUD -->
-
 <div id="hud">
-  <div id="hud-top">
+  <div id="hud-row">
     <div id="title">🐉 Dragon's Lair</div>
     <div class="stats">
-      <div class="stat"><span>💰</span><span class="sv" id="stat-gold">800</span></div>
-      <div class="stat hp"><span>🐉</span><span class="sv" id="stat-hp">500</span></div>
-      <div class="stat wave"><span>⚔️</span><span class="sv" id="stat-wave">0</span></div>
-      <div class="stat"><span>💀</span><span class="sv" id="stat-kills">0</span></div>
+      <div class="stat"><span>💰</span><span class="sv" id="sg">800</span></div>
+      <div class="stat s-hp"><span>🐉</span><span class="sv" id="sh">500</span></div>
+      <div class="stat s-wave"><span>⚔️</span><span class="sv" id="sw">0</span></div>
+      <div class="stat"><span>💀</span><span class="sv" id="sk">0</span></div>
     </div>
   </div>
-  <div id="dragon-bar-wrap"><div id="dragon-bar"></div></div>
+  <div id="dbar-wrap"><div id="dbar"></div></div>
 </div>
 
-<!-- Mode indicator -->
+<div id="mind" class="hidden"></div>
+<div id="map-wrap"><div id="map"></div></div>
 
-<div id="mode-indicator" class="hidden">선택 없음</div>
+<!-- D-PAD: 3x3 grid, arrows at NSEW, center=reset, corners=empty -->
 
-<!-- Map -->
-
-<div id="map-wrap">
-  <div id="map"></div>
+<div id="dpad">
+  <div class="dp empty"></div>
+  <div class="dp" id="dp-up"    ontouchstart="ds('up')"    ontouchend="de()" onmousedown="ds('up')"    onmouseup="de()">▲</div>
+  <div class="dp empty"></div>
+  <div class="dp" id="dp-left"  ontouchstart="ds('left')"  ontouchend="de()" onmousedown="ds('left')"  onmouseup="de()">◀</div>
+  <div class="dp center"        onclick="dr()">↺</div>
+  <div class="dp" id="dp-right" ontouchstart="ds('right')" ontouchend="de()" onmousedown="ds('right')" onmouseup="de()">▶</div>
+  <div class="dp empty"></div>
+  <div class="dp" id="dp-down"  ontouchstart="ds('down')"  ontouchend="de()" onmousedown="ds('down')"  onmouseup="de()">▼</div>
+  <div class="dp empty"></div>
 </div>
 
-<!-- Log button -->
+<div id="legend">
+  <div class="leg"><div class="leg-box" style="background:#0d2d50;border-color:#2680cc;"></div><span style="color:#4a9eff">통로</span></div>
+  <div class="leg"><div class="leg-box" style="background:#0d3320;border-color:#28a850;"></div><span style="color:#2ecc71">방</span></div>
+  <div class="leg"><div class="leg-box" style="background:#3d0f0f;border-color:#cc2828;"></div><span style="color:#f44444">함정</span></div>
+  <div class="leg"><div class="leg-box" style="background:#090c17;border-color:#141c2e;"></div><span style="color:#6b8099">벽</span></div>
+</div>
 
 <button id="log-btn" onclick="toggleLog()">📜 기록</button>
-
-<!-- Log panel -->
 
 <div id="log-panel">
   <button id="log-close" onclick="toggleLog()">✕ 닫기</button>
@@ -346,660 +179,442 @@ transition:opacity 0.5s;
   <div id="log"></div>
 </div>
 
-<!-- Bottom panel -->
-
 <div id="panel">
-  <!-- Tabs -->
   <div id="tabs">
-    <div class="tab active" id="tab-build" onclick="switchTab('build')">
-      <span class="tab-icon">🏗️</span>
-      <span style="font-size:9px">건설</span>
-    </div>
-    <div class="tab" id="tab-monster" onclick="switchTab('monster')">
-      <span class="tab-icon">👺</span>
-      <span style="font-size:9px">몬스터</span>
-    </div>
-    <div class="tab" id="tab-upgrade" onclick="switchTab('upgrade')">
-      <span class="tab-icon">⬆️</span>
-      <span style="font-size:9px">업그레이드</span>
-    </div>
+    <div class="tab ag" id="tab-build"   onclick="switchTab('build')">  <span class="ti">🏗️</span><span class="tl">건설</span></div>
+    <div class="tab"    id="tab-monster" onclick="switchTab('monster')"><span class="ti">👺</span><span class="tl">몬스터</span></div>
+    <div class="tab"    id="tab-upgrade" onclick="switchTab('upgrade')"><span class="ti">⬆️</span><span class="tl">업그레이드</span></div>
   </div>
 
-  <!-- Build tab -->
-
-  <div class="tab-content visible" id="content-build">
+  <div class="tc vis" id="tc-build">
     <div class="tool-row">
-      <div class="tool-btn" id="tb-corridor" onclick="setMode('corridor')">
-        <span class="tb-icon">🪨</span>
-        <span class="tb-label">통로</span>
-        <span class="tb-cost">10g</span>
-      </div>
-      <div class="tool-btn" id="tb-room" onclick="setMode('room')">
-        <span class="tb-icon">🏠</span>
-        <span class="tb-label">방</span>
-        <span class="tb-cost">30g</span>
-      </div>
-      <div class="tool-btn" id="tb-trap" onclick="setMode('trap')">
-        <span class="tb-icon">⚙️</span>
-        <span class="tb-label">함정</span>
-        <span class="tb-cost">50g</span>
-      </div>
-      <div class="tool-btn" id="tb-delete" onclick="setMode('delete')">
-        <span class="tb-icon">🗑️</span>
-        <span class="tb-label">철거</span>
-        <span class="tb-cost">50%환불</span>
-      </div>
+      <div class="tbtn" id="tb-corridor" onclick="setMode('corridor')"><span class="bi">🪨</span><span class="bl">통로</span><span class="bc">10g</span></div>
+      <div class="tbtn" id="tb-room"     onclick="setMode('room')">    <span class="bi">🏠</span><span class="bl">방</span><span class="bc">30g</span></div>
+      <div class="tbtn" id="tb-trap"     onclick="setMode('trap')">    <span class="bi">⚙️</span><span class="bl">함정</span><span class="bc">50g</span></div>
+      <div class="tbtn" id="tb-delete"   onclick="setMode('delete')">  <span class="bi">🗑️</span><span class="bl">철거</span><span class="bc">50%환불</span></div>
     </div>
     <button class="wave-btn" id="wave-btn" onclick="startWave()">▶ 웨이브 시작</button>
   </div>
 
-  <!-- Monster tab -->
-
-  <div class="tab-content" id="content-monster">
+  <div class="tc" id="tc-monster">
     <div class="tool-row">
-      <div class="tool-btn" id="tb-goblin" onclick="setMode('goblin')">
-        <span class="tb-icon">👺</span>
-        <span class="tb-label">고블린</span>
-        <span class="tb-cost">40g</span>
-      </div>
-      <div class="tool-btn" id="tb-orc" onclick="setMode('orc')">
-        <span class="tb-icon">👹</span>
-        <span class="tb-label">오크</span>
-        <span class="tb-cost">80g</span>
-      </div>
-      <div class="tool-btn" id="tb-skeleton" onclick="setMode('skeleton')">
-        <span class="tb-icon">💀</span>
-        <span class="tb-label">스켈레톤</span>
-        <span class="tb-cost">60g</span>
-      </div>
-      <div class="tool-btn" id="tb-troll" onclick="setMode('troll')">
-        <span class="tb-icon">🧌</span>
-        <span class="tb-label">트롤</span>
-        <span class="tb-cost">150g</span>
-      </div>
+      <div class="tbtn" id="tb-goblin"   onclick="setMode('goblin')">  <span class="bi">👺</span><span class="bl">고블린</span><span class="bc">40g</span></div>
+      <div class="tbtn" id="tb-orc"      onclick="setMode('orc')">     <span class="bi">👹</span><span class="bl">오크</span><span class="bc">80g</span></div>
+      <div class="tbtn" id="tb-skeleton" onclick="setMode('skeleton')"><span class="bi">💀</span><span class="bl">스켈레톤</span><span class="bc">60g</span></div>
+      <div class="tbtn" id="tb-troll"    onclick="setMode('troll')">   <span class="bi">🧌</span><span class="bl">트롤</span><span class="bc">150g</span></div>
     </div>
-    <div style="font-size:9px;color:var(--text-dim);text-align:center;padding:2px 0">
-      몬스터는 🏠 방에만 배치 가능 · 웨이브 중 배치 불가
-    </div>
+    <div style="font-size:9px;color:var(--text-dim);text-align:center;">🏠 방에만 배치 · 웨이브 중 배치 불가</div>
   </div>
 
-  <!-- Upgrade tab -->
-
-  <div class="tab-content" id="content-upgrade">
+  <div class="tc" id="tc-upgrade">
     <div class="upg-row">
-      <button class="upg-btn" id="upg-trap" onclick="buyUpgrade('trap')">
-        <span class="ub-icon">⚙️</span>
-        <span class="ub-name">함정강화</span>
-        <span class="ub-cost">200g</span>
-      </button>
-      <button class="upg-btn" id="upg-regen" onclick="buyUpgrade('regen')">
-        <span class="ub-icon">💚</span>
-        <span class="ub-name">재생</span>
-        <span class="ub-cost">300g</span>
-      </button>
-      <button class="upg-btn" id="upg-loot" onclick="buyUpgrade('loot')">
-        <span class="ub-icon">💰</span>
-        <span class="ub-name">약탈강화</span>
-        <span class="ub-cost">250g</span>
-      </button>
-      <button class="upg-btn" id="upg-fire" onclick="buyUpgrade('fire')">
-        <span class="ub-icon">🔥</span>
-        <span class="ub-name">화염둥지</span>
-        <span class="ub-cost">400g</span>
-      </button>
+      <button class="ubtn" id="upg-trap"  onclick="buyUpgrade('trap')"> <span class="ui">⚙️</span><span class="un">함정강화</span><span class="uc">200g</span></button>
+      <button class="ubtn" id="upg-regen" onclick="buyUpgrade('regen')"><span class="ui">💚</span><span class="un">재생</span><span class="uc">300g</span></button>
+      <button class="ubtn" id="upg-loot"  onclick="buyUpgrade('loot')"> <span class="ui">💰</span><span class="un">약탈강화</span><span class="uc">250g</span></button>
+      <button class="ubtn" id="upg-fire"  onclick="buyUpgrade('fire')"> <span class="ui">🔥</span><span class="un">화염둥지</span><span class="uc">400g</span></button>
     </div>
-    <div style="font-size:9px;color:var(--text-dim);text-align:center;padding:2px 0">
-      함정강화:피해2배 / 재생:HP+2/틱 / 약탈강화:골드1.5배 / 화염둥지:둥지근처 불꽃피해
-    </div>
+    <div style="font-size:9px;color:var(--text-dim);text-align:center;">함정2배·재생HP+2·약탈1.5배·화염둥지피해</div>
   </div>
 </div>
-
-<!-- Overlay -->
 
 <div id="overlay">
-  <div id="overlay-title"></div>
-  <div id="overlay-sub"></div>
-  <button id="overlay-btn" onclick="location.reload()">다시 시작</button>
-</div>
-
-<!-- Tutorial toast -->
-
-<div id="toast">
-  <span id="toast-close" onclick="dismissToast()">✕</span>
-  <b>🐉 플레이 방법</b><br>
-  1. <b>건설 탭</b>에서 통로/방을 탭하여 건설<br>
-  2. <b>몬스터 탭</b>에서 방에 몬스터 배치<br>
-  3. 입구(🚪)→둥지(🐉) 경로가 연결되어야 함<br>
-  4. 웨이브 시작 → 영웅을 막아라!
+  <div id="ov-title"></div>
+  <div id="ov-sub"></div>
+  <button id="ov-btn" onclick="location.reload()">다시 시작</button>
 </div>
 
 <script>
-// ===================== CONFIG =====================
-const SIZE = 20;
-const NEST_IDX = SIZE * SIZE - 1;   // 399 (bottom-right)
-const ENTER_IDX = 0;                // top-left
-const DRAGON_MAX = 500;
-const CELL_PX = 36;
-
-const COSTS = { corridor:10, room:30, trap:50 };
-const MONSTER_DEFS = {
-  goblin:   { hp:40,  atk:8,  reward:20, icon:'👺', cost:40  },
-  orc:      { hp:120, atk:18, reward:50, icon:'👹', cost:80  },
-  skeleton: { hp:60,  atk:12, reward:30, icon:'💀', cost:60  },
-  troll:    { hp:200, atk:25, reward:80, icon:'🧌', cost:150, regen:3 },
+const SIZE=20,CELL=40;
+const NEST_I=SIZE*SIZE-1,ENTER_I=0,DRAGON_MAX=500;
+const COSTS={corridor:10,room:30,trap:50};
+const MDEFS={
+  goblin:  {hp:40, atk:8, reward:20,icon:'👺',cost:40},
+  orc:     {hp:120,atk:18,reward:50,icon:'👹',cost:80},
+  skeleton:{hp:60, atk:12,reward:30,icon:'💀',cost:60},
+  troll:   {hp:200,atk:25,reward:80,icon:'🧌',cost:150,regen:3},
 };
-const UPGRADES = {
-  trap:  { name:'함정강화', cost:200, bought:false },
-  regen: { name:'드래곤 재생', cost:300, bought:false },
-  loot:  { name:'약탈강화', cost:250, bought:false },
-  fire:  { name:'화염둥지', cost:400, bought:false },
-};
-const HERO_TYPES = [
-  { icon:'⚔️', hp:100, atk:12, name:'전사' },
-  { icon:'🏹', hp:70,  atk:18, name:'궁수' },
-  { icon:'🧙', hp:60,  atk:22, name:'마법사' },
-  { icon:'🛡️', hp:160, atk:8,  name:'기사' },
-];
+const UPGRADES={trap:{name:'함정강화',cost:200,bought:false},regen:{name:'드래곤 재생',cost:300,bought:false},loot:{name:'약탈강화',cost:250,bought:false},fire:{name:'화염둥지',cost:400,bought:false}};
+const HTYPES=[{icon:'⚔️',hp:100,atk:12},{icon:'🏹',hp:70,atk:18},{icon:'🧙',hp:60,atk:22},{icon:'🛡️',hp:160,atk:8}];
 
-// ===================== STATE =====================
-let gold = 800, dragonHp = DRAGON_MAX, wave = 0, kills = 0;
-let mode = null;
-let waveActive = false, gameOver = false;
-let grid = {};          // idx -> type string
-let monsters = [], heroes = [];
-let eid = 0;
+let gold=800,dragonHp=DRAGON_MAX,wave=0,kills=0;
+let mode=null,waveActive=false,gameOver=false;
+let grid={},monsters=[],heroes=[],eid=0;
 
-// ===================== LAYOUT =====================
-function layoutMap() {
-  const hud = document.getElementById('hud');
-  const panel = document.getElementById('panel');
-  const logBtn = document.getElementById('log-btn');
-  const wrap = document.getElementById('map-wrap');
-  const hudH = hud.offsetHeight;
-  const panelH = panel.offsetHeight;
-  wrap.style.top = hudH + 'px';
-  wrap.style.bottom = panelH + 'px';
-  logBtn.style.top = (hudH + 6) + 'px';
-  document.getElementById('mode-indicator').style.top = (hudH + 6) + 'px';
-  document.getElementById('toast').style.top = (hudH + 6) + 'px';
+// === DEFAULT PATH: U-shape zig-zag ===
+// Row 0: col 0→19 (top)
+// Col 19: row 0→9
+// Row 9: col 19→0
+// Col 0: row 9→18
+// Row 18: col 0→19
+// Col 19: row 18→19 (nest)
+function makeDefaultPath(){
+  const p=new Set();
+  for(let x=0;x<SIZE;x++) p.add(0*SIZE+x);
+  for(let y=1;y<9;y++) p.add(y*SIZE+(SIZE-1));
+  for(let x=SIZE-2;x>=0;x--) p.add(9*SIZE+x);
+  for(let y=10;y<18;y++) p.add(y*SIZE+0);
+  for(let x=1;x<SIZE;x++) p.add(18*SIZE+x);
+  p.add(19*SIZE+(SIZE-1));
+  return p;
 }
 
-window.addEventListener('resize', layoutMap);
+// === LAYOUT ===
+const mapWrap=document.getElementById('map-wrap');
+const mapEl=document.getElementById('map');
+const dpadEl=document.getElementById('dpad');
+const legendEl=document.getElementById('legend');
+const logBtnEl=document.getElementById('log-btn');
+const mindEl=document.getElementById('mind');
 
-// ===================== MAP BUILD =====================
-const mapEl = document.getElementById('map');
+function layout(){
+  const hudH=document.getElementById('hud').offsetHeight;
+  const panelH=document.getElementById('panel').offsetHeight;
+  mapWrap.style.top=hudH+'px';
+  mapWrap.style.bottom=panelH+'px';
+  dpadEl.style.bottom=(panelH+10)+'px';
+  legendEl.style.top=(hudH+10)+'px';
+  logBtnEl.style.top=(hudH+10)+'px';
+  mindEl.style.top=(hudH+10)+'px';
+}
+window.addEventListener('resize',layout);
 
-function buildMap() {
-  mapEl.innerHTML = '';
-  mapEl.style.width  = (SIZE * CELL_PX) + 'px';
-  mapEl.style.height = (SIZE * CELL_PX) + 'px';
-  mapEl.style.gridTemplateColumns = `repeat(${SIZE},${CELL_PX}px)`;
-  mapEl.style.gridTemplateRows    = `repeat(${SIZE},${CELL_PX}px)`;
+// === BUILD MAP ===
+function buildMap(){
+  mapEl.innerHTML='';
+  mapEl.style.width=(SIZE*CELL)+'px';
+  mapEl.style.height=(SIZE*CELL)+'px';
+  mapEl.style.gridTemplateColumns=`repeat(${SIZE},${CELL}px)`;
+  mapEl.style.gridTemplateRows=`repeat(${SIZE},${CELL}px)`;
 
-  for (let i = 0; i < SIZE*SIZE; i++) {
-    const c = document.createElement('div');
-    c.className = 'cell';
-    c.dataset.idx = i;
-
-    if (i === NEST_IDX) {
-      c.classList.add('nest');
-      const ni = document.createElement('div');
-      ni.className = 'nest-icon'; ni.textContent = '🐉';
-      c.appendChild(ni);
-      grid[i] = 'nest';
-    } else if (i === ENTER_IDX) {
-      c.classList.add('entrance');
-      const ei = document.createElement('div');
-      ei.className = 'entity'; ei.textContent = '🚪';
-      c.appendChild(ei);
-      grid[i] = 'entrance';
-    }
+  for(let i=0;i<SIZE*SIZE;i++){
+    const c=document.createElement('div');
+    c.className='cell wall';c.dataset.idx=i;
     mapEl.appendChild(c);
   }
+
+  // Entrance
+  grid[ENTER_I]='entrance';
+  const ec=cellEl(ENTER_I);ec.className='cell entrance';
+  const ei=document.createElement('div');ei.className='entity';ei.textContent='🚪';
+  ec.appendChild(ei);
+
+  // Nest
+  grid[NEST_I]='nest';
+  const nc=cellEl(NEST_I);nc.className='cell nest';
+  const ni=document.createElement('div');ni.className='nest-icon';ni.textContent='🐉';
+  nc.appendChild(ni);
+
+  // Default corridors
+  const defPath=makeDefaultPath();
+  defPath.forEach(i=>{
+    if(i===ENTER_I||i===NEST_I) return;
+    grid[i]='corridor';
+    cellEl(i).className='cell corridor';
+  });
 }
 
-function cellEl(i) { return mapEl.children[i]; }
+function cellEl(i){return mapEl.children[i];}
 
-// ===================== TOUCH INPUT =====================
-let touchActive = false;
-let lastTouchedCell = -1;
+// === TOUCH INPUT ===
+let touching=false,lastCell=-1;
 
-mapEl.addEventListener('touchstart', e => {
-  e.preventDefault();
-  touchActive = true;
-  const t = e.touches[0];
-  const idx = cellFromTouch(t);
-  if (idx >= 0) { lastTouchedCell = idx; handleCell(idx); }
-}, { passive: false });
+mapEl.addEventListener('touchstart',e=>{
+  e.preventDefault();touching=true;
+  const idx=idxFromTouch(e.touches[0]);
+  if(idx>=0){lastCell=idx;handleCell(idx);}
+},{passive:false});
 
-mapEl.addEventListener('touchmove', e => {
-  e.preventDefault();
-  if (!touchActive) return;
-  const t = e.touches[0];
-  const idx = cellFromTouch(t);
-  if (idx >= 0 && idx !== lastTouchedCell) {
-    lastTouchedCell = idx;
-    handleCell(idx);
-  }
-}, { passive: false });
+mapEl.addEventListener('touchmove',e=>{
+  e.preventDefault();if(!touching)return;
+  const idx=idxFromTouch(e.touches[0]);
+  if(idx>=0&&idx!==lastCell){lastCell=idx;handleCell(idx);}
+},{passive:false});
 
-mapEl.addEventListener('touchend', () => { touchActive = false; lastTouchedCell = -1; });
+mapEl.addEventListener('touchend',()=>{touching=false;lastCell=-1;});
 
-function cellFromTouch(touch) {
-  const rect = mapEl.getBoundingClientRect();
-  const x = touch.clientX - rect.left;
-  const y = touch.clientY - rect.top;
-  const col = Math.floor(x / CELL_PX);
-  const row = Math.floor(y / CELL_PX);
-  if (col < 0 || col >= SIZE || row < 0 || row >= SIZE) return -1;
-  return row * SIZE + col;
+function idxFromTouch(t){
+  const r=mapEl.getBoundingClientRect();
+  const col=Math.floor((t.clientX-r.left)/CELL);
+  const row=Math.floor((t.clientY-r.top)/CELL);
+  if(col<0||col>=SIZE||row<0||row>=SIZE)return -1;
+  return row*SIZE+col;
 }
 
-// Mouse support (desktop fallback)
-let mouseDown = false;
-mapEl.addEventListener('mousedown', e => {
-  mouseDown = true;
-  const c = e.target.closest('.cell');
-  if (c) handleCell(+c.dataset.idx);
-});
-mapEl.addEventListener('mouseover', e => {
-  if (!mouseDown) return;
-  const c = e.target.closest('.cell');
-  if (c) handleCell(+c.dataset.idx);
-});
-document.addEventListener('mouseup', () => { mouseDown = false; });
+let mouseDown=false;
+mapEl.addEventListener('mousedown',e=>{mouseDown=true;const c=e.target.closest('.cell');if(c)handleCell(+c.dataset.idx);});
+mapEl.addEventListener('mouseover',e=>{if(!mouseDown)return;const c=e.target.closest('.cell');if(c)handleCell(+c.dataset.idx);});
+document.addEventListener('mouseup',()=>mouseDown=false);
 
-// ===================== CELL ACTION =====================
-function handleCell(i) {
-  if (gameOver) return;
-  if (!mode) { showModeHint(); return; }
-
-  if (mode === 'corridor') {
-    if (i === NEST_IDX || i === ENTER_IDX) return;
-    if (grid[i] === 'corridor') return;
-    if (!spendGold(COSTS.corridor)) return;
-    clearCell(i);
-    grid[i] = 'corridor';
-    const c = cellEl(i); c.className = 'cell corridor';
-  } else if (mode === 'room') {
-    if (i === NEST_IDX || i === ENTER_IDX) return;
-    if (grid[i] === 'room') return;
-    const refund = grid[i] === 'corridor' ? COSTS.corridor : 0;
-    if (!spendGold(COSTS.room - refund)) return;
-    clearCell(i);
-    grid[i] = 'room';
-    const c = cellEl(i); c.className = 'cell room';
-  } else if (mode === 'trap') {
-    if (i === NEST_IDX || i === ENTER_IDX) return;
-    if (grid[i] !== 'corridor' && grid[i] !== 'room') {
-      addLog('함정은 통로/방에 설치', 'danger'); return;
-    }
-    if (grid[i] === 'trap') return;
-    if (!spendGold(COSTS.trap)) return;
-    grid[i] = 'trap';
-    const c = cellEl(i); c.className = 'cell trap';
-    const ti = document.createElement('div'); ti.className='trap-icon'; ti.textContent='⚙️';
-    c.appendChild(ti);
-  } else if (mode === 'delete') {
-    if (i === NEST_IDX || i === ENTER_IDX || !grid[i]) return;
-    const t = grid[i];
-    const refund = Math.floor((t==='room'?COSTS.room:t==='corridor'?COSTS.corridor:COSTS.corridor)*0.5);
-    addGold(refund);
-    clearCell(i);
-  } else if (MONSTER_DEFS[mode]) {
-    if (grid[i] !== 'room') { addLog('🏠 방에만 배치 가능!','danger'); return; }
-    if (waveActive) { addLog('웨이브 중 배치 불가!','danger'); return; }
-    const def = MONSTER_DEFS[mode];
-    if (!spendGold(def.cost)) return;
-    placeMonster(i, mode);
+// === CELL ACTION ===
+function handleCell(i){
+  if(gameOver||!mode)return;
+  if(mode==='corridor'){
+    if(i===NEST_I||i===ENTER_I)return;
+    if(grid[i]==='corridor')return;
+    if(!spend(COSTS.corridor))return;
+    clearCell(i);grid[i]='corridor';cellEl(i).className='cell corridor';
+  }else if(mode==='room'){
+    if(i===NEST_I||i===ENTER_I)return;
+    if(grid[i]==='room')return;
+    const ref=grid[i]==='corridor'?COSTS.corridor:0;
+    if(!spend(COSTS.room-ref))return;
+    clearCell(i);grid[i]='room';cellEl(i).className='cell room';
+  }else if(mode==='trap'){
+    if(grid[i]!=='corridor'&&grid[i]!=='room'){addLog('통로/방에만 설치 가능','danger');return;}
+    if(grid[i]==='trap')return;
+    if(!spend(COSTS.trap))return;
+    grid[i]='trap';cellEl(i).className='cell trap';
+  }else if(mode==='delete'){
+    if(i===NEST_I||i===ENTER_I||!grid[i])return;
+    const t=grid[i];
+    const ref=Math.floor((t==='room'?COSTS.room:COSTS.corridor)*0.5);
+    addGold(ref);clearCell(i);
+  }else if(MDEFS[mode]){
+    if(grid[i]!=='room'){addLog('🏠 방에만 배치 가능!','danger');return;}
+    if(waveActive){addLog('웨이브 중 배치 불가!','danger');return;}
+    if(!spend(MDEFS[mode].cost))return;
+    placeMonster(i,mode);
   }
 }
 
-function clearCell(i) {
-  monsters = monsters.filter(m => {
-    if (m.cell === i) { m.el.remove(); m.hpWrap.remove(); return false; }
+function clearCell(i){
+  monsters=monsters.filter(m=>{
+    if(m.cell===i){try{m.el.remove();m.hw.remove();}catch(_){}return false;}
     return true;
   });
-  grid[i] = null;
-  const c = cellEl(i);
-  c.className = 'cell';
-  c.innerHTML = '';
+  grid[i]=null;
+  const c=cellEl(i);c.className='cell wall';c.innerHTML='';
 }
 
-// ===================== MODE / TABS =====================
-function setMode(m) {
-  mode = m;
-  document.querySelectorAll('.tool-btn').forEach(b => b.classList.remove('active','active-m'));
-
-  const isMonster = !!MONSTER_DEFS[m];
-  const id = isMonster ? 'tb-'+m : 'tb-'+m;
-  const el = document.getElementById(id);
-  if (el) el.classList.add(isMonster ? 'active-m' : 'active');
-
-  const names = {
-    corridor:'🪨 통로 건설 중', room:'🏠 방 건설 중',
-    trap:'⚙️ 함정 설치 중', delete:'🗑️ 철거 중',
-    goblin:'👺 고블린 배치 중', orc:'👹 오크 배치 중',
-    skeleton:'💀 스켈레톤 배치 중', troll:'🧌 트롤 배치 중',
-  };
-  showModeIndicator(names[m] || m);
+// === D-PAD ===
+let dpadIv=null;
+function ds(dir){dpadScroll(dir);dpadIv=setInterval(()=>dpadScroll(dir),110);}
+function de(){clearInterval(dpadIv);dpadIv=null;}
+function dr(){mapWrap.scrollTop=0;mapWrap.scrollLeft=0;}
+function dpadScroll(dir){
+  const s=CELL*3;
+  if(dir==='up')mapWrap.scrollTop-=s;
+  if(dir==='down')mapWrap.scrollTop+=s;
+  if(dir==='left')mapWrap.scrollLeft-=s;
+  if(dir==='right')mapWrap.scrollLeft+=s;
 }
 
-function showModeIndicator(text) {
-  const el = document.getElementById('mode-indicator');
-  el.textContent = text;
-  el.classList.remove('hidden');
-  clearTimeout(el._t);
-  el._t = setTimeout(() => el.classList.add('hidden'), 3000);
+// === MODE ===
+const MCOLORS={corridor:'cb',room:'cg',trap:'cr',delete:'cx',goblin:'cp',orc:'cp',skeleton:'cp',troll:'cp'};
+const MLABELS={corridor:'🪨 통로 건설 중',room:'🏠 방 건설 중',trap:'⚙️ 함정 설치 중',delete:'🗑️ 철거 중',goblin:'👺 고블린 배치',orc:'👹 오크 배치',skeleton:'💀 스켈레톤 배치',troll:'🧌 트롤 배치'};
+
+function setMode(m){
+  mode=m;
+  document.querySelectorAll('.tbtn').forEach(b=>b.classList.remove('cb','cg','cr','cp','cx'));
+  const el=document.getElementById('tb-'+m);
+  if(el)el.classList.add(MCOLORS[m]||'cg');
+  showInd(MLABELS[m]||m);
+}
+function showInd(txt){
+  mindEl.textContent=txt;mindEl.classList.remove('hidden');
+  clearTimeout(mindEl._t);mindEl._t=setTimeout(()=>mindEl.classList.add('hidden'),3000);
+}
+function switchTab(t){
+  document.querySelectorAll('.tab').forEach(b=>b.className='tab');
+  document.querySelectorAll('.tc').forEach(c=>c.classList.remove('vis'));
+  document.getElementById('tab-'+t).classList.add({build:'ag',monster:'ap',upgrade:'ab'}[t]||'ag');
+  document.getElementById('tc-'+t).classList.add('vis');
+  mode=null;document.querySelectorAll('.tbtn').forEach(b=>b.classList.remove('cb','cg','cr','cp','cx'));
+  layout();
 }
 
-function showModeHint() {
-  showModeIndicator('⬇ 아래에서 도구를 선택하세요');
+// === GOLD ===
+function spend(n){if(gold<n){addLog(`골드 부족! (${n}g 필요)`,'danger');return false;}gold-=n;updateHUD();return true;}
+function addGold(n){if(UPGRADES.loot.bought)n=Math.floor(n*1.5);gold+=n;updateHUD();}
+
+// === MONSTERS ===
+function placeMonster(cell,type){
+  const d=MDEFS[type];
+  const el=document.createElement('div');el.className='entity';el.textContent=d.icon;
+  const hw=document.createElement('div');hw.className='hpbar-wrap';
+  const hb=document.createElement('div');hb.className='hpbar';hb.style.width='100%';
+  hw.appendChild(hb);
+  cellEl(cell).appendChild(el);cellEl(cell).appendChild(hw);
+  monsters.push({id:eid++,cell,type,hp:d.hp,maxHp:d.hp,atk:d.atk,regen:d.regen||0,el,hw,hb});
+  addLog(`${d.icon} 배치 완료`,'good');
 }
 
-function switchTab(t) {
-  document.querySelectorAll('.tab').forEach(b => b.classList.remove('active','active-purple'));
-  document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('visible'));
-  document.getElementById('tab-'+t).classList.add(t==='monster'?'active-purple':'active');
-  document.getElementById('content-'+t).classList.add('visible');
-  // reset mode when switching tabs
-  mode = null;
-  document.querySelectorAll('.tool-btn').forEach(b=>b.classList.remove('active','active-m'));
-  layoutMap();
-}
-
-// ===================== GOLD =====================
-function spendGold(amount) {
-  if (gold < amount) { addLog(`골드 부족! (필요:${amount}g)`,'danger'); return false; }
-  gold -= amount; updateHUD(); return true;
-}
-function addGold(amount) {
-  if (UPGRADES.loot.bought) amount = Math.floor(amount*1.5);
-  gold += amount; updateHUD();
-}
-
-// ===================== MONSTERS =====================
-function placeMonster(cell, type) {
-  const def = MONSTER_DEFS[type];
-  const wrap = document.createElement('div');
-  wrap.className = 'entity'; wrap.textContent = def.icon;
-
-  const hpWrap = document.createElement('div'); hpWrap.className='hpbar-wrap';
-  const hpBar  = document.createElement('div'); hpBar.className='hpbar'; hpBar.style.width='100%';
-  hpWrap.appendChild(hpBar);
-
-  cellEl(cell).appendChild(wrap);
-  cellEl(cell).appendChild(hpWrap);
-
-  monsters.push({ id:eid++, cell, type,
-    hp:def.hp, maxHp:def.hp, atk:def.atk,
-    regen:def.regen||0,
-    el:wrap, hpWrap, hpBar });
-  addLog(`${def.icon} 배치 완료`, 'good');
-}
-
-// ===================== BFS =====================
-function bfs(start, goal) {
-  const pass = new Set(Object.keys(grid).map(Number).filter(i => grid[i]));
-  const queue = [[start]], visited = new Set([start]);
-  while (queue.length) {
-    const path = queue.shift();
-    const cur = path[path.length-1];
-    if (cur === goal) return path;
-    for (const nb of nbrs(cur)) {
-      if (!visited.has(nb) && pass.has(nb)) {
-        visited.add(nb); queue.push([...path, nb]);
-      }
+// === BFS ===
+function bfs(start,goal){
+  const pass=new Set(Object.keys(grid).map(Number).filter(i=>grid[i]));
+  const q=[[start]],vis=new Set([start]);
+  while(q.length){
+    const path=q.shift(),cur=path[path.length-1];
+    if(cur===goal)return path;
+    for(const nb of nbrs(cur)){
+      if(!vis.has(nb)&&pass.has(nb)){vis.add(nb);q.push([...path,nb]);}
     }
   }
   return null;
 }
-function nbrs(i) {
-  const x=i%SIZE, y=Math.floor(i/SIZE), r=[];
-  if(x>0) r.push(i-1); if(x<SIZE-1) r.push(i+1);
-  if(y>0) r.push(i-SIZE); if(y<SIZE-1) r.push(i+SIZE);
-  return r;
-}
+function nbrs(i){const x=i%SIZE,y=Math.floor(i/SIZE),r=[];if(x>0)r.push(i-1);if(x<SIZE-1)r.push(i+1);if(y>0)r.push(i-SIZE);if(y<SIZE-1)r.push(i+SIZE);return r;}
 
-// ===================== WAVE =====================
-function startWave() {
-  if (waveActive || gameOver) return;
-  const path = bfs(ENTER_IDX, NEST_IDX);
-  if (!path) { addLog('⚠ 입구→둥지 경로 없음!','danger'); return; }
-  wave++; waveActive = true;
-  document.getElementById('wave-btn').disabled = true;
+// === WAVE ===
+function startWave(){
+  if(waveActive||gameOver)return;
+  if(!bfs(ENTER_I,NEST_I)){addLog('⚠ 입구→둥지 경로 없음!','danger');return;}
+  wave++;waveActive=true;
+  document.getElementById('wave-btn').disabled=true;
   updateHUD();
-
-  const count = 3 + Math.floor(wave * 1.5);
-  addLog(`━━ 웨이브 ${wave} 시작! 영웅 ${count}명 ━━`, 'wave-c');
-
-  let spawned = 0;
-  const iv = setInterval(() => {
-    if (gameOver) { clearInterval(iv); return; }
-    if (spawned >= count) { clearInterval(iv); return; }
-    spawnHero(); spawned++;
-  }, 900);
+  const count=3+Math.floor(wave*1.5);
+  addLog(`━━ 웨이브 ${wave}! 영웅 ${count}명 ━━`,'wave-c');
+  let sp=0;
+  const iv=setInterval(()=>{
+    if(gameOver){clearInterval(iv);return;}
+    if(sp>=count){clearInterval(iv);return;}
+    spawnHero();sp++;
+  },900);
 }
 
-function spawnHero() {
-  const path = bfs(ENTER_IDX, NEST_IDX);
-  if (!path) return;
-  const tier = Math.min(Math.floor((wave-1)/3), HERO_TYPES.length-1);
-  const base = HERO_TYPES[Math.floor(Math.random()*(tier+1))];
-  const scale = 1 + (wave-1)*0.15;
-  const hp = Math.floor(base.hp*scale), atk = Math.floor(base.atk*scale);
-
-  const wrap = document.createElement('div');
-  wrap.className='entity'; wrap.textContent=base.icon;
-
-  const hpWrap = document.createElement('div'); hpWrap.className='hpbar-wrap';
-  const hpBar  = document.createElement('div'); hpBar.className='hpbar'; hpBar.style.width='100%';
-  hpWrap.appendChild(hpBar);
-
-  cellEl(ENTER_IDX).appendChild(wrap);
-  cellEl(ENTER_IDX).appendChild(hpWrap);
-
-  heroes.push({ id:eid++, cell:ENTER_IDX, hp, maxHp:hp, atk,
-    icon:base.icon, name:base.name,
-    el:wrap, hpWrap, hpBar,
-    path, pathIdx:0, moveDelay:0 });
+function spawnHero(){
+  const path=bfs(ENTER_I,NEST_I);if(!path)return;
+  const tier=Math.min(Math.floor((wave-1)/3),HTYPES.length-1);
+  const base=HTYPES[Math.floor(Math.random()*(tier+1))];
+  const sc=1+(wave-1)*0.15;
+  const hp=Math.floor(base.hp*sc),atk=Math.floor(base.atk*sc);
+  const el=document.createElement('div');el.className='entity';el.textContent=base.icon;
+  const hw=document.createElement('div');hw.className='hpbar-wrap';
+  const hb=document.createElement('div');hb.className='hpbar';hb.style.background='#4a9eff';hb.style.width='100%';
+  hw.appendChild(hb);
+  cellEl(ENTER_I).appendChild(el);cellEl(ENTER_I).appendChild(hw);
+  heroes.push({id:eid++,cell:ENTER_I,hp,maxHp:hp,atk,el,hw,hb,path,pathIdx:0,moveDelay:0});
 }
 
-// ===================== GAME LOOP =====================
-let lastTick=0; const TICK=360;
-
-requestAnimationFrame(function loop(ts) {
-  if (!gameOver) requestAnimationFrame(loop);
-  if (ts-lastTick < TICK) return;
-  lastTick=ts;
-  if (!waveActive) return;
-  tick();
+// === GAME LOOP ===
+let lastTick=0;const TICK=360;
+requestAnimationFrame(function loop(ts){
+  if(!gameOver)requestAnimationFrame(loop);
+  if(ts-lastTick<TICK)return;lastTick=ts;
+  if(!waveActive)return;tick();
 });
 
-function tick() {
-  // Dragon regen
-  if (UPGRADES.regen.bought && dragonHp < DRAGON_MAX)
-    dragonHp = Math.min(DRAGON_MAX, dragonHp+2);
+function tick(){
+  if(UPGRADES.regen.bought&&dragonHp<DRAGON_MAX)dragonHp=Math.min(DRAGON_MAX,dragonHp+2);
+  monsters.forEach(m=>{if(m.regen>0)m.hp=Math.min(m.maxHp,m.hp+m.regen);});
 
-  // Troll regen
-  monsters.forEach(m => { if(m.regen>0) m.hp=Math.min(m.maxHp,m.hp+m.regen); });
-
-  // Hero movement
-  const heroSnap = [...heroes];
-  heroSnap.forEach(h => {
-    if (!heroes.includes(h)) return;
-    h.moveDelay++;
-    if (h.moveDelay < 1) return;
-    h.moveDelay = 0;
-
-    if (h.pathIdx >= h.path.length-1) {
-      const newPath = bfs(h.cell, NEST_IDX);
-      if (newPath) { h.path=newPath; h.pathIdx=0; } else return;
+  const hsnap=[...heroes];
+  hsnap.forEach(h=>{
+    if(!heroes.find(x=>x.id===h.id))return;
+    h.moveDelay++;if(h.moveDelay<1)return;h.moveDelay=0;
+    if(h.pathIdx>=h.path.length-1){
+      const np=bfs(h.cell,NEST_I);if(np){h.path=np;h.pathIdx=0;}else return;
     }
-
-    const next = h.path[h.pathIdx+1];
-    if (next === undefined) return;
-    moveEnt(h, next); h.pathIdx++;
-
-    // Trap hit
-    if (grid[next]==='trap') {
-      let dmg = 15+wave*5;
-      if (UPGRADES.trap.bought) dmg*=2;
-      h.hp-=dmg; floaty(next,`-${dmg}`,'#f97316'); flash(next);
-      updateBar(h,'hero');
-      if (h.hp<=0) { killHero(h); return; }
+    const next=h.path[h.pathIdx+1];if(next===undefined)return;
+    moveEnt(h,next);h.pathIdx++;
+    if(grid[next]==='trap'){
+      let dmg=15+wave*5;if(UPGRADES.trap.bought)dmg*=2;
+      h.hp-=dmg;floaty(next,`-${dmg}`,'#ff8840');flash(next);
+      updBar(h,'hero');if(h.hp<=0){killHero(h);return;}
     }
-    // Fire nest
-    if (UPGRADES.fire.bought && nbrs(NEST_IDX).includes(next)) {
-      h.hp-=20; floaty(next,'🔥-20','#f97316');
-      updateBar(h,'hero');
-      if (h.hp<=0) { killHero(h); return; }
+    if(UPGRADES.fire.bought&&nbrs(NEST_I).includes(next)){
+      h.hp-=20;floaty(next,'🔥-20','#f97316');
+      updBar(h,'hero');if(h.hp<=0){killHero(h);return;}
     }
-    // Reached nest
-    if (next===NEST_IDX) {
-      dragonHp -= h.atk; floaty(NEST_IDX,`-${h.atk}`,'#ef4444'); flash(NEST_IDX);
-      killHero(h); updateHUD();
-      if (dragonHp<=0) { triggerGameOver(); return; }
+    if(next===NEST_I){
+      dragonHp-=h.atk;floaty(NEST_I,`-${h.atk}`,'#f44');flash(NEST_I);
+      killHero(h);updateHUD();
+      if(dragonHp<=0){triggerGameOver();return;}
       return;
     }
   });
 
-  // Combat
-  const ms = [...monsters], hs = [...heroes];
-  hs.forEach(h => {
-    ms.forEach(m => {
-      if (!heroes.includes(h)||!monsters.includes(m)) return;
-      if (h.cell!==m.cell) return;
-      m.hp-=h.atk; h.hp-=m.atk;
-      floaty(m.cell,`-${h.atk}`,'#fbbf24');
-      floaty(m.cell,`-${m.atk}`,'#ef4444');
+  const ms=[...monsters],hs=[...heroes];
+  hs.forEach(h=>{
+    ms.forEach(m=>{
+      if(!heroes.find(x=>x.id===h.id)||!monsters.find(x=>x.id===m.id))return;
+      if(h.cell!==m.cell)return;
+      m.hp-=h.atk;h.hp-=m.atk;
+      floaty(m.cell,`-${h.atk}`,'#fbbf24');floaty(m.cell,`-${m.atk}`,'#f44');
       flash(m.cell);
-      updateBar(m,'monster'); updateBar(h,'hero');
-      if (m.hp<=0) killMonster(m);
-      if (h.hp<=0) killHero(h);
+      updBar(m,'monster');updBar(h,'hero');
+      if(m.hp<=0)killMonster(m);if(h.hp<=0)killHero(h);
     });
   });
-
-  updateHUD();
-  checkWaveEnd();
+  updateHUD();checkWaveEnd();
 }
 
-function moveEnt(e, to) {
-  try {
-    cellEl(e.cell).removeChild(e.el);
-    cellEl(e.cell).removeChild(e.hpWrap);
-  } catch(_) {}
-  e.cell = to;
-  cellEl(to).appendChild(e.el);
-  cellEl(to).appendChild(e.hpWrap);
+function moveEnt(e,to){
+  try{cellEl(e.cell).removeChild(e.el);cellEl(e.cell).removeChild(e.hw);}catch(_){}
+  e.cell=to;cellEl(to).appendChild(e.el);cellEl(to).appendChild(e.hw);
 }
-
-function killHero(h) {
-  if (!heroes.includes(h)) return;
-  try { h.el.remove(); h.hpWrap.remove(); } catch(_) {}
-  heroes = heroes.filter(x=>x.id!==h.id);
+function killHero(h){
+  if(!heroes.find(x=>x.id===h.id))return;
+  try{h.el.remove();h.hw.remove();}catch(_){}
+  heroes=heroes.filter(x=>x.id!==h.id);
 }
-
-function killMonster(m) {
-  if (!monsters.includes(m)) return;
-  try { m.el.remove(); m.hpWrap.remove(); } catch(_) {}
-  monsters = monsters.filter(x=>x.id!==m.id);
-  kills++;
-  const r = MONSTER_DEFS[m.type].reward;
-  addGold(r);
-  addLog(`${m.icon} 처치! +${r}g`, 'gold-c');
-  updateHUD();
+function killMonster(m){
+  if(!monsters.find(x=>x.id===m.id))return;
+  try{m.el.remove();m.hw.remove();}catch(_){}
+  monsters=monsters.filter(x=>x.id!==m.id);
+  kills++;const r=MDEFS[m.type].reward;addGold(r);
+  addLog(`${m.icon} 처치! +${r}g`,'gold-c');updateHUD();
 }
-
-function checkWaveEnd() {
-  if (heroes.length===0 && waveActive) {
-    waveActive=false;
-    document.getElementById('wave-btn').disabled=false;
-    const bonus=wave*30; addGold(bonus);
-    addLog(`✓ 웨이브 ${wave} 방어 성공! +${bonus}g`, 'good');
-    updateHUD();
+function checkWaveEnd(){
+  if(heroes.length===0&&waveActive){
+    waveActive=false;document.getElementById('wave-btn').disabled=false;
+    const b=wave*30;addGold(b);
+    addLog(`✓ 웨이브 ${wave} 방어! +${b}g`,'good');updateHUD();
   }
 }
-
-// ===================== GAME OVER =====================
-function triggerGameOver() {
-  dragonHp=0; gameOver=true; updateHUD();
-  document.getElementById('overlay-title').textContent='💀 드래곤 사망';
-  document.getElementById('overlay-title').style.color='#ef4444';
-  document.getElementById('overlay-sub').textContent=`웨이브 ${wave}까지 방어 · 처치 ${kills}마리`;
+function triggerGameOver(){
+  dragonHp=0;gameOver=true;updateHUD();
+  document.getElementById('ov-title').textContent='💀 드래곤 사망';
+  document.getElementById('ov-title').style.color='#f44';
+  document.getElementById('ov-sub').textContent=`웨이브 ${wave}까지 방어 · 처치 ${kills}마리`;
   document.getElementById('overlay').classList.add('show');
 }
-
-// ===================== UPGRADES =====================
-function buyUpgrade(key) {
-  const u=UPGRADES[key];
-  if (u.bought) return;
-  if (!spendGold(u.cost)) return;
-  u.bought=true;
-  const btn=document.getElementById('upg-'+key);
-  btn.disabled=true; btn.classList.add('bought');
-  btn.querySelector('.ub-cost').textContent='✓';
-  addLog(`✓ ${u.name} 완료!`, 'good');
+function buyUpgrade(k){
+  const u=UPGRADES[k];if(u.bought)return;
+  if(!spend(u.cost))return;
+  u.bought=true;const b=document.getElementById('upg-'+k);
+  b.disabled=true;b.classList.add('bought');b.querySelector('.uc').textContent='✓';
+  addLog(`✓ ${u.name} 완료!`,'good');
 }
-
-// ===================== UI HELPERS =====================
-function updateHUD() {
-  document.getElementById('stat-gold').textContent=gold;
-  document.getElementById('stat-hp').textContent=Math.max(0,dragonHp);
-  document.getElementById('stat-wave').textContent=wave;
-  document.getElementById('stat-kills').textContent=kills;
-  document.getElementById('dragon-bar').style.width=Math.max(0,dragonHp/DRAGON_MAX*100)+'%';
+function updateHUD(){
+  document.getElementById('sg').textContent=gold;
+  document.getElementById('sh').textContent=Math.max(0,dragonHp);
+  document.getElementById('sw').textContent=wave;
+  document.getElementById('sk').textContent=kills;
+  document.getElementById('dbar').style.width=Math.max(0,dragonHp/DRAGON_MAX*100)+'%';
 }
-
-function updateBar(e, type) {
-  const pct=Math.max(0,e.hp/e.maxHp*100);
-  e.hpBar.style.width=pct+'%';
-  e.hpBar.style.background=pct<30?'#ef4444':pct<60?'#f97316':
-    type==='hero'?'#3b82f6':'#a855f7';
+function updBar(e,type){
+  const p=Math.max(0,e.hp/e.maxHp*100);
+  e.hb.style.width=p+'%';
+  e.hb.style.background=p<30?'#f44':p<60?'#f80':type==='hero'?'#4a9eff':'#b05ef7';
 }
-
-function floaty(cell, text, color) {
-  const c=cellEl(cell);
-  const f=document.createElement('div');
-  f.className='floaty'; f.textContent=text; f.style.color=color;
-  f.style.left=(2+Math.random()*20)+'px'; f.style.top='2px';
-  c.appendChild(f); setTimeout(()=>f.remove(),750);
+function floaty(cell,text,color){
+  const c=cellEl(cell);const f=document.createElement('div');
+  f.className='floaty';f.textContent=text;f.style.color=color;
+  f.style.left=(3+Math.random()*18)+'px';f.style.top='2px';
+  c.appendChild(f);setTimeout(()=>f.remove(),700);
 }
-
-function flash(i) {
-  const c=cellEl(i); c.classList.add('flash');
-  setTimeout(()=>c.classList.remove('flash'),150);
-}
-
-function addLog(msg, cls='') {
+function flash(i){const c=cellEl(i);c.classList.add('flash');setTimeout(()=>c.classList.remove('flash'),150);}
+function addLog(msg,cls=''){
   const log=document.getElementById('log');
-  const e=document.createElement('div');
-  e.className='log-entry '+cls; e.textContent=msg;
+  const e=document.createElement('div');e.className='log-e '+cls;e.textContent=msg;
   log.insertBefore(e,log.firstChild);
-  while(log.children.length>80) log.removeChild(log.lastChild);
+  while(log.children.length>80)log.removeChild(log.lastChild);
 }
+function toggleLog(){document.getElementById('log-panel').classList.toggle('open');}
 
-function toggleLog() {
-  document.getElementById('log-panel').classList.toggle('open');
-}
-
-function dismissToast() {
-  const t=document.getElementById('toast');
-  t.classList.add('hidden');
-}
-
-// ===================== INIT =====================
-buildMap();
-updateHUD();
-// layout after fonts/panel render
-setTimeout(layoutMap, 100);
-setTimeout(() => {
-  layoutMap();
-  setTimeout(()=>document.getElementById('toast').classList.add('hidden'), 6000);
-}, 200);
+// === INIT ===
+buildMap();updateHUD();
+setTimeout(()=>{
+  layout();
+  // Scroll to center of map
+  mapWrap.scrollLeft=(SIZE*CELL-mapWrap.clientWidth)/2;
+  mapWrap.scrollTop=0;
+},200);
 
 addLog('🐉 드래곤의 둥지를 수호하라!','wave-c');
-addLog('아래 건설 탭에서 시작하세요','good');
+addLog('▲▼◀▶ 버튼으로 지도 이동','good');
+addLog('파란=통로, 초록=방, 빨간=함정','good');
+addLog('기본 통로 위에 방/함정 추가 후 웨이브!','');
 </script>
 
 </body>
