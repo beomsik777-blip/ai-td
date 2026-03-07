@@ -18,72 +18,49 @@ font-family:sans-serif;
 /* UI */
 
 #top{
-
 position:fixed;
 top:0;
 left:0;
-
 width:100%;
-
 background:#020617;
-
 padding:10px;
-
 z-index:10;
-
 border-bottom:2px solid #334155;
-
 }
 
 button{
-
 padding:6px 10px;
 margin:3px;
-
 background:#334155;
 border:none;
 color:white;
-
 }
 
 /* MAP */
 
 #mapWrap{
-
 position:absolute;
-
 top:120px;
 bottom:0;
 left:0;
 right:0;
-
 overflow:scroll;
-
 }
 
 #map{
-
 display:grid;
-
 grid-template-columns:repeat(40,30px);
 grid-template-rows:repeat(40,30px);
-
 width:1200px;
 height:1200px;
-
 background:#0f172a;
-
 }
 
 .cell{
-
 width:30px;
 height:30px;
-
 border:1px solid #1e293b;
-
 position:relative;
-
 }
 
 .room{background:#1e293b}
@@ -91,28 +68,41 @@ position:relative;
 .nest{background:#14532d}
 
 .hero,.monster{
-
 position:absolute;
+left:50%;
+top:40%;
+transform:translate(-50%,-50%);
+font-size:16px;
+}
 
+.hp{
+position:absolute;
+bottom:0;
+left:0;
+right:0;
+font-size:8px;
+text-align:center;
+color:#22c55e;
+}
+
+.damage{
+position:absolute;
 left:50%;
 top:50%;
-
 transform:translate(-50%,-50%);
-
-font-size:16px;
-
+color:red;
+font-size:12px;
+pointer-events:none;
 }
 
 </style>
-
 </head>
 
 <body>
 
 <div id="top">
 
-🐉 Dragon Nest
-
+🐉 Dragon Nest  
 Gold : <span id="gold">500</span>
 
 <br>
@@ -129,9 +119,7 @@ Gold : <span id="gold">500</span>
 </div>
 
 <div id="mapWrap">
-
 <div id="map"></div>
-
 </div>
 
 <script>
@@ -139,7 +127,6 @@ Gold : <span id="gold">500</span>
 const map=document.getElementById("map")
 
 let size=40
-
 let gold=500
 
 let mode=null
@@ -159,23 +146,16 @@ function createMap(){
 for(let i=0;i<size*size;i++){
 
 const c=document.createElement("div")
-
 c.className="cell"
-
 c.onclick=()=>cellClick(i)
 
 if(i==nest){
-
 c.classList.add("nest")
-
 c.innerHTML="🐉"
-
 }
 
 if(i==entrance){
-
 c.innerHTML="🚪"
-
 }
 
 map.appendChild(c)
@@ -192,32 +172,26 @@ function cellClick(i){
 
 if(mode=="room"){
 
+if(!rooms.includes(i)){
 rooms.push(i)
-
 map.children[i].classList.add("room")
+}
 
 }
 
 if(mode=="trap"){
-
 map.children[i].classList.add("trap")
-
 }
 
 if(mode=="monster"){
-
 spawnMonster(i)
-
 }
 
 }
 
 function monsterMode(t){
-
 mode="monster"
-
 monsterType=t
-
 }
 
 /* MONSTER */
@@ -237,20 +211,23 @@ if(!rooms.includes(cell))return
 const s=stats(monsterType)
 
 const el=document.createElement("div")
-
 el.className="monster"
-
 el.innerText=s.icon
+
+const hp=document.createElement("div")
+hp.className="hp"
+hp.innerText=s.hp
+
+el.appendChild(hp)
 
 map.children[cell].appendChild(el)
 
 monsters.push({
-
 cell,
 hp:s.hp,
 atk:s.atk,
+hpEl:hp,
 el
-
 })
 
 }
@@ -260,20 +237,23 @@ el
 function spawnHero(){
 
 const el=document.createElement("div")
-
 el.className="hero"
+el.innerText="⚔"
 
-el.innerText="⚔️"
+const hp=document.createElement("div")
+hp.className="hp"
+hp.innerText="120"
+
+el.appendChild(hp)
 
 map.children[entrance].appendChild(el)
 
 heroes.push({
-
 cell:entrance,
 hp:120,
 atk:10,
+hpEl:hp,
 el
-
 })
 
 }
@@ -302,7 +282,13 @@ function moveHeroes(){
 
 heroes.forEach(h=>{
 
-let next=neighbors(h.cell)[0]
+let n=neighbors(h.cell)
+
+let possible=n.filter(i=>rooms.includes(i)||i==nest)
+
+if(possible.length==0)return
+
+let next=possible[Math.floor(Math.random()*possible.length)]
 
 map.children[h.cell].removeChild(h.el)
 
@@ -311,6 +297,20 @@ h.cell=next
 map.children[h.cell].appendChild(h.el)
 
 })
+
+}
+
+/* DAMAGE TEXT */
+
+function showDamage(cell,dmg){
+
+const d=document.createElement("div")
+d.className="damage"
+d.innerText="-"+dmg
+
+map.children[cell].appendChild(d)
+
+setTimeout(()=>d.remove(),600)
 
 }
 
@@ -327,10 +327,15 @@ if(h.cell==m.cell){
 m.hp-=h.atk
 h.hp-=m.atk
 
+showDamage(m.cell,h.atk)
+showDamage(h.cell,m.atk)
+
+m.hpEl.innerText=m.hp
+h.hpEl.innerText=h.hp
+
 if(m.hp<=0){
 
 m.el.remove()
-
 monsters.splice(mi,1)
 
 gold+=50
@@ -340,7 +345,6 @@ gold+=50
 if(h.hp<=0){
 
 h.el.remove()
-
 heroes.splice(hi,1)
 
 }
@@ -358,9 +362,7 @@ heroes.splice(hi,1)
 function startRound(){
 
 for(let i=0;i<10;i++){
-
 setTimeout(spawnHero,i*1000)
-
 }
 
 }
@@ -370,12 +372,11 @@ setTimeout(spawnHero,i*1000)
 setInterval(()=>{
 
 moveHeroes()
-
 battle()
 
 document.getElementById("gold").innerText=gold
 
-},500)
+},600)
 
 </script>
 
