@@ -1,385 +1,1229 @@
 <!DOCTYPE html>
+
 <html lang="ko">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-
-<title>Dragon Nest</title>
-
+<title>🐉 Dragon's Lair</title>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@700;900&family=Cinzel:wght@400;600&family=IM+Fell+English&display=swap" rel="stylesheet">
 <style>
-
-body{
-margin:0;
-background:#020617;
-color:white;
-font-family:sans-serif;
+:root {
+  --bg: #050810;
+  --surface: #0d1117;
+  --panel: #111827;
+  --border: #1f2d3d;
+  --gold: #f59e0b;
+  --gold-dim: #92400e;
+  --red: #ef4444;
+  --green: #22c55e;
+  --blue: #3b82f6;
+  --purple: #a855f7;
+  --text: #e2e8f0;
+  --text-dim: #64748b;
+  --nest-color: #15803d;
+  --room-color: #1e3a5f;
+  --trap-color: #7f1d1d;
+  --wall-color: #1c1c2e;
 }
 
-/* UI */
+- { margin: 0; padding: 0; box-sizing: border-box; }
 
-#top{
-position:fixed;
-top:0;
-left:0;
-width:100%;
-background:#020617;
-padding:10px;
-z-index:10;
-border-bottom:2px solid #334155;
+body {
+background: var(–bg);
+color: var(–text);
+font-family: ‘Cinzel’, serif;
+overflow: hidden;
+height: 100vh;
+display: flex;
+flex-direction: column;
+background-image:
+radial-gradient(ellipse at 20% 20%, rgba(168,85,247,0.04) 0%, transparent 50%),
+radial-gradient(ellipse at 80% 80%, rgba(245,158,11,0.04) 0%, transparent 50%);
 }
 
-button{
-padding:6px 10px;
-margin:3px;
-background:#334155;
-border:none;
-color:white;
+/* ===== HEADER ===== */
+#header {
+display: flex;
+align-items: center;
+gap: 16px;
+padding: 10px 16px;
+background: linear-gradient(180deg, #0d1117 0%, #050810 100%);
+border-bottom: 1px solid var(–border);
+flex-shrink: 0;
+z-index: 20;
+flex-wrap: wrap;
 }
 
-/* MAP */
-
-#mapWrap{
-position:absolute;
-top:120px;
-bottom:0;
-left:0;
-right:0;
-overflow:scroll;
+#title {
+font-family: ‘Cinzel Decorative’, cursive;
+font-size: 18px;
+background: linear-gradient(135deg, #f59e0b, #fde68a, #f59e0b);
+-webkit-background-clip: text;
+-webkit-text-fill-color: transparent;
+letter-spacing: 2px;
+white-space: nowrap;
 }
 
-#map{
-display:grid;
-grid-template-columns:repeat(40,30px);
-grid-template-rows:repeat(40,30px);
-width:1200px;
-height:1200px;
-background:#0f172a;
+.stat-group {
+display: flex;
+align-items: center;
+gap: 12px;
+background: rgba(255,255,255,0.03);
+border: 1px solid var(–border);
+border-radius: 6px;
+padding: 5px 12px;
 }
 
-.cell{
-width:30px;
-height:30px;
-border:1px solid #1e293b;
-position:relative;
+.stat-item {
+display: flex;
+align-items: center;
+gap: 5px;
+font-size: 12px;
 }
 
-.room{background:#1e293b}
-.trap{background:#7f1d1d}
-.nest{background:#14532d}
+.stat-icon { font-size: 14px; }
+.stat-val { font-weight: 600; color: var(–gold); }
+#stat-hp .stat-val { color: var(–red); }
+#stat-wave .stat-val { color: var(–purple); }
 
-.hero,.monster{
-position:absolute;
-left:50%;
-top:40%;
-transform:translate(-50%,-50%);
-font-size:16px;
+/* ===== TOOLBAR ===== */
+#toolbar {
+display: flex;
+align-items: center;
+gap: 6px;
+padding: 8px 16px;
+background: var(–surface);
+border-bottom: 1px solid var(–border);
+flex-shrink: 0;
+flex-wrap: wrap;
 }
 
-.hp{
-position:absolute;
-bottom:0;
-left:0;
-right:0;
-font-size:8px;
-text-align:center;
-color:#22c55e;
+.tool-label {
+font-size: 10px;
+color: var(–text-dim);
+text-transform: uppercase;
+letter-spacing: 1px;
+margin-right: 2px;
 }
 
-.damage{
-position:absolute;
-left:50%;
-top:50%;
-transform:translate(-50%,-50%);
-color:red;
-font-size:12px;
-pointer-events:none;
+.tool-btn {
+display: flex;
+align-items: center;
+gap: 5px;
+padding: 6px 10px;
+background: rgba(255,255,255,0.04);
+border: 1px solid var(–border);
+border-radius: 5px;
+color: var(–text);
+cursor: pointer;
+font-family: ‘Cinzel’, serif;
+font-size: 11px;
+transition: all 0.15s;
+white-space: nowrap;
 }
 
+.tool-btn:hover { background: rgba(255,255,255,0.09); border-color: #334155; }
+.tool-btn.active {
+background: rgba(245,158,11,0.15);
+border-color: var(–gold);
+color: var(–gold);
+box-shadow: 0 0 8px rgba(245,158,11,0.2);
+}
+.tool-btn .cost { font-size: 10px; color: var(–gold-dim); margin-left: 3px; }
+.tool-btn.active .cost { color: var(–gold); }
+
+.tool-sep { width: 1px; height: 28px; background: var(–border); margin: 0 4px; }
+
+.round-btn {
+margin-left: auto;
+padding: 7px 18px;
+background: linear-gradient(135deg, #7c3aed, #4f46e5);
+border: 1px solid #6d28d9;
+border-radius: 5px;
+color: white;
+cursor: pointer;
+font-family: ‘Cinzel’, serif;
+font-size: 12px;
+font-weight: 600;
+transition: all 0.2s;
+box-shadow: 0 2px 12px rgba(124,58,237,0.4);
+}
+.round-btn:hover { transform: translateY(-1px); box-shadow: 0 4px 20px rgba(124,58,237,0.5); }
+.round-btn:disabled { opacity: 0.4; cursor: default; transform: none; }
+
+/* ===== MAIN LAYOUT ===== */
+#main {
+display: flex;
+flex: 1;
+overflow: hidden;
+min-height: 0;
+}
+
+/* ===== SIDEBAR ===== */
+#sidebar {
+width: 200px;
+flex-shrink: 0;
+background: var(–surface);
+border-right: 1px solid var(–border);
+display: flex;
+flex-direction: column;
+overflow-y: auto;
+}
+
+.sidebar-section {
+padding: 12px;
+border-bottom: 1px solid var(–border);
+}
+
+.sidebar-title {
+font-size: 10px;
+text-transform: uppercase;
+letter-spacing: 1.5px;
+color: var(–text-dim);
+margin-bottom: 8px;
+}
+
+/* Monster cards */
+.monster-card {
+display: flex;
+align-items: center;
+gap: 8px;
+padding: 8px 10px;
+margin-bottom: 5px;
+background: rgba(255,255,255,0.03);
+border: 1px solid var(–border);
+border-radius: 6px;
+cursor: pointer;
+transition: all 0.15s;
+}
+.monster-card:hover { background: rgba(255,255,255,0.07); }
+.monster-card.active { border-color: var(–purple); background: rgba(168,85,247,0.1); }
+.monster-card .m-icon { font-size: 18px; }
+.monster-card .m-info { flex: 1; }
+.monster-card .m-name { font-size: 11px; font-weight: 600; }
+.monster-card .m-stats { font-size: 9px; color: var(–text-dim); margin-top: 2px; }
+.monster-card .m-cost { font-size: 10px; color: var(–gold); }
+
+/* Log */
+#log {
+flex: 1;
+overflow-y: auto;
+padding: 10px;
+}
+#log::-webkit-scrollbar { width: 4px; }
+#log::-webkit-scrollbar-track { background: transparent; }
+#log::-webkit-scrollbar-thumb { background: var(–border); border-radius: 2px; }
+
+.log-entry {
+font-family: ‘IM Fell English’, serif;
+font-size: 11px;
+color: var(–text-dim);
+padding: 3px 0;
+border-bottom: 1px solid rgba(255,255,255,0.03);
+line-height: 1.4;
+animation: fadeIn 0.3s ease;
+}
+.log-entry.danger { color: #f87171; }
+.log-entry.gold { color: var(–gold); }
+.log-entry.good { color: var(–green); }
+.log-entry.wave { color: var(–purple); font-weight: bold; }
+
+@keyframes fadeIn { from { opacity: 0; transform: translateY(-3px); } to { opacity: 1; transform: none; } }
+
+/* ===== MAP AREA ===== */
+#mapWrap {
+flex: 1;
+overflow: auto;
+background: var(–bg);
+position: relative;
+cursor: crosshair;
+}
+
+#mapWrap::-webkit-scrollbar { width: 8px; height: 8px; }
+#mapWrap::-webkit-scrollbar-track { background: var(–bg); }
+#mapWrap::-webkit-scrollbar-thumb { background: var(–border); border-radius: 4px; }
+
+#map {
+display: grid;
+grid-template-columns: repeat(30, 32px);
+grid-template-rows: repeat(30, 32px);
+width: 960px;
+height: 960px;
+margin: 16px;
+border: 1px solid var(–border);
+box-shadow: 0 0 40px rgba(0,0,0,0.8);
+position: relative;
+}
+
+/* Grid overlay */
+#map::before {
+content: ‘’;
+position: absolute;
+inset: 0;
+background-image:
+linear-gradient(rgba(30,40,60,0.3) 1px, transparent 1px),
+linear-gradient(90deg, rgba(30,40,60,0.3) 1px, transparent 1px);
+background-size: 32px 32px;
+pointer-events: none;
+z-index: 1;
+}
+
+.cell {
+width: 32px;
+height: 32px;
+position: relative;
+transition: background 0.2s;
+background: var(–wall-color);
+}
+
+.cell:hover { filter: brightness(1.3); }
+
+.cell.room {
+background: var(–room-color);
+box-shadow: inset 0 0 0 1px rgba(59,130,246,0.2);
+}
+
+.cell.corridor {
+background: #16213e;
+box-shadow: inset 0 0 0 1px rgba(59,130,246,0.1);
+}
+
+.cell.trap {
+background: var(–trap-color);
+box-shadow: inset 0 0 0 1px rgba(239,68,68,0.3);
+}
+
+.cell.trap::after {
+content: ‘⚙’;
+position: absolute;
+inset: 0;
+display: flex;
+align-items: center;
+justify-content: center;
+font-size: 14px;
+opacity: 0.5;
+pointer-events: none;
+}
+
+.cell.nest {
+background: radial-gradient(circle, #166534 0%, #14532d 100%);
+box-shadow: 0 0 12px rgba(34,197,94,0.3), inset 0 0 0 1px rgba(34,197,94,0.3);
+z-index: 2;
+}
+
+.cell.entrance {
+background: #1e1b4b;
+box-shadow: 0 0 8px rgba(99,102,241,0.4), inset 0 0 0 1px rgba(99,102,241,0.4);
+}
+
+/* Entity icons */
+.entity {
+position: absolute;
+inset: 0;
+display: flex;
+align-items: center;
+justify-content: center;
+font-size: 15px;
+pointer-events: none;
+z-index: 5;
+transition: transform 0.15s;
+}
+
+.hp-bar-wrap {
+position: absolute;
+bottom: 1px;
+left: 2px;
+right: 2px;
+height: 3px;
+background: rgba(0,0,0,0.5);
+border-radius: 2px;
+z-index: 6;
+pointer-events: none;
+}
+
+.hp-bar {
+height: 100%;
+border-radius: 2px;
+transition: width 0.2s;
+}
+
+.hp-bar.hero-bar { background: #3b82f6; }
+.hp-bar.enemy-bar { background: #ef4444; }
+.hp-bar.monster-bar { background: #a855f7; }
+
+/* Floating damage */
+.floaty {
+position: absolute;
+pointer-events: none;
+z-index: 20;
+font-family: ‘Cinzel’, serif;
+font-weight: 700;
+font-size: 13px;
+animation: floatUp 0.8s ease forwards;
+text-shadow: 0 1px 3px rgba(0,0,0,0.8);
+white-space: nowrap;
+}
+
+@keyframes floatUp {
+0% { opacity: 1; transform: translateY(0) scale(1); }
+50% { opacity: 1; transform: translateY(-16px) scale(1.1); }
+100% { opacity: 0; transform: translateY(-28px) scale(0.8); }
+}
+
+/* Nest icon */
+.nest-icon {
+position: absolute;
+inset: 0;
+display: flex;
+align-items: center;
+justify-content: center;
+font-size: 18px;
+z-index: 3;
+animation: dragonBreath 3s infinite;
+}
+
+@keyframes dragonBreath {
+0%, 100% { filter: drop-shadow(0 0 4px rgba(34,197,94,0.8)); }
+50% { filter: drop-shadow(0 0 10px rgba(245,158,11,0.9)) drop-shadow(0 0 20px rgba(245,158,11,0.4)); }
+}
+
+/* Combat flash */
+@keyframes combatFlash {
+0%, 100% { background: inherit; }
+50% { filter: brightness(2); }
+}
+
+.flash { animation: combatFlash 0.15s ease; }
+
+/* Wave progress */
+#wave-bar-wrap {
+width: 120px;
+height: 6px;
+background: rgba(255,255,255,0.08);
+border-radius: 3px;
+overflow: hidden;
+border: 1px solid var(–border);
+}
+
+#wave-bar {
+height: 100%;
+background: linear-gradient(90deg, #7c3aed, #a855f7);
+border-radius: 3px;
+transition: width 0.3s;
+width: 0%;
+}
+
+/* Dragon HP */
+#dragon-hp-bar-wrap {
+width: 100px;
+height: 6px;
+background: rgba(255,255,255,0.08);
+border-radius: 3px;
+overflow: hidden;
+border: 1px solid var(–border);
+}
+#dragon-hp-bar {
+height: 100%;
+background: linear-gradient(90deg, #ef4444, #f97316);
+border-radius: 3px;
+transition: width 0.3s;
+width: 100%;
+}
+
+/* Upgrade panel */
+.upgrade-btn {
+display: flex;
+align-items: center;
+gap: 6px;
+width: 100%;
+padding: 6px 8px;
+margin-bottom: 4px;
+background: rgba(255,255,255,0.03);
+border: 1px solid var(–border);
+border-radius: 5px;
+color: var(–text);
+cursor: pointer;
+font-family: ‘Cinzel’, serif;
+font-size: 10px;
+transition: all 0.15s;
+text-align: left;
+}
+.upgrade-btn:hover:not(:disabled) { background: rgba(245,158,11,0.1); border-color: var(–gold-dim); }
+.upgrade-btn:disabled { opacity: 0.35; cursor: default; }
+.upgrade-btn .u-icon { font-size: 14px; }
+.upgrade-btn .u-info { flex: 1; }
+.upgrade-btn .u-name { font-size: 11px; }
+.upgrade-btn .u-desc { font-size: 9px; color: var(–text-dim); margin-top: 1px; }
+.upgrade-btn .u-cost { color: var(–gold); font-size: 10px; white-space: nowrap; }
+
+/* Game over / Victory overlay */
+#overlay {
+display: none;
+position: fixed;
+inset: 0;
+background: rgba(0,0,0,0.85);
+z-index: 100;
+align-items: center;
+justify-content: center;
+flex-direction: column;
+gap: 16px;
+}
+#overlay.show { display: flex; }
+
+#overlay-title {
+font-family: ‘Cinzel Decorative’, cursive;
+font-size: 48px;
+animation: pulseGlow 2s infinite;
+}
+
+@keyframes pulseGlow {
+0%, 100% { text-shadow: 0 0 20px currentColor; }
+50% { text-shadow: 0 0 40px currentColor, 0 0 80px currentColor; }
+}
+
+#overlay-sub { font-family: ‘IM Fell English’, serif; font-size: 18px; color: var(–text-dim); }
+
+#overlay-btn {
+padding: 12px 32px;
+background: linear-gradient(135deg, #7c3aed, #4f46e5);
+border: 1px solid #6d28d9;
+border-radius: 6px;
+color: white;
+cursor: pointer;
+font-family: ‘Cinzel’, serif;
+font-size: 14px;
+font-weight: 600;
+transition: all 0.2s;
+}
+#overlay-btn:hover { transform: scale(1.05); }
+
+/* Tooltip */
+#tooltip {
+position: fixed;
+pointer-events: none;
+background: var(–panel);
+border: 1px solid var(–border);
+border-radius: 6px;
+padding: 8px 12px;
+font-size: 11px;
+z-index: 50;
+max-width: 180px;
+display: none;
+box-shadow: 0 4px 20px rgba(0,0,0,0.5);
+}
 </style>
-</head>
 
+</head>
 <body>
 
-<div id="top">
+<!-- Header -->
 
-🐉 Dragon Nest  
-Gold : <span id="gold">500</span>
-
-<br>
-
-<button onclick="mode='room'">방</button>
-<button onclick="mode='trap'">함정</button>
-
-<button onclick="monsterMode('goblin')">👾</button>
-<button onclick="monsterMode('orc')">👹</button>
-<button onclick="monsterMode('slime')">🟢</button>
-
-<button onclick="startRound()">▶ 라운드</button>
-
+<div id="header">
+  <div id="title">🐉 Dragon's Lair</div>
+  <div class="stat-group">
+    <div class="stat-item"><span class="stat-icon">💰</span><span class="tool-label">Gold</span><span class="stat-val" id="stat-gold">800</span></div>
+  </div>
+  <div class="stat-group">
+    <div class="stat-item" id="stat-hp"><span class="stat-icon">🐉</span><span class="tool-label">Dragon HP</span><span class="stat-val" id="stat-dragon-hp">500</span></div>
+    <div id="dragon-hp-bar-wrap"><div id="dragon-hp-bar"></div></div>
+  </div>
+  <div class="stat-group">
+    <div class="stat-item" id="stat-wave"><span class="stat-icon">⚔️</span><span class="tool-label">Wave</span><span class="stat-val" id="stat-wave-num">0</span></div>
+    <div id="wave-bar-wrap"><div id="wave-bar"></div></div>
+  </div>
+  <div class="stat-group">
+    <div class="stat-item"><span class="stat-icon">💀</span><span class="tool-label">Kills</span><span class="stat-val" id="stat-kills">0</span></div>
+  </div>
 </div>
 
-<div id="mapWrap">
-<div id="map"></div>
+<!-- Toolbar -->
+
+<div id="toolbar">
+  <span class="tool-label">건설</span>
+  <button class="tool-btn" id="btn-corridor" onclick="setMode('corridor')">
+    🪨 통로 <span class="cost">10g</span>
+  </button>
+  <button class="tool-btn" id="btn-room" onclick="setMode('room')">
+    🏠 방 <span class="cost">30g</span>
+  </button>
+  <button class="tool-btn" id="btn-trap" onclick="setMode('trap')">
+    ⚙️ 함정 <span class="cost">50g</span>
+  </button>
+  <div class="tool-sep"></div>
+  <span class="tool-label">삭제</span>
+  <button class="tool-btn" id="btn-delete" onclick="setMode('delete')">
+    🗑️ 철거
+  </button>
+  <div class="tool-sep"></div>
+  <span class="tool-label">마우스 드래그로 여러 칸 건설 가능</span>
+  <button class="round-btn" id="round-btn" onclick="startWave()">▶ 웨이브 시작</button>
 </div>
+
+<!-- Main -->
+
+<div id="main">
+  <!-- Sidebar -->
+  <div id="sidebar">
+    <!-- Monsters -->
+    <div class="sidebar-section">
+      <div class="sidebar-title">⚔ 몬스터 배치</div>
+      <div class="monster-card" id="mc-goblin" onclick="setMonsterMode('goblin')">
+        <span class="m-icon">👺</span>
+        <div class="m-info">
+          <div class="m-name">고블린</div>
+          <div class="m-stats">HP:40 ATK:8 SPD:빠름</div>
+        </div>
+        <span class="m-cost">40g</span>
+      </div>
+      <div class="monster-card" id="mc-orc" onclick="setMonsterMode('orc')">
+        <span class="m-icon">👹</span>
+        <div class="m-info">
+          <div class="m-name">오크</div>
+          <div class="m-stats">HP:120 ATK:18 SPD:느림</div>
+        </div>
+        <span class="m-cost">80g</span>
+      </div>
+      <div class="monster-card" id="mc-skeleton" onclick="setMonsterMode('skeleton')">
+        <span class="m-icon">💀</span>
+        <div class="m-info">
+          <div class="m-name">스켈레톤</div>
+          <div class="m-stats">HP:60 ATK:12 SPD:보통</div>
+        </div>
+        <span class="m-cost">60g</span>
+      </div>
+      <div class="monster-card" id="mc-troll" onclick="setMonsterMode('troll')">
+        <span class="m-icon">🧌</span>
+        <div class="m-info">
+          <div class="m-name">트롤</div>
+          <div class="m-stats">HP:200 ATK:25 재생</div>
+        </div>
+        <span class="m-cost">150g</span>
+      </div>
+    </div>
+
+```
+<!-- Upgrades -->
+<div class="sidebar-section">
+  <div class="sidebar-title">⬆ 업그레이드</div>
+  <button class="upgrade-btn" id="upg-trap" onclick="buyUpgrade('trap')">
+    <span class="u-icon">⚙️</span>
+    <div class="u-info">
+      <div class="u-name">강화 함정</div>
+      <div class="u-desc">함정 피해 2배</div>
+    </div>
+    <span class="u-cost">200g</span>
+  </button>
+  <button class="upgrade-btn" id="upg-regen" onclick="buyUpgrade('regen')">
+    <span class="u-icon">💚</span>
+    <div class="u-info">
+      <div class="u-name">드래곤 재생</div>
+      <div class="u-desc">매 틱 HP +2</div>
+    </div>
+    <span class="u-cost">300g</span>
+  </button>
+  <button class="upgrade-btn" id="upg-loot" onclick="buyUpgrade('loot')">
+    <span class="u-icon">💰</span>
+    <div class="u-info">
+      <div class="u-name">약탈 강화</div>
+      <div class="u-desc">골드 획득 1.5배</div>
+    </div>
+    <span class="u-cost">250g</span>
+  </button>
+  <button class="upgrade-btn" id="upg-fire" onclick="buyUpgrade('fire')">
+    <span class="u-icon">🔥</span>
+    <div class="u-info">
+      <div class="u-name">화염 둥지</div>
+      <div class="u-desc">둥지 주변 불꽃 피해</div>
+    </div>
+    <span class="u-cost">400g</span>
+  </button>
+</div>
+
+<!-- Log -->
+<div class="sidebar-section" style="border-bottom:none; padding-bottom:4px;">
+  <div class="sidebar-title">📜 전투 기록</div>
+</div>
+<div id="log"></div>
+```
+
+  </div>
+
+  <!-- Map -->
+
+  <div id="mapWrap">
+    <div id="map"></div>
+  </div>
+</div>
+
+<!-- Overlay -->
+
+<div id="overlay">
+  <div id="overlay-title"></div>
+  <div id="overlay-sub"></div>
+  <button id="overlay-btn" onclick="restartGame()">다시 시작</button>
+</div>
+
+<div id="tooltip"></div>
 
 <script>
+// ===================== CONSTANTS =====================
+const SIZE = 30;
+const NEST_CELL = SIZE * SIZE - 1;       // bottom-right
+const ENTRANCE_CELL = 0;                  // top-left
+const DRAGON_MAX_HP = 500;
 
-const map=document.getElementById("map")
+const COSTS = { corridor: 10, room: 30, trap: 50 };
+const MONSTER_DEFS = {
+  goblin:   { hp: 40,  atk: 8,  reward: 20, icon: '👺', spd: 2, cost: 40  },
+  orc:      { hp: 120, atk: 18, reward: 50, icon: '👹', spd: 4, cost: 80  },
+  skeleton: { hp: 60,  atk: 12, reward: 30, icon: '💀', spd: 3, cost: 60  },
+  troll:    { hp: 200, atk: 25, reward: 80, icon: '🧌', spd: 5, cost: 150, regen: 3 },
+};
 
-let size=40
-let gold=500
+const UPGRADES = {
+  trap:  { name: '강화 함정', cost: 200, bought: false },
+  regen: { name: '드래곤 재생', cost: 300, bought: false },
+  loot:  { name: '약탈 강화', cost: 250, bought: false },
+  fire:  { name: '화염 둥지', cost: 400, bought: false },
+};
 
-let mode=null
-let monsterType=null
+// ===================== STATE =====================
+let gold = 800;
+let dragonHp = DRAGON_MAX_HP;
+let wave = 0;
+let kills = 0;
+let mode = null;        // 'corridor' | 'room' | 'trap' | 'delete' | 'monster'
+let monsterType = null;
+let waveActive = false;
+let isMouseDown = false;
+let gameOver = false;
 
-let rooms=[]
-let monsters=[]
-let heroes=[]
+let grid = {};          // idx -> 'corridor' | 'room' | 'trap' | 'nest' | 'entrance'
+let monsters = [];      // placed monsters { id, cell, hp, maxHp, atk, icon, type, el, hpEl, tickCd }
+let heroes = [];        // wave heroes { id, cell, hp, maxHp, atk, el, hpEl, path, pathIdx, tickCd }
+let eid = 0;
 
-let entrance=0
-let nest=1599
+// ===================== MAP BUILD =====================
+const mapEl = document.getElementById('map');
 
-/* MAP */
+function buildMap() {
+  mapEl.innerHTML = '';
+  for (let i = 0; i < SIZE * SIZE; i++) {
+    const c = document.createElement('div');
+    c.className = 'cell';
+    c.dataset.idx = i;
 
-function createMap(){
+    if (i === NEST_CELL) {
+      c.classList.add('nest');
+      const ni = document.createElement('div');
+      ni.className = 'nest-icon';
+      ni.textContent = '🐉';
+      c.appendChild(ni);
+      grid[i] = 'nest';
+    } else if (i === ENTRANCE_CELL) {
+      c.classList.add('entrance');
+      const ei = document.createElement('div');
+      ei.className = 'entity';
+      ei.textContent = '🚪';
+      c.appendChild(ei);
+      grid[i] = 'entrance';
+    }
 
-for(let i=0;i<size*size;i++){
-
-const c=document.createElement("div")
-c.className="cell"
-c.onclick=()=>cellClick(i)
-
-if(i==nest){
-c.classList.add("nest")
-c.innerHTML="🐉"
+    mapEl.appendChild(c);
+  }
 }
 
-if(i==entrance){
-c.innerHTML="🚪"
+function cellEl(i) { return mapEl.children[i]; }
+
+// ===================== MODE / TOOLBAR =====================
+function setMode(m) {
+  mode = m;
+  monsterType = null;
+  document.querySelectorAll('.tool-btn, .monster-card').forEach(b => b.classList.remove('active'));
+  const el = document.getElementById('btn-' + m);
+  if (el) el.classList.add('active');
 }
 
-map.appendChild(c)
-
+function setMonsterMode(t) {
+  mode = 'monster';
+  monsterType = t;
+  document.querySelectorAll('.tool-btn, .monster-card').forEach(b => b.classList.remove('active'));
+  document.getElementById('mc-' + t).classList.add('active');
 }
 
+// ===================== CELL ACTIONS =====================
+function handleCellAction(i) {
+  if (gameOver) return;
+  const c = cellEl(i);
+
+  if (mode === 'corridor') {
+    if (i === NEST_CELL || i === ENTRANCE_CELL) return;
+    if (grid[i] === 'corridor') return;
+    if (!spendGold(COSTS.corridor)) return;
+    if (grid[i]) { removeCell(i); }
+    grid[i] = 'corridor';
+    c.className = 'cell corridor';
+    renderMonsterInCell(i);
+  } else if (mode === 'room') {
+    if (i === NEST_CELL || i === ENTRANCE_CELL) return;
+    if (grid[i] === 'room') return;
+    const refund = grid[i] === 'corridor' ? COSTS.corridor : 0;
+    if (!spendGold(COSTS.room - refund)) return;
+    if (grid[i]) removeCell(i);
+    grid[i] = 'room';
+    c.className = 'cell room';
+    renderMonsterInCell(i);
+  } else if (mode === 'trap') {
+    if (i === NEST_CELL || i === ENTRANCE_CELL) return;
+    if (grid[i] !== 'corridor' && grid[i] !== 'room') return;
+    if (!spendGold(COSTS.trap)) return;
+    grid[i] = 'trap';
+    c.className = 'cell trap';
+    renderMonsterInCell(i);
+  } else if (mode === 'delete') {
+    if (i === NEST_CELL || i === ENTRANCE_CELL) return;
+    if (!grid[i]) return;
+    const refund = Math.floor((grid[i] === 'room' ? COSTS.room : grid[i] === 'corridor' ? COSTS.corridor : COSTS.corridor) * 0.5);
+    addGold(refund);
+    removeCell(i);
+  } else if (mode === 'monster' && monsterType) {
+    if (grid[i] !== 'room') { addLog('방(🏠)에만 몬스터를 배치할 수 있습니다.', 'danger'); return; }
+    if (waveActive) { addLog('웨이브 중에는 배치 불가!', 'danger'); return; }
+    const def = MONSTER_DEFS[monsterType];
+    if (!spendGold(def.cost)) return;
+    placeMonster(i, monsterType);
+  }
 }
 
-createMap()
-
-/* BUILD */
-
-function cellClick(i){
-
-if(mode=="room"){
-
-if(!rooms.includes(i)){
-rooms.push(i)
-map.children[i].classList.add("room")
+function removeCell(i) {
+  // remove any monsters there
+  monsters = monsters.filter(m => {
+    if (m.cell === i) { m.el.remove(); return false; }
+    return true;
+  });
+  grid[i] = null;
+  const c = cellEl(i);
+  c.className = 'cell';
+  c.innerHTML = '';
 }
 
+function renderMonsterInCell(i) {
+  // preserve monster elements after cell class change
+  monsters.filter(m => m.cell === i).forEach(m => {
+    const c = cellEl(i);
+    if (!c.contains(m.el)) c.appendChild(m.el);
+    if (!c.contains(m.hpWrap)) c.appendChild(m.hpWrap);
+  });
 }
 
-if(mode=="trap"){
-map.children[i].classList.add("trap")
+// ===================== GOLD =====================
+function spendGold(amount) {
+  if (gold < amount) {
+    addLog(`골드 부족! (필요: ${amount}g)`, 'danger');
+    return false;
+  }
+  gold -= amount;
+  updateHUD();
+  return true;
 }
 
-if(mode=="monster"){
-spawnMonster(i)
+function addGold(amount) {
+  if (UPGRADES.loot.bought) amount = Math.floor(amount * 1.5);
+  gold += amount;
+  updateHUD();
 }
 
+// ===================== MONSTERS =====================
+function placeMonster(cell, type) {
+  const def = MONSTER_DEFS[type];
+
+  const wrap = document.createElement('div');
+  wrap.className = 'entity';
+  wrap.textContent = def.icon;
+
+  const hpWrap = document.createElement('div');
+  hpWrap.className = 'hp-bar-wrap';
+  const hpBar = document.createElement('div');
+  hpBar.className = 'hp-bar monster-bar';
+  hpBar.style.width = '100%';
+  hpWrap.appendChild(hpBar);
+
+  cellEl(cell).appendChild(wrap);
+  cellEl(cell).appendChild(hpWrap);
+
+  const m = {
+    id: eid++,
+    cell, type,
+    hp: def.hp, maxHp: def.hp,
+    atk: def.atk,
+    icon: def.icon,
+    regen: def.regen || 0,
+    el: wrap, hpWrap, hpBar,
+    tickCd: 0,
+  };
+  monsters.push(m);
+  addLog(`${def.icon} ${type} 배치 완료 (${cell}번 방)`, 'good');
 }
 
-function monsterMode(t){
-mode="monster"
-monsterType=t
+// ===================== WAVE / HEROES =====================
+const HERO_TYPES = [
+  { icon: '⚔️', hp: 100, atk: 12, name: '전사' },
+  { icon: '🏹', hp: 70,  atk: 18, name: '궁수' },
+  { icon: '🧙', hp: 60,  atk: 22, name: '마법사' },
+  { icon: '🛡️', hp: 160, atk: 8,  name: '기사' },
+];
+
+function startWave() {
+  if (waveActive || gameOver) return;
+  // Check path exists
+  const path = bfs(ENTRANCE_CELL, NEST_CELL);
+  if (!path) {
+    addLog('⚠ 영웅이 둥지로 가는 경로가 없습니다!', 'danger');
+    return;
+  }
+  wave++;
+  waveActive = true;
+  document.getElementById('round-btn').disabled = true;
+  updateHUD();
+
+  const count = 3 + Math.floor(wave * 1.5);
+  addLog(`━━ 웨이브 ${wave} 시작! 영웅 ${count}명 ━━`, 'wave');
+
+  let spawned = 0;
+  const interval = setInterval(() => {
+    if (spawned >= count) { clearInterval(interval); return; }
+    spawnHero(wave);
+    spawned++;
+  }, 900);
 }
 
-/* MONSTER */
+function spawnHero(waveNum) {
+  const path = bfs(ENTRANCE_CELL, NEST_CELL);
+  if (!path) return;
 
-function stats(t){
+  const tier = Math.min(Math.floor((waveNum - 1) / 3), HERO_TYPES.length - 1);
+  const base = HERO_TYPES[Math.floor(Math.random() * (tier + 1))];
+  const scale = 1 + (waveNum - 1) * 0.15;
+  const hp = Math.floor(base.hp * scale);
+  const atk = Math.floor(base.atk * scale);
 
-if(t=="goblin")return{hp:40,atk:6,icon:"👾"}
-if(t=="orc")return{hp:90,atk:12,icon:"👹"}
-if(t=="slime")return{hp:30,atk:4,icon:"🟢"}
+  const wrap = document.createElement('div');
+  wrap.className = 'entity';
+  wrap.textContent = base.icon;
 
+  const hpWrap = document.createElement('div');
+  hpWrap.className = 'hp-bar-wrap';
+  const hpBar = document.createElement('div');
+  hpBar.className = 'hp-bar hero-bar';
+  hpBar.style.width = '100%';
+  hpWrap.appendChild(hpBar);
+
+  cellEl(ENTRANCE_CELL).appendChild(wrap);
+  cellEl(ENTRANCE_CELL).appendChild(hpWrap);
+
+  heroes.push({
+    id: eid++,
+    cell: ENTRANCE_CELL,
+    hp, maxHp: hp, atk,
+    icon: base.icon,
+    name: base.name,
+    el: wrap, hpWrap, hpBar,
+    path, pathIdx: 0,
+    tickCd: 0,
+    moveDelay: 0,
+  });
 }
 
-function spawnMonster(cell){
+// ===================== BFS PATHFINDING =====================
+function bfs(start, goal) {
+  const passable = new Set([...Object.keys(grid).map(Number).filter(i => grid[i] && grid[i] !== null), ENTRANCE_CELL, NEST_CELL]);
+  const queue = [[start]];
+  const visited = new Set([start]);
 
-if(!rooms.includes(cell))return
-
-const s=stats(monsterType)
-
-const el=document.createElement("div")
-el.className="monster"
-el.innerText=s.icon
-
-const hp=document.createElement("div")
-hp.className="hp"
-hp.innerText=s.hp
-
-el.appendChild(hp)
-
-map.children[cell].appendChild(el)
-
-monsters.push({
-cell,
-hp:s.hp,
-atk:s.atk,
-hpEl:hp,
-el
-})
-
+  while (queue.length) {
+    const path = queue.shift();
+    const cur = path[path.length - 1];
+    if (cur === goal) return path;
+    for (const nb of neighbors(cur)) {
+      if (!visited.has(nb) && passable.has(nb)) {
+        visited.add(nb);
+        queue.push([...path, nb]);
+      }
+    }
+  }
+  return null;
 }
 
-/* HERO */
-
-function spawnHero(){
-
-const el=document.createElement("div")
-el.className="hero"
-el.innerText="⚔"
-
-const hp=document.createElement("div")
-hp.className="hp"
-hp.innerText="120"
-
-el.appendChild(hp)
-
-map.children[entrance].appendChild(el)
-
-heroes.push({
-cell:entrance,
-hp:120,
-atk:10,
-hpEl:hp,
-el
-})
-
+function neighbors(i) {
+  const x = i % SIZE, y = Math.floor(i / SIZE);
+  const result = [];
+  if (x > 0) result.push(i - 1);
+  if (x < SIZE - 1) result.push(i + 1);
+  if (y > 0) result.push(i - SIZE);
+  if (y < SIZE - 1) result.push(i + SIZE);
+  return result;
 }
 
-/* PATH */
+// ===================== GAME LOOP =====================
+let lastTick = 0;
+const TICK_MS = 350;
 
-function neighbors(i){
-
-let x=i%size
-let y=Math.floor(i/size)
-
-let list=[]
-
-if(x>0) list.push(i-1)
-if(x<size-1) list.push(i+1)
-if(y>0) list.push(i-size)
-if(y<size-1) list.push(i+size)
-
-return list
-
+function gameLoop(ts) {
+  if (!gameOver) requestAnimationFrame(gameLoop);
+  if (ts - lastTick < TICK_MS) return;
+  lastTick = ts;
+  tick();
 }
 
-/* HERO MOVE */
+function tick() {
+  if (!waveActive) return;
 
-function moveHeroes(){
+  // Dragon regen
+  if (UPGRADES.regen.bought && dragonHp < DRAGON_MAX_HP) {
+    dragonHp = Math.min(DRAGON_MAX_HP, dragonHp + 2);
+  }
 
-heroes.forEach(h=>{
+  // Troll regen
+  monsters.forEach(m => {
+    if (m.regen > 0) m.hp = Math.min(m.maxHp, m.hp + m.regen);
+  });
 
-let n=neighbors(h.cell)
+  // Move heroes
+  heroes.forEach(h => {
+    h.moveDelay = (h.moveDelay || 0) + 1;
+    const spd = 1;
+    if (h.moveDelay < spd) return;
+    h.moveDelay = 0;
 
-let possible=n.filter(i=>rooms.includes(i)||i==nest)
+    if (h.pathIdx < h.path.length - 1) {
+      const next = h.path[h.pathIdx + 1];
+      moveEntity(h, next);
+      h.pathIdx++;
 
-if(possible.length==0)return
+      // Trap damage
+      if (grid[next] === 'trap') {
+        let dmg = 15 + wave * 5;
+        if (UPGRADES.trap.bought) dmg *= 2;
+        h.hp -= dmg;
+        showFloaty(next, `-${dmg}`, '#f97316');
+        flashCell(next);
+        updateHpBar(h, 'hero');
+        if (h.hp <= 0) { killHero(h); return; }
+      }
 
-let next=possible[Math.floor(Math.random()*possible.length)]
+      // Fire nest
+      if (UPGRADES.fire.bought) {
+        const nbs = neighbors(NEST_CELL);
+        if (nbs.includes(next)) {
+          const dmg = 20;
+          h.hp -= dmg;
+          showFloaty(next, `🔥-${dmg}`, '#f97316');
+          updateHpBar(h, 'hero');
+          if (h.hp <= 0) { killHero(h); return; }
+        }
+      }
 
-map.children[h.cell].removeChild(h.el)
+      // Reached nest
+      if (next === NEST_CELL) {
+        // Attack dragon
+        dragonHp -= h.atk;
+        showFloaty(NEST_CELL, `-${h.atk}`, '#ef4444');
+        flashCell(NEST_CELL);
+        killHero(h);
+        updateHUD();
+        if (dragonHp <= 0) { triggerGameOver(); return; }
+        return;
+      }
+    }
+  });
 
-h.cell=next
+  // Battles (heroes vs monsters in same cell)
+  heroes.forEach(h => {
+    monsters.forEach(m => {
+      if (h.cell !== m.cell) return;
 
-map.children[h.cell].appendChild(h.el)
+      // Combat
+      m.hp -= h.atk;
+      h.hp -= m.atk;
+      showFloaty(m.cell, `-${h.atk}`, '#fbbf24');
+      showFloaty(m.cell, `-${m.atk}`, '#ef4444');
+      flashCell(m.cell);
 
-})
+      updateHpBar(m, 'monster');
+      updateHpBar(h, 'hero');
 
+      if (m.hp <= 0) killMonster(m);
+      if (h.hp <= 0) killHero(h);
+    });
+  });
+
+  // Re-path heroes that are stuck (path invalidated)
+  heroes.forEach(h => {
+    if (h.pathIdx >= h.path.length - 1) {
+      const newPath = bfs(h.cell, NEST_CELL);
+      if (newPath) { h.path = newPath; h.pathIdx = 0; }
+    }
+  });
+
+  updateHUD();
+  checkWaveEnd();
 }
 
-/* DAMAGE TEXT */
-
-function showDamage(cell,dmg){
-
-const d=document.createElement("div")
-d.className="damage"
-d.innerText="-"+dmg
-
-map.children[cell].appendChild(d)
-
-setTimeout(()=>d.remove(),600)
-
+function moveEntity(e, to) {
+  cellEl(e.cell).removeChild(e.el);
+  cellEl(e.cell).removeChild(e.hpWrap);
+  e.cell = to;
+  cellEl(to).appendChild(e.el);
+  cellEl(to).appendChild(e.hpWrap);
 }
 
-/* BATTLE */
-
-function battle(){
-
-heroes.forEach((h,hi)=>{
-
-monsters.forEach((m,mi)=>{
-
-if(h.cell==m.cell){
-
-m.hp-=h.atk
-h.hp-=m.atk
-
-showDamage(m.cell,h.atk)
-showDamage(h.cell,m.atk)
-
-m.hpEl.innerText=m.hp
-h.hpEl.innerText=h.hp
-
-if(m.hp<=0){
-
-m.el.remove()
-monsters.splice(mi,1)
-
-gold+=50
-
+function killHero(h) {
+  if (!heroes.includes(h)) return;
+  h.el.remove();
+  h.hpWrap.remove();
+  heroes = heroes.filter(x => x.id !== h.id);
 }
 
-if(h.hp<=0){
-
-h.el.remove()
-heroes.splice(hi,1)
-
+function killMonster(m) {
+  if (!monsters.includes(m)) return;
+  m.el.remove();
+  m.hpWrap.remove();
+  monsters = monsters.filter(x => x.id !== m.id);
+  kills++;
+  const reward = MONSTER_DEFS[m.type].reward;
+  addGold(reward);
+  addLog(`${m.icon} 처치! +${reward}g`, 'gold');
+  updateHUD();
 }
 
+function checkWaveEnd() {
+  if (heroes.length === 0 && waveActive) {
+    const totalSpawn = 3 + Math.floor(wave * 1.5);
+    // Check if all spawned (rough heuristic: wait a bit after wave started)
+    // Use a flag approach: track remaining spawns
+    waveActive = false;
+    document.getElementById('round-btn').disabled = false;
+    const bonus = wave * 30;
+    addGold(bonus);
+    addLog(`✓ 웨이브 ${wave} 방어 성공! +${bonus}g 보너스`, 'good');
+    updateHUD();
+  }
 }
 
-})
-
-})
-
+// ===================== GAME OVER / WIN =====================
+function triggerGameOver() {
+  dragonHp = 0;
+  gameOver = true;
+  updateHUD();
+  const ol = document.getElementById('overlay');
+  document.getElementById('overlay-title').textContent = '💀 드래곤 사망';
+  document.getElementById('overlay-title').style.color = '#ef4444';
+  document.getElementById('overlay-sub').textContent = `웨이브 ${wave}까지 방어 · 처치 ${kills}마리`;
+  ol.classList.add('show');
 }
 
-/* ROUND */
-
-function startRound(){
-
-for(let i=0;i<10;i++){
-setTimeout(spawnHero,i*1000)
+function restartGame() {
+  location.reload();
 }
 
+// ===================== UI HELPERS =====================
+function updateHpBar(e, type) {
+  const pct = Math.max(0, e.hp / e.maxHp * 100);
+  e.hpBar.style.width = pct + '%';
+  if (pct < 30) e.hpBar.style.background = '#ef4444';
+  else if (pct < 60) e.hpBar.style.background = '#f97316';
 }
 
-/* LOOP */
+function flashCell(i) {
+  const c = cellEl(i);
+  c.classList.add('flash');
+  setTimeout(() => c.classList.remove('flash'), 150);
+}
 
-setInterval(()=>{
+function showFloaty(cell, text, color) {
+  const c = cellEl(cell);
+  const f = document.createElement('div');
+  f.className = 'floaty';
+  f.textContent = text;
+  f.style.color = color;
+  f.style.left = (4 + Math.random() * 16) + 'px';
+  f.style.top = '4px';
+  c.appendChild(f);
+  setTimeout(() => f.remove(), 800);
+}
 
-moveHeroes()
-battle()
+function updateHUD() {
+  document.getElementById('stat-gold').textContent = gold;
+  document.getElementById('stat-dragon-hp').textContent = Math.max(0, dragonHp);
+  document.getElementById('stat-wave-num').textContent = wave;
+  document.getElementById('stat-kills').textContent = kills;
+  document.getElementById('dragon-hp-bar').style.width = Math.max(0, dragonHp / DRAGON_MAX_HP * 100) + '%';
+}
 
-document.getElementById("gold").innerText=gold
+function addLog(msg, cls = '') {
+  const log = document.getElementById('log');
+  const e = document.createElement('div');
+  e.className = 'log-entry ' + cls;
+  e.textContent = msg;
+  log.insertBefore(e, log.firstChild);
+  while (log.children.length > 60) log.removeChild(log.lastChild);
+}
 
-},600)
+// ===================== UPGRADES =====================
+function buyUpgrade(key) {
+  const u = UPGRADES[key];
+  if (u.bought) return;
+  if (!spendGold(u.cost)) return;
+  u.bought = true;
+  document.getElementById('upg-' + key).disabled = true;
+  document.getElementById('upg-' + key).style.opacity = '0.5';
+  addLog(`✓ ${u.name} 업그레이드 완료!`, 'good');
+}
 
+// ===================== WAVE BAR ANIMATION =====================
+function animateWaveBar() {
+  const bar = document.getElementById('wave-bar');
+  let pct = 0;
+  const iv = setInterval(() => {
+    if (!waveActive) { clearInterval(iv); bar.style.width = '0%'; return; }
+    pct = Math.min(100, pct + 1);
+    bar.style.width = pct + '%';
+  }, 200);
+}
+
+// Override startWave to also animate
+const _startWave = startWave;
+// Patch
+document.getElementById('round-btn').onclick = () => {
+  startWave();
+  animateWaveBar();
+};
+document.querySelector('.round-btn').onclick = () => {
+  startWave();
+  animateWaveBar();
+};
+
+// ===================== MOUSE DRAG BUILDING =====================
+mapEl.addEventListener('mousedown', e => {
+  const cell = e.target.closest('.cell');
+  if (cell) { isMouseDown = true; handleCellAction(+cell.dataset.idx); }
+});
+mapEl.addEventListener('mouseover', e => {
+  if (!isMouseDown) return;
+  const cell = e.target.closest('.cell');
+  if (cell) handleCellAction(+cell.dataset.idx);
+});
+document.addEventListener('mouseup', () => { isMouseDown = false; });
+
+// ===================== INIT =====================
+buildMap();
+addLog('🐉 드래곤의 둥지를 수호하라!', 'wave');
+addLog('통로/방을 건설하고 몬스터를 배치하세요.', '');
+addLog('함정은 통로나 방 위에 설치됩니다.', '');
+addLog('준비가 되면 웨이브를 시작하세요!', 'good');
+updateHUD();
+requestAnimationFrame(gameLoop);
 </script>
 
 </body>
-
 </html>
