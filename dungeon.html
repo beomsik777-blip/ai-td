@@ -2,8 +2,9 @@
 <html lang="ko">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Dragon Nest Dungeon</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+
+<title>Dragon Nest</title>
 
 <style>
 
@@ -14,48 +15,79 @@ color:white;
 font-family:sans-serif;
 }
 
-#ui{
-display:flex;
-height:100vh;
-}
+/* UI */
 
-#panel{
-width:240px;
+#top{
+
+position:fixed;
+top:0;
+left:0;
+
+width:100%;
+
 background:#020617;
-border-right:2px solid #334155;
+
 padding:10px;
+
+z-index:10;
+
+border-bottom:2px solid #334155;
+
 }
 
 button{
-width:100%;
-margin:4px 0;
-padding:8px;
+
+padding:6px 10px;
+margin:3px;
+
 background:#334155;
 border:none;
 color:white;
+
+}
+
+/* MAP */
+
+#mapWrap{
+
+position:absolute;
+
+top:120px;
+bottom:0;
+left:0;
+right:0;
+
+overflow:scroll;
+
 }
 
 #map{
 
-flex:1;
-
 display:grid;
 
-grid-template-columns:repeat(40,1fr);
-grid-template-rows:repeat(40,1fr);
+grid-template-columns:repeat(40,30px);
+grid-template-rows:repeat(40,30px);
+
+width:1200px;
+height:1200px;
 
 background:#0f172a;
 
 }
 
 .cell{
+
+width:30px;
+height:30px;
+
 border:1px solid #1e293b;
+
 position:relative;
+
 }
 
 .room{background:#1e293b}
 .trap{background:#7f1d1d}
-.treasure{background:#78350f}
 .nest{background:#14532d}
 
 .hero,.monster{
@@ -67,21 +99,7 @@ top:50%;
 
 transform:translate(-50%,-50%);
 
-font-size:14px;
-
-}
-
-.damage{
-position:absolute;
-color:red;
-font-size:12px;
-animation:float .7s forwards;
-}
-
-@keyframes float{
-
-0%{opacity:1;top:50%}
-100%{opacity:0;top:20%}
+font-size:16px;
 
 }
 
@@ -91,36 +109,26 @@ animation:float .7s forwards;
 
 <body>
 
-<div id="ui">
+<div id="top">
 
-<div id="panel">
-
-<h3>🐉 Dragon Nest</h3>
+🐉 Dragon Nest
 
 Gold : <span id="gold">500</span>
 
-<hr>
+<br>
 
-<button onclick="buildMode('room')">방</button>
-<button onclick="buildMode('trap')">함정</button>
-<button onclick="buildMode('treasure')">보물</button>
+<button onclick="mode='room'">방</button>
+<button onclick="mode='trap'">함정</button>
 
-<hr>
+<button onclick="monsterMode('goblin')">👾</button>
+<button onclick="monsterMode('orc')">👹</button>
+<button onclick="monsterMode('slime')">🟢</button>
 
-<button onclick="monsterMode('goblin')">👾 고블린</button>
-<button onclick="monsterMode('orc')">👹 오크</button>
-<button onclick="monsterMode('slime')">🟢 슬라임</button>
-
-<hr>
-
-<button onclick="upgradeMonster()">몬스터 업그레이드</button>
-<button onclick="upgradeDragon()">드래곤 강화</button>
-
-<hr>
-
-<button onclick="startRound()">▶ 라운드 시작</button>
+<button onclick="startRound()">▶ 라운드</button>
 
 </div>
+
+<div id="mapWrap">
 
 <div id="map"></div>
 
@@ -141,11 +149,8 @@ let rooms=[]
 let monsters=[]
 let heroes=[]
 
-let nestCell=820
-
-let dragonHP=500
-
-let monsterLevel=1
+let entrance=0
+let nest=1599
 
 /* MAP */
 
@@ -159,9 +164,17 @@ c.className="cell"
 
 c.onclick=()=>cellClick(i)
 
-if(i==nestCell){
+if(i==nest){
 
 c.classList.add("nest")
+
+c.innerHTML="🐉"
+
+}
+
+if(i==entrance){
+
+c.innerHTML="🚪"
 
 }
 
@@ -175,27 +188,19 @@ createMap()
 
 /* BUILD */
 
-function buildMode(t){
-
-mode="build"
-buildType=t
-
-}
-
-function monsterMode(t){
-
-mode="monster"
-monsterType=t
-
-}
-
 function cellClick(i){
 
-if(mode=="build"){
+if(mode=="room"){
 
 rooms.push(i)
 
-map.children[i].classList.add(buildType)
+map.children[i].classList.add("room")
+
+}
+
+if(mode=="trap"){
+
+map.children[i].classList.add("trap")
 
 }
 
@@ -204,6 +209,14 @@ if(mode=="monster"){
 spawnMonster(i)
 
 }
+
+}
+
+function monsterMode(t){
+
+mode="monster"
+
+monsterType=t
 
 }
 
@@ -234,8 +247,8 @@ map.children[cell].appendChild(el)
 monsters.push({
 
 cell,
-hp:s.hp*monsterLevel,
-atk:s.atk*monsterLevel,
+hp:s.hp,
+atk:s.atk,
 el
 
 })
@@ -252,11 +265,11 @@ el.className="hero"
 
 el.innerText="⚔️"
 
-map.children[0].appendChild(el)
+map.children[entrance].appendChild(el)
 
 heroes.push({
 
-cell:0,
+cell:entrance,
 hp:120,
 atk:10,
 el
@@ -289,9 +302,7 @@ function moveHeroes(){
 
 heroes.forEach(h=>{
 
-let next=neighbors(h.cell).find(n=>rooms.includes(n)||n==nestCell)
-
-if(next==undefined)return
+let next=neighbors(h.cell)[0]
 
 map.children[h.cell].removeChild(h.el)
 
@@ -340,24 +351,6 @@ heroes.splice(hi,1)
 
 })
 
-/* NEST */
-
-heroes.forEach((h,hi)=>{
-
-if(h.cell==nestCell){
-
-dragonHP-=h.atk
-
-if(dragonHP<=0){
-
-alert("GAME OVER")
-
-}
-
-}
-
-})
-
 }
 
 /* ROUND */
@@ -369,24 +362,6 @@ for(let i=0;i<10;i++){
 setTimeout(spawnHero,i*1000)
 
 }
-
-}
-
-/* UPGRADE */
-
-function upgradeMonster(){
-
-monsterLevel++
-
-gold-=200
-
-}
-
-function upgradeDragon(){
-
-dragonHP+=200
-
-gold-=300
 
 }
 
