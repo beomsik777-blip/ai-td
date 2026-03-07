@@ -2,9 +2,8 @@
 <html lang="ko">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-
-<title>Dragon Dungeon</title>
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Dragon Nest Dungeon</title>
 
 <style>
 
@@ -16,19 +15,24 @@ font-family:sans-serif;
 }
 
 #ui{
-
 display:flex;
 height:100vh;
-
 }
 
-#leftPanel{
-
-width:220px;
+#panel{
+width:240px;
 background:#020617;
-padding:10px;
 border-right:2px solid #334155;
+padding:10px;
+}
 
+button{
+width:100%;
+margin:4px 0;
+padding:8px;
+background:#334155;
+border:none;
+color:white;
 }
 
 #map{
@@ -37,23 +41,22 @@ flex:1;
 
 display:grid;
 
-grid-template-columns:repeat(20,1fr);
-grid-template-rows:repeat(20,1fr);
+grid-template-columns:repeat(40,1fr);
+grid-template-rows:repeat(40,1fr);
 
 background:#0f172a;
 
 }
 
 .cell{
-
 border:1px solid #1e293b;
 position:relative;
-
 }
 
 .room{background:#1e293b}
-.treasure{background:#78350f}
 .trap{background:#7f1d1d}
+.treasure{background:#78350f}
+.nest{background:#14532d}
 
 .hero,.monster{
 
@@ -64,47 +67,21 @@ top:50%;
 
 transform:translate(-50%,-50%);
 
-font-size:18px;
-
-}
-
-.hpbar{
-
-position:absolute;
-bottom:0;
-left:0;
-
-height:3px;
-
-background:#22c55e;
+font-size:14px;
 
 }
 
 .damage{
-
 position:absolute;
 color:red;
 font-size:12px;
 animation:float .7s forwards;
-
 }
 
 @keyframes float{
 
 0%{opacity:1;top:50%}
 100%{opacity:0;top:20%}
-
-}
-
-button{
-
-width:100%;
-margin:3px 0;
-padding:6px;
-
-background:#334155;
-border:none;
-color:white;
 
 }
 
@@ -116,32 +93,32 @@ color:white;
 
 <div id="ui">
 
-<div id="leftPanel">
+<div id="panel">
 
-<h3>🐉 Dragon Dungeon</h3>
+<h3>🐉 Dragon Nest</h3>
 
 Gold : <span id="gold">500</span>
 
 <hr>
 
-<button onclick="buildMode('room')">방 건설</button>
-<button onclick="buildMode('treasure')">보물방</button>
-<button onclick="buildMode('trap')">함정방</button>
+<button onclick="buildMode('room')">방</button>
+<button onclick="buildMode('trap')">함정</button>
+<button onclick="buildMode('treasure')">보물</button>
 
 <hr>
 
 <button onclick="monsterMode('goblin')">👾 고블린</button>
-<button onclick="monsterMode('slime')">🟢 슬라임</button>
 <button onclick="monsterMode('orc')">👹 오크</button>
-<button onclick="monsterMode('lich')">💀 리치</button>
-<button onclick="monsterMode('dragon')">🐲 드래곤</button>
-<button onclick="monsterMode('golem')">🪨 골렘</button>
+<button onclick="monsterMode('slime')">🟢 슬라임</button>
 
 <hr>
 
-<button onclick="dragonFire()">🔥 브레스</button>
+<button onclick="upgradeMonster()">몬스터 업그레이드</button>
+<button onclick="upgradeDragon()">드래곤 강화</button>
 
-<button onclick="saveGame()">💾 저장</button>
+<hr>
+
+<button onclick="startRound()">▶ 라운드 시작</button>
 
 </div>
 
@@ -151,30 +128,30 @@ Gold : <span id="gold">500</span>
 
 <script>
 
-/* =====================
-   GAME STATE
-===================== */
+const map=document.getElementById("map")
+
+let size=40
 
 let gold=500
 
-let mapSize=20
-
 let mode=null
-let selectedMonster=null
+let monsterType=null
 
 let rooms=[]
 let monsters=[]
 let heroes=[]
 
-/* =====================
-   MAP
-===================== */
+let nestCell=820
 
-const map=document.getElementById("map")
+let dragonHP=500
+
+let monsterLevel=1
+
+/* MAP */
 
 function createMap(){
 
-for(let i=0;i<mapSize*mapSize;i++){
+for(let i=0;i<size*size;i++){
 
 const c=document.createElement("div")
 
@@ -182,171 +159,137 @@ c.className="cell"
 
 c.onclick=()=>cellClick(i)
 
+if(i==nestCell){
+
+c.classList.add("nest")
+
+}
+
 map.appendChild(c)
 
 }
 
 }
 
-/* =====================
-   BUILDING
-===================== */
+createMap()
 
-function buildMode(type){
+/* BUILD */
+
+function buildMode(t){
 
 mode="build"
-buildType=type
+buildType=t
 
 }
 
-function monsterMode(type){
+function monsterMode(t){
 
 mode="monster"
-selectedMonster=type
+monsterType=t
 
 }
 
 function cellClick(i){
 
-if(mode=="build") buildRoom(i)
-
-if(mode=="monster") spawnMonster(i)
-
-}
-
-/* =====================
-   ROOMS
-===================== */
-
-function buildRoom(i){
-
-if(rooms.includes(i))return
+if(mode=="build"){
 
 rooms.push(i)
 
-if(buildType=="room") map.children[i].classList.add("room")
-
-if(buildType=="treasure") map.children[i].classList.add("treasure")
-
-if(buildType=="trap") map.children[i].classList.add("trap")
+map.children[i].classList.add(buildType)
 
 }
 
-/* =====================
-   MONSTERS
-===================== */
+if(mode=="monster"){
+
+spawnMonster(i)
+
+}
+
+}
+
+/* MONSTER */
+
+function stats(t){
+
+if(t=="goblin")return{hp:40,atk:6,icon:"👾"}
+if(t=="orc")return{hp:90,atk:12,icon:"👹"}
+if(t=="slime")return{hp:30,atk:4,icon:"🟢"}
+
+}
 
 function spawnMonster(cell){
 
 if(!rooms.includes(cell))return
 
-const data=monsterStats(selectedMonster)
+const s=stats(monsterType)
 
 const el=document.createElement("div")
 
 el.className="monster"
 
-el.innerHTML=data.icon
+el.innerText=s.icon
 
 map.children[cell].appendChild(el)
-
-const hpbar=document.createElement("div")
-hpbar.className="hpbar"
-
-el.appendChild(hpbar)
 
 monsters.push({
 
 cell,
-hp:data.hp,
-maxHp:data.hp,
-atk:data.atk,
-el,
-hpbar
-
-})
-
-}
-
-/* =====================
-   STATS
-===================== */
-
-function monsterStats(t){
-
-if(t=="goblin")return{hp:40,atk:6,icon:"👾"}
-if(t=="slime")return{hp:30,atk:4,icon:"🟢"}
-if(t=="orc")return{hp:90,atk:12,icon:"👹"}
-if(t=="lich")return{hp:120,atk:18,icon:"💀"}
-if(t=="dragon")return{hp:200,atk:24,icon:"🐲"}
-if(t=="golem")return{hp:250,atk:20,icon:"🪨"}
-
-}
-
-/* =====================
-   HERO
-===================== */
-
-function spawnHero(){
-
-const types=[
-
-{icon:"⚔️",hp:120,atk:10},
-{icon:"🏹",hp:90,atk:14},
-{icon:"🔮",hp:80,atk:18},
-{icon:"🛡️",hp:150,atk:8}
-
-]
-
-const t=types[Math.floor(Math.random()*types.length)]
-
-const el=document.createElement("div")
-
-el.className="hero"
-
-el.innerHTML=t.icon
-
-map.children[0].appendChild(el)
-
-heroes.push({
-
-cell:0,
-hp:t.hp,
-maxHp:t.hp,
-atk:t.atk,
+hp:s.hp*monsterLevel,
+atk:s.atk*monsterLevel,
 el
 
 })
 
 }
 
-setInterval(spawnHero,5000)
+/* HERO */
 
-/* =====================
-   MOVEMENT
-===================== */
+function spawnHero(){
+
+const el=document.createElement("div")
+
+el.className="hero"
+
+el.innerText="⚔️"
+
+map.children[0].appendChild(el)
+
+heroes.push({
+
+cell:0,
+hp:120,
+atk:10,
+el
+
+})
+
+}
+
+/* PATH */
 
 function neighbors(i){
 
-let x=i%mapSize
-let y=Math.floor(i/mapSize)
+let x=i%size
+let y=Math.floor(i/size)
 
 let list=[]
 
 if(x>0) list.push(i-1)
-if(x<mapSize-1) list.push(i+1)
-if(y>0) list.push(i-mapSize)
-if(y<mapSize-1) list.push(i+mapSize)
+if(x<size-1) list.push(i+1)
+if(y>0) list.push(i-size)
+if(y<size-1) list.push(i+size)
 
 return list
 
 }
 
+/* HERO MOVE */
+
 function moveHeroes(){
 
 heroes.forEach(h=>{
 
-let next=neighbors(h.cell).find(n=>rooms.includes(n))
+let next=neighbors(h.cell).find(n=>rooms.includes(n)||n==nestCell)
 
 if(next==undefined)return
 
@@ -360,23 +303,7 @@ map.children[h.cell].appendChild(h.el)
 
 }
 
-/* =====================
-   COMBAT
-===================== */
-
-function showDamage(cell,val){
-
-const d=document.createElement("div")
-
-d.className="damage"
-
-d.innerText="-"+val
-
-map.children[cell].appendChild(d)
-
-setTimeout(()=>d.remove(),700)
-
-}
+/* BATTLE */
 
 function battle(){
 
@@ -389,15 +316,12 @@ if(h.cell==m.cell){
 m.hp-=h.atk
 h.hp-=m.atk
 
-showDamage(h.cell,h.atk)
-showDamage(h.cell,m.atk)
-
-m.hpbar.style.width=(m.hp/m.maxHp*100)+"%"
-
 if(m.hp<=0){
 
 m.el.remove()
+
 monsters.splice(mi,1)
+
 gold+=50
 
 }
@@ -405,6 +329,7 @@ gold+=50
 if(h.hp<=0){
 
 h.el.remove()
+
 heroes.splice(hi,1)
 
 }
@@ -415,27 +340,19 @@ heroes.splice(hi,1)
 
 })
 
-}
-
-/* =====================
-   DRAGON
-===================== */
-
-function dragonFire(){
+/* NEST */
 
 heroes.forEach((h,hi)=>{
 
-h.hp-=40
+if(h.cell==nestCell){
 
-showDamage(h.cell,40)
+dragonHP-=h.atk
 
-if(h.hp<=0){
+if(dragonHP<=0){
 
-h.el.remove()
+alert("GAME OVER")
 
-heroes.splice(hi,1)
-
-gold+=30
+}
 
 }
 
@@ -443,37 +360,50 @@ gold+=30
 
 }
 
-/* =====================
-   SAVE
-===================== */
+/* ROUND */
 
-function saveGame(){
+function startRound(){
 
-localStorage.setItem("dragonDungeon",JSON.stringify({
+for(let i=0;i<10;i++){
 
-gold,
-rooms
-
-}))
+setTimeout(spawnHero,i*1000)
 
 }
 
-/* =====================
-   GAME LOOP
-===================== */
+}
+
+/* UPGRADE */
+
+function upgradeMonster(){
+
+monsterLevel++
+
+gold-=200
+
+}
+
+function upgradeDragon(){
+
+dragonHP+=200
+
+gold-=300
+
+}
+
+/* LOOP */
 
 setInterval(()=>{
 
 moveHeroes()
+
 battle()
 
 document.getElementById("gold").innerText=gold
 
-},800)
-
-createMap()
+},500)
 
 </script>
 
 </body>
+
 </html>
