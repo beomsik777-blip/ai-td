@@ -18,33 +18,45 @@ text-align:center;
 }
 
 #top{
+
 padding:10px;
+
+background:#020617;
+
 border-bottom:2px solid #334155;
+
 }
 
 button{
+
 padding:8px 12px;
-margin:3px;
-background:#1e293b;
+
+margin:4px;
+
 border:none;
-border-radius:6px;
+
+border-radius:8px;
+
+background:#334155;
+
 color:white;
+
 }
 
 #map{
 
 width:95vw;
-max-width:520px;
+max-width:540px;
 
 height:95vw;
-max-height:520px;
+max-height:540px;
 
 margin:auto;
 
 display:grid;
 
-grid-template-columns:repeat(10,1fr);
-grid-template-rows:repeat(10,1fr);
+grid-template-columns:repeat(12,1fr);
+grid-template-rows:repeat(12,1fr);
 
 background:#0f172a;
 
@@ -53,6 +65,7 @@ background:#0f172a;
 .cell{
 
 border:1px solid #1e293b;
+
 position:relative;
 
 }
@@ -69,43 +82,46 @@ background:#78350f;
 
 }
 
-.monster{
+.hero,.monster{
 
 position:absolute;
+
 left:50%;
 top:50%;
+
 transform:translate(-50%,-50%);
-font-size:20px;
+
+font-size:18px;
+
+text-align:center;
 
 }
 
-.hero{
+.hp{
 
-position:absolute;
-left:50%;
-top:50%;
-transform:translate(-50%,-50%);
-font-size:20px;
+font-size:10px;
+
+color:#22c55e;
 
 }
 
-#startScreen{
+.damage{
 
-position:fixed;
+position:absolute;
 
-top:0;
-left:0;
+color:red;
 
-width:100%;
-height:100%;
+font-size:12px;
 
-background:#020617;
+animation:float 0.7s forwards;
 
-display:flex;
-flex-direction:column;
+}
 
-justify-content:center;
-align-items:center;
+@keyframes float{
+
+0%{opacity:1;top:50%}
+
+100%{opacity:0;top:20%}
 
 }
 
@@ -115,34 +131,30 @@ align-items:center;
 
 <body>
 
-<div id="startScreen">
-
-<h1>🐉 Dragon Dungeon</h1>
-
-<button onclick="startGame()">게임 시작</button>
-
-</div>
-
-
 <div id="top">
 
-Gold : <span id="gold">200</span>
+<h2>🐉 Dragon Dungeon</h2>
+
+Gold : <span id="gold">300</span>
 
 <br>
 
-<button onclick="buildRoom()">🧱 방</button>
-<button onclick="buildTreasure()">💰 보물방</button>
+<button onclick="mode='room'">🧱 방</button>
+<button onclick="mode='treasure'">💰 보물방</button>
 
 <button onclick="spawnMonster('goblin')">👾 고블린</button>
 <button onclick="spawnMonster('orc')">👹 오크</button>
 <button onclick="spawnMonster('slime')">🟢 슬라임</button>
 <button onclick="spawnMonster('lich')">💀 리치</button>
+<button onclick="spawnMonster('dragon')">🐲 드래곤</button>
 
 <br>
 
-<button onclick="dragonFire()">🔥 드래곤 브레스</button>
+<button onclick="dragonFire()">🔥 브레스</button>
+
 <button onclick="saveGame()">💾 저장</button>
-<button onclick="exitGame()">🚪 나가기</button>
+<button onclick="loadGame()">📂 불러오기</button>
+<button onclick="location.reload()">🚪 나가기</button>
 
 </div>
 
@@ -152,14 +164,13 @@ Gold : <span id="gold">200</span>
 
 const map=document.getElementById("map")
 
-let gold=200
+let gold=300
 
 let mode=null
-let selectedMonster=null
+let monsterType=null
 
 let rooms=[]
 let treasures=[]
-
 let monsters=[]
 let heroes=[]
 
@@ -169,21 +180,9 @@ document.getElementById("gold").innerText=gold
 
 }
 
-function startGame(){
-
-document.getElementById("startScreen").style.display="none"
-
-createMap()
-
-loadGame()
-
-spawnHeroLoop()
-
-}
-
 function createMap(){
 
-for(let i=0;i<100;i++){
+for(let i=0;i<144;i++){
 
 const c=document.createElement("div")
 
@@ -203,79 +202,74 @@ if(mode=="room"){
 
 if(gold<50)return
 
-if(rooms.includes(i))return
-
 rooms.push(i)
 
 map.children[i].classList.add("room")
 
 gold-=50
 
-updateUI()
-
 }
 
 if(mode=="treasure"){
 
-if(gold<150)return
+if(gold<200)return
 
 treasures.push(i)
 
 map.children[i].classList.add("treasure")
 
-gold-=150
-
-updateUI()
+gold-=200
 
 }
 
 if(mode=="monster"){
 
-if(!rooms.includes(i))return
-
-createMonster(i,selectedMonster)
+createMonster(i,monsterType)
 
 }
 
-}
+updateUI()
 
-function buildRoom(){mode="room"}
-function buildTreasure(){mode="treasure"}
+}
 
 function spawnMonster(type){
 
 mode="monster"
-selectedMonster=type
+
+monsterType=type
 
 }
 
 function createMonster(cell,type){
 
-let data={}
-
-if(type=="goblin") data={hp:40,atk:5,icon:"👾"}
-if(type=="orc") data={hp:70,atk:8,icon:"👹"}
-if(type=="slime") data={hp:30,atk:3,icon:"🟢"}
-if(type=="lich") data={hp:100,atk:12,icon:"💀"}
+if(!rooms.includes(cell))return
 
 if(gold<100)return
 
 gold-=100
 
+let data={}
+
+if(type=="goblin")data={hp:40,atk:6,icon:"👾"}
+if(type=="orc")data={hp:80,atk:12,icon:"👹"}
+if(type=="slime")data={hp:30,atk:4,icon:"🟢"}
+if(type=="lich")data={hp:120,atk:18,icon:"💀"}
+if(type=="dragon")data={hp:200,atk:25,icon:"🐲"}
+
 const el=document.createElement("div")
 
 el.className="monster"
 
-el.innerText=data.icon
+el.innerHTML=data.icon+"<div class='hp'>"+data.hp+"</div>"
 
 map.children[cell].appendChild(el)
 
 monsters.push({
 
-cell:cell,
+cell,
 hp:data.hp,
 atk:data.atk,
-el:el
+el
 
 })
 
@@ -285,50 +279,54 @@ updateUI()
 
 function spawnHero(){
 
-const h={
+const types=[
 
-cell:0,
-hp:80,
-atk:7
+{icon:"⚔️",hp:120,atk:10},
+{icon:"🏹",hp:90,atk:12},
+{icon:"🔮",hp:80,atk:15}
 
-}
+]
+
+const t=types[Math.floor(Math.random()*types.length)]
 
 const el=document.createElement("div")
 
 el.className="hero"
-el.innerText="🧙"
+
+el.innerHTML=t.icon+"<div class='hp'>"+t.hp+"</div>"
 
 map.children[0].appendChild(el)
 
-h.el=el
+heroes.push({
 
-heroes.push(h)
+cell:0,
+hp:t.hp,
+atk:t.atk,
+el
+
+})
 
 }
 
-function spawnHeroLoop(){
-
-setInterval(spawnHero,6000)
-
-}
+setInterval(spawnHero,5000)
 
 function neighbors(i){
 
 let list=[]
 
-let x=i%10
-let y=Math.floor(i/10)
+let x=i%12
+let y=Math.floor(i/12)
 
 if(x>0) list.push(i-1)
-if(x<9) list.push(i+1)
-if(y>0) list.push(i-10)
-if(y<9) list.push(i+10)
+if(x<11) list.push(i+1)
+if(y>0) list.push(i-12)
+if(y<11) list.push(i+12)
 
 return list
 
 }
 
-function heroMove(){
+function moveHeroes(){
 
 heroes.forEach(h=>{
 
@@ -346,6 +344,36 @@ map.children[h.cell].appendChild(h.el)
 
 }
 
+function showDamage(cell,amount){
+
+const d=document.createElement("div")
+
+d.className="damage"
+
+d.innerText="-"+amount
+
+map.children[cell].appendChild(d)
+
+setTimeout(()=>d.remove(),700)
+
+}
+
+function updateHP(){
+
+heroes.forEach(h=>{
+
+h.el.querySelector(".hp").innerText=h.hp
+
+})
+
+monsters.forEach(m=>{
+
+m.el.querySelector(".hp").innerText=m.hp
+
+})
+
+}
+
 function battle(){
 
 heroes.forEach((h,hi)=>{
@@ -355,12 +383,18 @@ monsters.forEach((m,mi)=>{
 if(h.cell==m.cell){
 
 m.hp-=h.atk
+showDamage(h.cell,h.atk)
+
 h.hp-=m.atk
+showDamage(h.cell,m.atk)
 
 if(m.hp<=0){
 
 m.el.remove()
+
 monsters.splice(mi,1)
+
+gold+=50
 
 }
 
@@ -370,11 +404,11 @@ h.el.remove()
 
 heroes.splice(hi,1)
 
-gold+=40
+}
 
 updateUI()
 
-}
+updateHP()
 
 }
 
@@ -390,25 +424,27 @@ heroes.forEach((h,hi)=>{
 
 h.hp-=40
 
+showDamage(h.cell,40)
+
 if(h.hp<=0){
 
 h.el.remove()
 
 heroes.splice(hi,1)
 
-gold+=20
+gold+=30
 
 }
 
 })
 
-updateUI()
+updateHP()
 
 }
 
 function saveGame(){
 
-localStorage.setItem("dungeon",JSON.stringify({
+localStorage.setItem("dragonDungeon",JSON.stringify({
 
 gold,
 rooms,
@@ -422,14 +458,13 @@ alert("저장됨")
 
 function loadGame(){
 
-const data=localStorage.getItem("dungeon")
+const data=localStorage.getItem("dragonDungeon")
 
 if(!data)return
 
 const d=JSON.parse(data)
 
 gold=d.gold
-
 rooms=d.rooms
 treasures=d.treasures
 
@@ -441,18 +476,14 @@ updateUI()
 
 }
 
-function exitGame(){
-
-location.reload()
-
-}
-
 setInterval(()=>{
 
-heroMove()
+moveHeroes()
 battle()
 
 },1000)
+
+createMap()
 
 updateUI()
 
