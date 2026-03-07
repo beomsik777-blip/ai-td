@@ -3,655 +3,454 @@
 <html lang="ko">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
 <title>🐉 Dragon's Lair</title>
-<link href="https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@700;900&family=Cinzel:wght@400;600&family=IM+Fell+English&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@700&family=Cinzel:wght@400;600&display=swap" rel="stylesheet">
 <style>
 :root {
   --bg: #050810;
   --surface: #0d1117;
-  --panel: #111827;
   --border: #1f2d3d;
   --gold: #f59e0b;
   --gold-dim: #92400e;
   --red: #ef4444;
   --green: #22c55e;
-  --blue: #3b82f6;
   --purple: #a855f7;
   --text: #e2e8f0;
   --text-dim: #64748b;
-  --nest-color: #15803d;
   --room-color: #1e3a5f;
+  --corridor-color: #16213e;
   --trap-color: #7f1d1d;
-  --wall-color: #1c1c2e;
+  --wall-color: #0f0f1a;
+  --cell: 36px;
 }
 
-- { margin: 0; padding: 0; box-sizing: border-box; }
+- { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent; touch-action:manipulation; }
+  html, body { height:100%; overflow:hidden; background:var(–bg); color:var(–text); font-family:‘Cinzel’,serif; user-select:none; }
 
-body {
-background: var(–bg);
-color: var(–text);
-font-family: ‘Cinzel’, serif;
-overflow: hidden;
-height: 100vh;
-display: flex;
-flex-direction: column;
-background-image:
-radial-gradient(ellipse at 20% 20%, rgba(168,85,247,0.04) 0%, transparent 50%),
-radial-gradient(ellipse at 80% 80%, rgba(245,158,11,0.04) 0%, transparent 50%);
+/* ── TOP HUD ── */
+#hud {
+position:fixed; top:0; left:0; right:0; z-index:30;
+background:linear-gradient(180deg,#0d1117 0%,rgba(13,17,23,0.95) 100%);
+border-bottom:1px solid var(–border);
+padding:8px 12px 6px;
+display:flex; flex-direction:column; gap:5px;
 }
-
-/* ===== HEADER ===== */
-#header {
-display: flex;
-align-items: center;
-gap: 16px;
-padding: 10px 16px;
-background: linear-gradient(180deg, #0d1117 0%, #050810 100%);
-border-bottom: 1px solid var(–border);
-flex-shrink: 0;
-z-index: 20;
-flex-wrap: wrap;
-}
-
+#hud-top { display:flex; align-items:center; gap:8px; }
 #title {
-font-family: ‘Cinzel Decorative’, cursive;
-font-size: 18px;
-background: linear-gradient(135deg, #f59e0b, #fde68a, #f59e0b);
--webkit-background-clip: text;
--webkit-text-fill-color: transparent;
-letter-spacing: 2px;
-white-space: nowrap;
+font-family:‘Cinzel Decorative’,cursive; font-size:14px;
+background:linear-gradient(135deg,#f59e0b,#fde68a,#f59e0b);
+-webkit-background-clip:text; -webkit-text-fill-color:transparent;
+flex-shrink:0;
+}
+.stats { display:flex; gap:6px; flex:1; justify-content:flex-end; flex-wrap:wrap; }
+.stat {
+display:flex; align-items:center; gap:3px;
+background:rgba(255,255,255,0.04); border:1px solid var(–border);
+border-radius:5px; padding:3px 7px; font-size:11px;
+}
+.stat .sv { font-weight:700; color:var(–gold); }
+.stat.hp .sv { color:var(–red); }
+.stat.wave .sv { color:var(–purple); }
+
+/* Dragon HP bar */
+#dragon-bar-wrap {
+height:4px; background:rgba(255,255,255,0.08);
+border-radius:2px; overflow:hidden;
+}
+#dragon-bar {
+height:100%; width:100%;
+background:linear-gradient(90deg,#ef4444,#f97316);
+border-radius:2px; transition:width 0.3s;
 }
 
-.stat-group {
-display: flex;
-align-items: center;
-gap: 12px;
-background: rgba(255,255,255,0.03);
-border: 1px solid var(–border);
-border-radius: 6px;
-padding: 5px 12px;
+/* ── BOTTOM PANEL ── */
+#panel {
+position:fixed; bottom:0; left:0; right:0; z-index:30;
+background:linear-gradient(0deg,#0d1117 0%,rgba(13,17,23,0.97) 100%);
+border-top:1px solid var(–border);
+padding:8px 8px 10px;
+display:flex; flex-direction:column; gap:7px;
 }
 
-.stat-item {
-display: flex;
-align-items: center;
-gap: 5px;
-font-size: 12px;
+/* Tab bar */
+#tabs { display:flex; gap:5px; }
+.tab {
+flex:1; padding:7px 4px; text-align:center;
+background:rgba(255,255,255,0.04); border:1px solid var(–border);
+border-radius:7px; font-size:10px; cursor:pointer;
+transition:all 0.15s; color:var(–text-dim);
+display:flex; flex-direction:column; align-items:center; gap:1px;
+}
+.tab .tab-icon { font-size:16px; }
+.tab.active {
+background:rgba(245,158,11,0.15); border-color:var(–gold);
+color:var(–gold);
+}
+.tab.active-purple {
+background:rgba(168,85,247,0.15); border-color:var(–purple);
+color:var(–purple);
 }
 
-.stat-icon { font-size: 14px; }
-.stat-val { font-weight: 600; color: var(–gold); }
-#stat-hp .stat-val { color: var(–red); }
-#stat-wave .stat-val { color: var(–purple); }
-
-/* ===== TOOLBAR ===== */
-#toolbar {
-display: flex;
-align-items: center;
-gap: 6px;
-padding: 8px 16px;
-background: var(–surface);
-border-bottom: 1px solid var(–border);
-flex-shrink: 0;
-flex-wrap: wrap;
-}
-
-.tool-label {
-font-size: 10px;
-color: var(–text-dim);
-text-transform: uppercase;
-letter-spacing: 1px;
-margin-right: 2px;
-}
-
+/* Tool rows */
+.tool-row { display:flex; gap:5px; }
 .tool-btn {
-display: flex;
-align-items: center;
-gap: 5px;
-padding: 6px 10px;
-background: rgba(255,255,255,0.04);
-border: 1px solid var(–border);
-border-radius: 5px;
-color: var(–text);
-cursor: pointer;
-font-family: ‘Cinzel’, serif;
-font-size: 11px;
-transition: all 0.15s;
-white-space: nowrap;
+flex:1; padding:8px 4px; text-align:center;
+background:rgba(255,255,255,0.04); border:1px solid var(–border);
+border-radius:7px; cursor:pointer; transition:all 0.15s;
+display:flex; flex-direction:column; align-items:center; gap:2px;
+min-height:52px; justify-content:center;
 }
-
-.tool-btn:hover { background: rgba(255,255,255,0.09); border-color: #334155; }
+.tool-btn .tb-icon { font-size:18px; }
+.tool-btn .tb-label { font-size:9px; color:var(–text-dim); }
+.tool-btn .tb-cost { font-size:9px; color:var(–gold-dim); }
 .tool-btn.active {
-background: rgba(245,158,11,0.15);
-border-color: var(–gold);
-color: var(–gold);
-box-shadow: 0 0 8px rgba(245,158,11,0.2);
+background:rgba(245,158,11,0.15); border-color:var(–gold);
 }
-.tool-btn .cost { font-size: 10px; color: var(–gold-dim); margin-left: 3px; }
-.tool-btn.active .cost { color: var(–gold); }
-
-.tool-sep { width: 1px; height: 28px; background: var(–border); margin: 0 4px; }
-
-.round-btn {
-margin-left: auto;
-padding: 7px 18px;
-background: linear-gradient(135deg, #7c3aed, #4f46e5);
-border: 1px solid #6d28d9;
-border-radius: 5px;
-color: white;
-cursor: pointer;
-font-family: ‘Cinzel’, serif;
-font-size: 12px;
-font-weight: 600;
-transition: all 0.2s;
-box-shadow: 0 2px 12px rgba(124,58,237,0.4);
+.tool-btn.active .tb-label,.tool-btn.active .tb-cost { color:var(–gold); }
+.tool-btn.active-m {
+background:rgba(168,85,247,0.15); border-color:var(–purple);
 }
-.round-btn:hover { transform: translateY(-1px); box-shadow: 0 4px 20px rgba(124,58,237,0.5); }
-.round-btn:disabled { opacity: 0.4; cursor: default; transform: none; }
+.tool-btn.active-m .tb-label,.tool-btn.active-m .tb-cost { color:var(–purple); }
 
-/* ===== MAIN LAYOUT ===== */
-#main {
-display: flex;
-flex: 1;
-overflow: hidden;
-min-height: 0;
+.wave-btn {
+width:100%; padding:11px; font-family:‘Cinzel’,serif; font-size:14px;
+font-weight:700; color:white; cursor:pointer; border-radius:8px;
+background:linear-gradient(135deg,#7c3aed,#4f46e5);
+border:1px solid #6d28d9;
+box-shadow:0 2px 16px rgba(124,58,237,0.5);
+transition:all 0.2s;
+letter-spacing:1px;
 }
+.wave-btn:disabled { opacity:0.35; cursor:default; box-shadow:none; }
+.wave-btn:active:not(:disabled) { transform:scale(0.97); }
 
-/* ===== SIDEBAR ===== */
-#sidebar {
-width: 200px;
-flex-shrink: 0;
-background: var(–surface);
-border-right: 1px solid var(–border);
-display: flex;
-flex-direction: column;
-overflow-y: auto;
+/* Upgrade buttons */
+.upg-row { display:flex; gap:5px; }
+.upg-btn {
+flex:1; padding:7px 6px;
+background:rgba(255,255,255,0.04); border:1px solid var(–border);
+border-radius:7px; cursor:pointer; transition:all 0.15s;
+display:flex; flex-direction:column; align-items:center; gap:2px;
 }
+.upg-btn .ub-icon { font-size:16px; }
+.upg-btn .ub-name { font-size:9px; color:var(–text-dim); text-align:center; }
+.upg-btn .ub-cost { font-size:9px; color:var(–gold); }
+.upg-btn:disabled { opacity:0.3; cursor:default; }
+.upg-btn.bought { border-color:var(–green); background:rgba(34,197,94,0.1); }
+.upg-btn.bought .ub-cost { color:var(–green); }
 
-.sidebar-section {
-padding: 12px;
-border-bottom: 1px solid var(–border);
+/* Tab content */
+.tab-content { display:none; flex-direction:column; gap:6px; }
+.tab-content.visible { display:flex; }
+
+/* ── MAP AREA ── */
+#map-wrap {
+position:fixed; left:0; right:0;
+overflow:auto; background:var(–bg);
+-webkit-overflow-scrolling:touch;
 }
-
-.sidebar-title {
-font-size: 10px;
-text-transform: uppercase;
-letter-spacing: 1.5px;
-color: var(–text-dim);
-margin-bottom: 8px;
-}
-
-/* Monster cards */
-.monster-card {
-display: flex;
-align-items: center;
-gap: 8px;
-padding: 8px 10px;
-margin-bottom: 5px;
-background: rgba(255,255,255,0.03);
-border: 1px solid var(–border);
-border-radius: 6px;
-cursor: pointer;
-transition: all 0.15s;
-}
-.monster-card:hover { background: rgba(255,255,255,0.07); }
-.monster-card.active { border-color: var(–purple); background: rgba(168,85,247,0.1); }
-.monster-card .m-icon { font-size: 18px; }
-.monster-card .m-info { flex: 1; }
-.monster-card .m-name { font-size: 11px; font-weight: 600; }
-.monster-card .m-stats { font-size: 9px; color: var(–text-dim); margin-top: 2px; }
-.monster-card .m-cost { font-size: 10px; color: var(–gold); }
-
-/* Log */
-#log {
-flex: 1;
-overflow-y: auto;
-padding: 10px;
-}
-#log::-webkit-scrollbar { width: 4px; }
-#log::-webkit-scrollbar-track { background: transparent; }
-#log::-webkit-scrollbar-thumb { background: var(–border); border-radius: 2px; }
-
-.log-entry {
-font-family: ‘IM Fell English’, serif;
-font-size: 11px;
-color: var(–text-dim);
-padding: 3px 0;
-border-bottom: 1px solid rgba(255,255,255,0.03);
-line-height: 1.4;
-animation: fadeIn 0.3s ease;
-}
-.log-entry.danger { color: #f87171; }
-.log-entry.gold { color: var(–gold); }
-.log-entry.good { color: var(–green); }
-.log-entry.wave { color: var(–purple); font-weight: bold; }
-
-@keyframes fadeIn { from { opacity: 0; transform: translateY(-3px); } to { opacity: 1; transform: none; } }
-
-/* ===== MAP AREA ===== */
-#mapWrap {
-flex: 1;
-overflow: auto;
-background: var(–bg);
-position: relative;
-cursor: crosshair;
-}
-
-#mapWrap::-webkit-scrollbar { width: 8px; height: 8px; }
-#mapWrap::-webkit-scrollbar-track { background: var(–bg); }
-#mapWrap::-webkit-scrollbar-thumb { background: var(–border); border-radius: 4px; }
+#map-wrap::-webkit-scrollbar { display:none; }
 
 #map {
-display: grid;
-grid-template-columns: repeat(30, 32px);
-grid-template-rows: repeat(30, 32px);
-width: 960px;
-height: 960px;
-margin: 16px;
-border: 1px solid var(–border);
-box-shadow: 0 0 40px rgba(0,0,0,0.8);
-position: relative;
-}
-
-/* Grid overlay */
-#map::before {
-content: ‘’;
-position: absolute;
-inset: 0;
-background-image:
-linear-gradient(rgba(30,40,60,0.3) 1px, transparent 1px),
-linear-gradient(90deg, rgba(30,40,60,0.3) 1px, transparent 1px);
-background-size: 32px 32px;
-pointer-events: none;
-z-index: 1;
+display:grid;
+grid-template-columns:repeat(20, var(–cell));
+grid-template-rows:repeat(20, var(–cell));
+position:relative;
+touch-action:none;
 }
 
 .cell {
-width: 32px;
-height: 32px;
-position: relative;
-transition: background 0.2s;
-background: var(–wall-color);
+width:var(–cell); height:var(–cell);
+position:relative; background:var(–wall-color);
+border:0.5px solid rgba(30,45,70,0.5);
+}
+.cell.corridor { background:var(–corridor-color); border-color:rgba(59,130,246,0.15); }
+.cell.room     { background:var(–room-color);     border-color:rgba(59,130,246,0.25); }
+.cell.trap     { background:var(–trap-color);      border-color:rgba(239,68,68,0.3); }
+.cell.nest     {
+background:radial-gradient(circle,#166534,#14532d);
+border-color:rgba(34,197,94,0.4);
+box-shadow:0 0 8px rgba(34,197,94,0.3);
+}
+.cell.entrance { background:#1e1b4b; border-color:rgba(99,102,241,0.4); }
+.cell.selected-preview { filter:brightness(1.6); }
+
+/* Trap icon */
+.trap-icon {
+position:absolute; inset:0; display:flex;
+align-items:center; justify-content:center;
+font-size:16px; opacity:0.5; pointer-events:none; z-index:1;
 }
 
-.cell:hover { filter: brightness(1.3); }
-
-.cell.room {
-background: var(–room-color);
-box-shadow: inset 0 0 0 1px rgba(59,130,246,0.2);
-}
-
-.cell.corridor {
-background: #16213e;
-box-shadow: inset 0 0 0 1px rgba(59,130,246,0.1);
-}
-
-.cell.trap {
-background: var(–trap-color);
-box-shadow: inset 0 0 0 1px rgba(239,68,68,0.3);
-}
-
-.cell.trap::after {
-content: ‘⚙’;
-position: absolute;
-inset: 0;
-display: flex;
-align-items: center;
-justify-content: center;
-font-size: 14px;
-opacity: 0.5;
-pointer-events: none;
-}
-
-.cell.nest {
-background: radial-gradient(circle, #166534 0%, #14532d 100%);
-box-shadow: 0 0 12px rgba(34,197,94,0.3), inset 0 0 0 1px rgba(34,197,94,0.3);
-z-index: 2;
-}
-
-.cell.entrance {
-background: #1e1b4b;
-box-shadow: 0 0 8px rgba(99,102,241,0.4), inset 0 0 0 1px rgba(99,102,241,0.4);
-}
-
-/* Entity icons */
+/* Entity */
 .entity {
-position: absolute;
-inset: 0;
-display: flex;
-align-items: center;
-justify-content: center;
-font-size: 15px;
-pointer-events: none;
-z-index: 5;
-transition: transform 0.15s;
+position:absolute; inset:0; display:flex;
+align-items:center; justify-content:center;
+font-size:16px; pointer-events:none; z-index:4;
 }
 
-.hp-bar-wrap {
-position: absolute;
-bottom: 1px;
-left: 2px;
-right: 2px;
-height: 3px;
-background: rgba(0,0,0,0.5);
-border-radius: 2px;
-z-index: 6;
-pointer-events: none;
+/* HP bar */
+.hpbar-wrap {
+position:absolute; bottom:1px; left:1px; right:1px;
+height:3px; background:rgba(0,0,0,0.6);
+border-radius:2px; z-index:5; pointer-events:none;
+}
+.hpbar {
+height:100%; border-radius:2px;
+background:var(–green); transition:width 0.15s;
 }
 
-.hp-bar {
-height: 100%;
-border-radius: 2px;
-transition: width 0.2s;
-}
-
-.hp-bar.hero-bar { background: #3b82f6; }
-.hp-bar.enemy-bar { background: #ef4444; }
-.hp-bar.monster-bar { background: #a855f7; }
-
-/* Floating damage */
+/* Floaty damage */
 .floaty {
-position: absolute;
-pointer-events: none;
-z-index: 20;
-font-family: ‘Cinzel’, serif;
-font-weight: 700;
-font-size: 13px;
-animation: floatUp 0.8s ease forwards;
-text-shadow: 0 1px 3px rgba(0,0,0,0.8);
-white-space: nowrap;
+position:absolute; pointer-events:none; z-index:20;
+font-family:‘Cinzel’,serif; font-weight:700; font-size:11px;
+animation:floatUp 0.75s ease forwards;
+text-shadow:0 1px 3px rgba(0,0,0,0.9);
 }
-
 @keyframes floatUp {
-0% { opacity: 1; transform: translateY(0) scale(1); }
-50% { opacity: 1; transform: translateY(-16px) scale(1.1); }
-100% { opacity: 0; transform: translateY(-28px) scale(0.8); }
+0%  { opacity:1; transform:translateY(0) scale(1); }
+60% { opacity:1; transform:translateY(-14px) scale(1.1); }
+100%{ opacity:0; transform:translateY(-22px) scale(0.8); }
 }
 
-/* Nest icon */
+/* Nest dragon animation */
 .nest-icon {
-position: absolute;
-inset: 0;
-display: flex;
-align-items: center;
-justify-content: center;
-font-size: 18px;
-z-index: 3;
-animation: dragonBreath 3s infinite;
+position:absolute; inset:0; display:flex;
+align-items:center; justify-content:center;
+font-size:20px; z-index:2; pointer-events:none;
+animation:dragonPulse 3s infinite;
+}
+@keyframes dragonPulse {
+0%,100%{ filter:drop-shadow(0 0 3px rgba(34,197,94,0.8)); }
+50%    { filter:drop-shadow(0 0 8px rgba(245,158,11,0.9)); }
 }
 
-@keyframes dragonBreath {
-0%, 100% { filter: drop-shadow(0 0 4px rgba(34,197,94,0.8)); }
-50% { filter: drop-shadow(0 0 10px rgba(245,158,11,0.9)) drop-shadow(0 0 20px rgba(245,158,11,0.4)); }
+/* Cell flash */
+@keyframes cellFlash {
+0%,100%{ filter:none; }
+50%    { filter:brightness(2.5); }
 }
+.flash { animation:cellFlash 0.15s ease; }
 
-/* Combat flash */
-@keyframes combatFlash {
-0%, 100% { background: inherit; }
-50% { filter: brightness(2); }
+/* Mode indicator */
+#mode-indicator {
+position:fixed; top:72px; left:50%; transform:translateX(-50%);
+background:rgba(13,17,23,0.9); border:1px solid var(–border);
+border-radius:20px; padding:4px 14px; font-size:11px;
+color:var(–gold); z-index:25; pointer-events:none;
+transition:opacity 0.3s; white-space:nowrap;
 }
+#mode-indicator.hidden { opacity:0; }
 
-.flash { animation: combatFlash 0.15s ease; }
-
-/* Wave progress */
-#wave-bar-wrap {
-width: 120px;
-height: 6px;
-background: rgba(255,255,255,0.08);
-border-radius: 3px;
-overflow: hidden;
-border: 1px solid var(–border);
+/* Log overlay (swipe up) */
+#log-btn {
+position:fixed; right:10px; z-index:35;
+background:rgba(13,17,23,0.9); border:1px solid var(–border);
+border-radius:20px; padding:5px 10px; font-size:11px;
+color:var(–text-dim); cursor:pointer;
 }
-
-#wave-bar {
-height: 100%;
-background: linear-gradient(90deg, #7c3aed, #a855f7);
-border-radius: 3px;
-transition: width 0.3s;
-width: 0%;
+#log-panel {
+position:fixed; left:0; right:0; bottom:0; z-index:40;
+background:rgba(5,8,16,0.97); border-top:1px solid var(–border);
+padding:12px; max-height:50vh; overflow-y:auto;
+transform:translateY(100%); transition:transform 0.3s;
 }
-
-/* Dragon HP */
-#dragon-hp-bar-wrap {
-width: 100px;
-height: 6px;
-background: rgba(255,255,255,0.08);
-border-radius: 3px;
-overflow: hidden;
-border: 1px solid var(–border);
+#log-panel.open { transform:translateY(0); }
+#log-close {
+float:right; cursor:pointer; color:var(–text-dim); font-size:12px;
+background:none; border:none; color:var(–text-dim); font-family:‘Cinzel’,serif;
 }
-#dragon-hp-bar {
-height: 100%;
-background: linear-gradient(90deg, #ef4444, #f97316);
-border-radius: 3px;
-transition: width 0.3s;
-width: 100%;
+.log-entry {
+font-size:11px; color:var(–text-dim);
+padding:3px 0; border-bottom:1px solid rgba(255,255,255,0.04);
+line-height:1.5; animation:fadeIn 0.3s ease;
 }
+.log-entry.danger { color:#f87171; }
+.log-entry.gold-c { color:var(–gold); }
+.log-entry.good   { color:var(–green); }
+.log-entry.wave-c { color:var(–purple); font-weight:600; }
+@keyframes fadeIn { from{opacity:0;transform:translateY(-3px)} to{opacity:1;transform:none} }
 
-/* Upgrade panel */
-.upgrade-btn {
-display: flex;
-align-items: center;
-gap: 6px;
-width: 100%;
-padding: 6px 8px;
-margin-bottom: 4px;
-background: rgba(255,255,255,0.03);
-border: 1px solid var(–border);
-border-radius: 5px;
-color: var(–text);
-cursor: pointer;
-font-family: ‘Cinzel’, serif;
-font-size: 10px;
-transition: all 0.15s;
-text-align: left;
-}
-.upgrade-btn:hover:not(:disabled) { background: rgba(245,158,11,0.1); border-color: var(–gold-dim); }
-.upgrade-btn:disabled { opacity: 0.35; cursor: default; }
-.upgrade-btn .u-icon { font-size: 14px; }
-.upgrade-btn .u-info { flex: 1; }
-.upgrade-btn .u-name { font-size: 11px; }
-.upgrade-btn .u-desc { font-size: 9px; color: var(–text-dim); margin-top: 1px; }
-.upgrade-btn .u-cost { color: var(–gold); font-size: 10px; white-space: nowrap; }
-
-/* Game over / Victory overlay */
+/* Overlay */
 #overlay {
-display: none;
-position: fixed;
-inset: 0;
-background: rgba(0,0,0,0.85);
-z-index: 100;
-align-items: center;
-justify-content: center;
-flex-direction: column;
-gap: 16px;
+display:none; position:fixed; inset:0; z-index:50;
+background:rgba(0,0,0,0.88);
+align-items:center; justify-content:center; flex-direction:column; gap:14px;
 }
-#overlay.show { display: flex; }
-
-#overlay-title {
-font-family: ‘Cinzel Decorative’, cursive;
-font-size: 48px;
-animation: pulseGlow 2s infinite;
-}
-
+#overlay.show { display:flex; }
+#overlay-title { font-family:‘Cinzel Decorative’,cursive; font-size:36px; animation:pulseGlow 2s infinite; }
 @keyframes pulseGlow {
-0%, 100% { text-shadow: 0 0 20px currentColor; }
-50% { text-shadow: 0 0 40px currentColor, 0 0 80px currentColor; }
+0%,100%{ text-shadow:0 0 20px currentColor; }
+50%    { text-shadow:0 0 40px currentColor, 0 0 70px currentColor; }
 }
-
-#overlay-sub { font-family: ‘IM Fell English’, serif; font-size: 18px; color: var(–text-dim); }
-
+#overlay-sub { font-size:14px; color:var(–text-dim); text-align:center; padding:0 20px; }
 #overlay-btn {
-padding: 12px 32px;
-background: linear-gradient(135deg, #7c3aed, #4f46e5);
-border: 1px solid #6d28d9;
-border-radius: 6px;
-color: white;
-cursor: pointer;
-font-family: ‘Cinzel’, serif;
-font-size: 14px;
-font-weight: 600;
-transition: all 0.2s;
+padding:13px 36px; font-family:‘Cinzel’,serif; font-size:14px;
+font-weight:700; color:white; cursor:pointer; border-radius:8px;
+background:linear-gradient(135deg,#7c3aed,#4f46e5);
+border:1px solid #6d28d9;
 }
-#overlay-btn:hover { transform: scale(1.05); }
 
-/* Tooltip */
-#tooltip {
-position: fixed;
-pointer-events: none;
-background: var(–panel);
-border: 1px solid var(–border);
-border-radius: 6px;
-padding: 8px 12px;
-font-size: 11px;
-z-index: 50;
-max-width: 180px;
-display: none;
-box-shadow: 0 4px 20px rgba(0,0,0,0.5);
+/* Tutorial toast */
+#toast {
+position:fixed; top:72px; left:10px; right:10px; z-index:35;
+background:rgba(30,58,95,0.95); border:1px solid rgba(59,130,246,0.3);
+border-radius:10px; padding:10px 14px; font-size:11px;
+color:#93c5fd; line-height:1.6;
+transition:opacity 0.5s;
 }
+#toast.hidden { opacity:0; pointer-events:none; }
+#toast-close { float:right; cursor:pointer; font-size:14px; }
 </style>
 
 </head>
 <body>
 
-<!-- Header -->
+<!-- HUD -->
 
-<div id="header">
-  <div id="title">🐉 Dragon's Lair</div>
-  <div class="stat-group">
-    <div class="stat-item"><span class="stat-icon">💰</span><span class="tool-label">Gold</span><span class="stat-val" id="stat-gold">800</span></div>
+<div id="hud">
+  <div id="hud-top">
+    <div id="title">🐉 Dragon's Lair</div>
+    <div class="stats">
+      <div class="stat"><span>💰</span><span class="sv" id="stat-gold">800</span></div>
+      <div class="stat hp"><span>🐉</span><span class="sv" id="stat-hp">500</span></div>
+      <div class="stat wave"><span>⚔️</span><span class="sv" id="stat-wave">0</span></div>
+      <div class="stat"><span>💀</span><span class="sv" id="stat-kills">0</span></div>
+    </div>
   </div>
-  <div class="stat-group">
-    <div class="stat-item" id="stat-hp"><span class="stat-icon">🐉</span><span class="tool-label">Dragon HP</span><span class="stat-val" id="stat-dragon-hp">500</span></div>
-    <div id="dragon-hp-bar-wrap"><div id="dragon-hp-bar"></div></div>
-  </div>
-  <div class="stat-group">
-    <div class="stat-item" id="stat-wave"><span class="stat-icon">⚔️</span><span class="tool-label">Wave</span><span class="stat-val" id="stat-wave-num">0</span></div>
-    <div id="wave-bar-wrap"><div id="wave-bar"></div></div>
-  </div>
-  <div class="stat-group">
-    <div class="stat-item"><span class="stat-icon">💀</span><span class="tool-label">Kills</span><span class="stat-val" id="stat-kills">0</span></div>
-  </div>
+  <div id="dragon-bar-wrap"><div id="dragon-bar"></div></div>
 </div>
 
-<!-- Toolbar -->
+<!-- Mode indicator -->
 
-<div id="toolbar">
-  <span class="tool-label">건설</span>
-  <button class="tool-btn" id="btn-corridor" onclick="setMode('corridor')">
-    🪨 통로 <span class="cost">10g</span>
-  </button>
-  <button class="tool-btn" id="btn-room" onclick="setMode('room')">
-    🏠 방 <span class="cost">30g</span>
-  </button>
-  <button class="tool-btn" id="btn-trap" onclick="setMode('trap')">
-    ⚙️ 함정 <span class="cost">50g</span>
-  </button>
-  <div class="tool-sep"></div>
-  <span class="tool-label">삭제</span>
-  <button class="tool-btn" id="btn-delete" onclick="setMode('delete')">
-    🗑️ 철거
-  </button>
-  <div class="tool-sep"></div>
-  <span class="tool-label">마우스 드래그로 여러 칸 건설 가능</span>
-  <button class="round-btn" id="round-btn" onclick="startWave()">▶ 웨이브 시작</button>
+<div id="mode-indicator" class="hidden">선택 없음</div>
+
+<!-- Map -->
+
+<div id="map-wrap">
+  <div id="map"></div>
 </div>
 
-<!-- Main -->
+<!-- Log button -->
 
-<div id="main">
-  <!-- Sidebar -->
-  <div id="sidebar">
-    <!-- Monsters -->
-    <div class="sidebar-section">
-      <div class="sidebar-title">⚔ 몬스터 배치</div>
-      <div class="monster-card" id="mc-goblin" onclick="setMonsterMode('goblin')">
-        <span class="m-icon">👺</span>
-        <div class="m-info">
-          <div class="m-name">고블린</div>
-          <div class="m-stats">HP:40 ATK:8 SPD:빠름</div>
-        </div>
-        <span class="m-cost">40g</span>
-      </div>
-      <div class="monster-card" id="mc-orc" onclick="setMonsterMode('orc')">
-        <span class="m-icon">👹</span>
-        <div class="m-info">
-          <div class="m-name">오크</div>
-          <div class="m-stats">HP:120 ATK:18 SPD:느림</div>
-        </div>
-        <span class="m-cost">80g</span>
-      </div>
-      <div class="monster-card" id="mc-skeleton" onclick="setMonsterMode('skeleton')">
-        <span class="m-icon">💀</span>
-        <div class="m-info">
-          <div class="m-name">스켈레톤</div>
-          <div class="m-stats">HP:60 ATK:12 SPD:보통</div>
-        </div>
-        <span class="m-cost">60g</span>
-      </div>
-      <div class="monster-card" id="mc-troll" onclick="setMonsterMode('troll')">
-        <span class="m-icon">🧌</span>
-        <div class="m-info">
-          <div class="m-name">트롤</div>
-          <div class="m-stats">HP:200 ATK:25 재생</div>
-        </div>
-        <span class="m-cost">150g</span>
-      </div>
-    </div>
+<button id="log-btn" onclick="toggleLog()">📜 기록</button>
 
-```
-<!-- Upgrades -->
-<div class="sidebar-section">
-  <div class="sidebar-title">⬆ 업그레이드</div>
-  <button class="upgrade-btn" id="upg-trap" onclick="buyUpgrade('trap')">
-    <span class="u-icon">⚙️</span>
-    <div class="u-info">
-      <div class="u-name">강화 함정</div>
-      <div class="u-desc">함정 피해 2배</div>
-    </div>
-    <span class="u-cost">200g</span>
-  </button>
-  <button class="upgrade-btn" id="upg-regen" onclick="buyUpgrade('regen')">
-    <span class="u-icon">💚</span>
-    <div class="u-info">
-      <div class="u-name">드래곤 재생</div>
-      <div class="u-desc">매 틱 HP +2</div>
-    </div>
-    <span class="u-cost">300g</span>
-  </button>
-  <button class="upgrade-btn" id="upg-loot" onclick="buyUpgrade('loot')">
-    <span class="u-icon">💰</span>
-    <div class="u-info">
-      <div class="u-name">약탈 강화</div>
-      <div class="u-desc">골드 획득 1.5배</div>
-    </div>
-    <span class="u-cost">250g</span>
-  </button>
-  <button class="upgrade-btn" id="upg-fire" onclick="buyUpgrade('fire')">
-    <span class="u-icon">🔥</span>
-    <div class="u-info">
-      <div class="u-name">화염 둥지</div>
-      <div class="u-desc">둥지 주변 불꽃 피해</div>
-    </div>
-    <span class="u-cost">400g</span>
-  </button>
+<!-- Log panel -->
+
+<div id="log-panel">
+  <button id="log-close" onclick="toggleLog()">✕ 닫기</button>
+  <div style="font-size:12px;color:var(--text-dim);margin-bottom:6px;">전투 기록</div>
+  <div id="log"></div>
 </div>
 
-<!-- Log -->
-<div class="sidebar-section" style="border-bottom:none; padding-bottom:4px;">
-  <div class="sidebar-title">📜 전투 기록</div>
-</div>
-<div id="log"></div>
-```
+<!-- Bottom panel -->
 
+<div id="panel">
+  <!-- Tabs -->
+  <div id="tabs">
+    <div class="tab active" id="tab-build" onclick="switchTab('build')">
+      <span class="tab-icon">🏗️</span>
+      <span style="font-size:9px">건설</span>
+    </div>
+    <div class="tab" id="tab-monster" onclick="switchTab('monster')">
+      <span class="tab-icon">👺</span>
+      <span style="font-size:9px">몬스터</span>
+    </div>
+    <div class="tab" id="tab-upgrade" onclick="switchTab('upgrade')">
+      <span class="tab-icon">⬆️</span>
+      <span style="font-size:9px">업그레이드</span>
+    </div>
   </div>
 
-  <!-- Map -->
+  <!-- Build tab -->
 
-  <div id="mapWrap">
-    <div id="map"></div>
+  <div class="tab-content visible" id="content-build">
+    <div class="tool-row">
+      <div class="tool-btn" id="tb-corridor" onclick="setMode('corridor')">
+        <span class="tb-icon">🪨</span>
+        <span class="tb-label">통로</span>
+        <span class="tb-cost">10g</span>
+      </div>
+      <div class="tool-btn" id="tb-room" onclick="setMode('room')">
+        <span class="tb-icon">🏠</span>
+        <span class="tb-label">방</span>
+        <span class="tb-cost">30g</span>
+      </div>
+      <div class="tool-btn" id="tb-trap" onclick="setMode('trap')">
+        <span class="tb-icon">⚙️</span>
+        <span class="tb-label">함정</span>
+        <span class="tb-cost">50g</span>
+      </div>
+      <div class="tool-btn" id="tb-delete" onclick="setMode('delete')">
+        <span class="tb-icon">🗑️</span>
+        <span class="tb-label">철거</span>
+        <span class="tb-cost">50%환불</span>
+      </div>
+    </div>
+    <button class="wave-btn" id="wave-btn" onclick="startWave()">▶ 웨이브 시작</button>
+  </div>
+
+  <!-- Monster tab -->
+
+  <div class="tab-content" id="content-monster">
+    <div class="tool-row">
+      <div class="tool-btn" id="tb-goblin" onclick="setMode('goblin')">
+        <span class="tb-icon">👺</span>
+        <span class="tb-label">고블린</span>
+        <span class="tb-cost">40g</span>
+      </div>
+      <div class="tool-btn" id="tb-orc" onclick="setMode('orc')">
+        <span class="tb-icon">👹</span>
+        <span class="tb-label">오크</span>
+        <span class="tb-cost">80g</span>
+      </div>
+      <div class="tool-btn" id="tb-skeleton" onclick="setMode('skeleton')">
+        <span class="tb-icon">💀</span>
+        <span class="tb-label">스켈레톤</span>
+        <span class="tb-cost">60g</span>
+      </div>
+      <div class="tool-btn" id="tb-troll" onclick="setMode('troll')">
+        <span class="tb-icon">🧌</span>
+        <span class="tb-label">트롤</span>
+        <span class="tb-cost">150g</span>
+      </div>
+    </div>
+    <div style="font-size:9px;color:var(--text-dim);text-align:center;padding:2px 0">
+      몬스터는 🏠 방에만 배치 가능 · 웨이브 중 배치 불가
+    </div>
+  </div>
+
+  <!-- Upgrade tab -->
+
+  <div class="tab-content" id="content-upgrade">
+    <div class="upg-row">
+      <button class="upg-btn" id="upg-trap" onclick="buyUpgrade('trap')">
+        <span class="ub-icon">⚙️</span>
+        <span class="ub-name">함정강화</span>
+        <span class="ub-cost">200g</span>
+      </button>
+      <button class="upg-btn" id="upg-regen" onclick="buyUpgrade('regen')">
+        <span class="ub-icon">💚</span>
+        <span class="ub-name">재생</span>
+        <span class="ub-cost">300g</span>
+      </button>
+      <button class="upg-btn" id="upg-loot" onclick="buyUpgrade('loot')">
+        <span class="ub-icon">💰</span>
+        <span class="ub-name">약탈강화</span>
+        <span class="ub-cost">250g</span>
+      </button>
+      <button class="upg-btn" id="upg-fire" onclick="buyUpgrade('fire')">
+        <span class="ub-icon">🔥</span>
+        <span class="ub-name">화염둥지</span>
+        <span class="ub-cost">400g</span>
+      </button>
+    </div>
+    <div style="font-size:9px;color:var(--text-dim);text-align:center;padding:2px 0">
+      함정강화:피해2배 / 재생:HP+2/틱 / 약탈강화:골드1.5배 / 화염둥지:둥지근처 불꽃피해
+    </div>
   </div>
 </div>
 
@@ -660,145 +459,205 @@ box-shadow: 0 4px 20px rgba(0,0,0,0.5);
 <div id="overlay">
   <div id="overlay-title"></div>
   <div id="overlay-sub"></div>
-  <button id="overlay-btn" onclick="restartGame()">다시 시작</button>
+  <button id="overlay-btn" onclick="location.reload()">다시 시작</button>
 </div>
 
-<div id="tooltip"></div>
+<!-- Tutorial toast -->
+
+<div id="toast">
+  <span id="toast-close" onclick="dismissToast()">✕</span>
+  <b>🐉 플레이 방법</b><br>
+  1. <b>건설 탭</b>에서 통로/방을 탭하여 건설<br>
+  2. <b>몬스터 탭</b>에서 방에 몬스터 배치<br>
+  3. 입구(🚪)→둥지(🐉) 경로가 연결되어야 함<br>
+  4. 웨이브 시작 → 영웅을 막아라!
+</div>
 
 <script>
-// ===================== CONSTANTS =====================
-const SIZE = 30;
-const NEST_CELL = SIZE * SIZE - 1;       // bottom-right
-const ENTRANCE_CELL = 0;                  // top-left
-const DRAGON_MAX_HP = 500;
+// ===================== CONFIG =====================
+const SIZE = 20;
+const NEST_IDX = SIZE * SIZE - 1;   // 399 (bottom-right)
+const ENTER_IDX = 0;                // top-left
+const DRAGON_MAX = 500;
+const CELL_PX = 36;
 
-const COSTS = { corridor: 10, room: 30, trap: 50 };
+const COSTS = { corridor:10, room:30, trap:50 };
 const MONSTER_DEFS = {
-  goblin:   { hp: 40,  atk: 8,  reward: 20, icon: '👺', spd: 2, cost: 40  },
-  orc:      { hp: 120, atk: 18, reward: 50, icon: '👹', spd: 4, cost: 80  },
-  skeleton: { hp: 60,  atk: 12, reward: 30, icon: '💀', spd: 3, cost: 60  },
-  troll:    { hp: 200, atk: 25, reward: 80, icon: '🧌', spd: 5, cost: 150, regen: 3 },
+  goblin:   { hp:40,  atk:8,  reward:20, icon:'👺', cost:40  },
+  orc:      { hp:120, atk:18, reward:50, icon:'👹', cost:80  },
+  skeleton: { hp:60,  atk:12, reward:30, icon:'💀', cost:60  },
+  troll:    { hp:200, atk:25, reward:80, icon:'🧌', cost:150, regen:3 },
 };
-
 const UPGRADES = {
-  trap:  { name: '강화 함정', cost: 200, bought: false },
-  regen: { name: '드래곤 재생', cost: 300, bought: false },
-  loot:  { name: '약탈 강화', cost: 250, bought: false },
-  fire:  { name: '화염 둥지', cost: 400, bought: false },
+  trap:  { name:'함정강화', cost:200, bought:false },
+  regen: { name:'드래곤 재생', cost:300, bought:false },
+  loot:  { name:'약탈강화', cost:250, bought:false },
+  fire:  { name:'화염둥지', cost:400, bought:false },
 };
+const HERO_TYPES = [
+  { icon:'⚔️', hp:100, atk:12, name:'전사' },
+  { icon:'🏹', hp:70,  atk:18, name:'궁수' },
+  { icon:'🧙', hp:60,  atk:22, name:'마법사' },
+  { icon:'🛡️', hp:160, atk:8,  name:'기사' },
+];
 
 // ===================== STATE =====================
-let gold = 800;
-let dragonHp = DRAGON_MAX_HP;
-let wave = 0;
-let kills = 0;
-let mode = null;        // 'corridor' | 'room' | 'trap' | 'delete' | 'monster'
-let monsterType = null;
-let waveActive = false;
-let isMouseDown = false;
-let gameOver = false;
-
-let grid = {};          // idx -> 'corridor' | 'room' | 'trap' | 'nest' | 'entrance'
-let monsters = [];      // placed monsters { id, cell, hp, maxHp, atk, icon, type, el, hpEl, tickCd }
-let heroes = [];        // wave heroes { id, cell, hp, maxHp, atk, el, hpEl, path, pathIdx, tickCd }
+let gold = 800, dragonHp = DRAGON_MAX, wave = 0, kills = 0;
+let mode = null;
+let waveActive = false, gameOver = false;
+let grid = {};          // idx -> type string
+let monsters = [], heroes = [];
 let eid = 0;
+
+// ===================== LAYOUT =====================
+function layoutMap() {
+  const hud = document.getElementById('hud');
+  const panel = document.getElementById('panel');
+  const logBtn = document.getElementById('log-btn');
+  const wrap = document.getElementById('map-wrap');
+  const hudH = hud.offsetHeight;
+  const panelH = panel.offsetHeight;
+  wrap.style.top = hudH + 'px';
+  wrap.style.bottom = panelH + 'px';
+  logBtn.style.top = (hudH + 6) + 'px';
+  document.getElementById('mode-indicator').style.top = (hudH + 6) + 'px';
+  document.getElementById('toast').style.top = (hudH + 6) + 'px';
+}
+
+window.addEventListener('resize', layoutMap);
 
 // ===================== MAP BUILD =====================
 const mapEl = document.getElementById('map');
 
 function buildMap() {
   mapEl.innerHTML = '';
-  for (let i = 0; i < SIZE * SIZE; i++) {
+  mapEl.style.width  = (SIZE * CELL_PX) + 'px';
+  mapEl.style.height = (SIZE * CELL_PX) + 'px';
+  mapEl.style.gridTemplateColumns = `repeat(${SIZE},${CELL_PX}px)`;
+  mapEl.style.gridTemplateRows    = `repeat(${SIZE},${CELL_PX}px)`;
+
+  for (let i = 0; i < SIZE*SIZE; i++) {
     const c = document.createElement('div');
     c.className = 'cell';
     c.dataset.idx = i;
 
-    if (i === NEST_CELL) {
+    if (i === NEST_IDX) {
       c.classList.add('nest');
       const ni = document.createElement('div');
-      ni.className = 'nest-icon';
-      ni.textContent = '🐉';
+      ni.className = 'nest-icon'; ni.textContent = '🐉';
       c.appendChild(ni);
       grid[i] = 'nest';
-    } else if (i === ENTRANCE_CELL) {
+    } else if (i === ENTER_IDX) {
       c.classList.add('entrance');
       const ei = document.createElement('div');
-      ei.className = 'entity';
-      ei.textContent = '🚪';
+      ei.className = 'entity'; ei.textContent = '🚪';
       c.appendChild(ei);
       grid[i] = 'entrance';
     }
-
     mapEl.appendChild(c);
   }
 }
 
 function cellEl(i) { return mapEl.children[i]; }
 
-// ===================== MODE / TOOLBAR =====================
-function setMode(m) {
-  mode = m;
-  monsterType = null;
-  document.querySelectorAll('.tool-btn, .monster-card').forEach(b => b.classList.remove('active'));
-  const el = document.getElementById('btn-' + m);
-  if (el) el.classList.add('active');
+// ===================== TOUCH INPUT =====================
+let touchActive = false;
+let lastTouchedCell = -1;
+
+mapEl.addEventListener('touchstart', e => {
+  e.preventDefault();
+  touchActive = true;
+  const t = e.touches[0];
+  const idx = cellFromTouch(t);
+  if (idx >= 0) { lastTouchedCell = idx; handleCell(idx); }
+}, { passive: false });
+
+mapEl.addEventListener('touchmove', e => {
+  e.preventDefault();
+  if (!touchActive) return;
+  const t = e.touches[0];
+  const idx = cellFromTouch(t);
+  if (idx >= 0 && idx !== lastTouchedCell) {
+    lastTouchedCell = idx;
+    handleCell(idx);
+  }
+}, { passive: false });
+
+mapEl.addEventListener('touchend', () => { touchActive = false; lastTouchedCell = -1; });
+
+function cellFromTouch(touch) {
+  const rect = mapEl.getBoundingClientRect();
+  const x = touch.clientX - rect.left;
+  const y = touch.clientY - rect.top;
+  const col = Math.floor(x / CELL_PX);
+  const row = Math.floor(y / CELL_PX);
+  if (col < 0 || col >= SIZE || row < 0 || row >= SIZE) return -1;
+  return row * SIZE + col;
 }
 
-function setMonsterMode(t) {
-  mode = 'monster';
-  monsterType = t;
-  document.querySelectorAll('.tool-btn, .monster-card').forEach(b => b.classList.remove('active'));
-  document.getElementById('mc-' + t).classList.add('active');
-}
+// Mouse support (desktop fallback)
+let mouseDown = false;
+mapEl.addEventListener('mousedown', e => {
+  mouseDown = true;
+  const c = e.target.closest('.cell');
+  if (c) handleCell(+c.dataset.idx);
+});
+mapEl.addEventListener('mouseover', e => {
+  if (!mouseDown) return;
+  const c = e.target.closest('.cell');
+  if (c) handleCell(+c.dataset.idx);
+});
+document.addEventListener('mouseup', () => { mouseDown = false; });
 
-// ===================== CELL ACTIONS =====================
-function handleCellAction(i) {
+// ===================== CELL ACTION =====================
+function handleCell(i) {
   if (gameOver) return;
-  const c = cellEl(i);
+  if (!mode) { showModeHint(); return; }
 
   if (mode === 'corridor') {
-    if (i === NEST_CELL || i === ENTRANCE_CELL) return;
+    if (i === NEST_IDX || i === ENTER_IDX) return;
     if (grid[i] === 'corridor') return;
     if (!spendGold(COSTS.corridor)) return;
-    if (grid[i]) { removeCell(i); }
+    clearCell(i);
     grid[i] = 'corridor';
-    c.className = 'cell corridor';
-    renderMonsterInCell(i);
+    const c = cellEl(i); c.className = 'cell corridor';
   } else if (mode === 'room') {
-    if (i === NEST_CELL || i === ENTRANCE_CELL) return;
+    if (i === NEST_IDX || i === ENTER_IDX) return;
     if (grid[i] === 'room') return;
     const refund = grid[i] === 'corridor' ? COSTS.corridor : 0;
     if (!spendGold(COSTS.room - refund)) return;
-    if (grid[i]) removeCell(i);
+    clearCell(i);
     grid[i] = 'room';
-    c.className = 'cell room';
-    renderMonsterInCell(i);
+    const c = cellEl(i); c.className = 'cell room';
   } else if (mode === 'trap') {
-    if (i === NEST_CELL || i === ENTRANCE_CELL) return;
-    if (grid[i] !== 'corridor' && grid[i] !== 'room') return;
+    if (i === NEST_IDX || i === ENTER_IDX) return;
+    if (grid[i] !== 'corridor' && grid[i] !== 'room') {
+      addLog('함정은 통로/방에 설치', 'danger'); return;
+    }
+    if (grid[i] === 'trap') return;
     if (!spendGold(COSTS.trap)) return;
     grid[i] = 'trap';
-    c.className = 'cell trap';
-    renderMonsterInCell(i);
+    const c = cellEl(i); c.className = 'cell trap';
+    const ti = document.createElement('div'); ti.className='trap-icon'; ti.textContent='⚙️';
+    c.appendChild(ti);
   } else if (mode === 'delete') {
-    if (i === NEST_CELL || i === ENTRANCE_CELL) return;
-    if (!grid[i]) return;
-    const refund = Math.floor((grid[i] === 'room' ? COSTS.room : grid[i] === 'corridor' ? COSTS.corridor : COSTS.corridor) * 0.5);
+    if (i === NEST_IDX || i === ENTER_IDX || !grid[i]) return;
+    const t = grid[i];
+    const refund = Math.floor((t==='room'?COSTS.room:t==='corridor'?COSTS.corridor:COSTS.corridor)*0.5);
     addGold(refund);
-    removeCell(i);
-  } else if (mode === 'monster' && monsterType) {
-    if (grid[i] !== 'room') { addLog('방(🏠)에만 몬스터를 배치할 수 있습니다.', 'danger'); return; }
-    if (waveActive) { addLog('웨이브 중에는 배치 불가!', 'danger'); return; }
-    const def = MONSTER_DEFS[monsterType];
+    clearCell(i);
+  } else if (MONSTER_DEFS[mode]) {
+    if (grid[i] !== 'room') { addLog('🏠 방에만 배치 가능!','danger'); return; }
+    if (waveActive) { addLog('웨이브 중 배치 불가!','danger'); return; }
+    const def = MONSTER_DEFS[mode];
     if (!spendGold(def.cost)) return;
-    placeMonster(i, monsterType);
+    placeMonster(i, mode);
   }
 }
 
-function removeCell(i) {
-  // remove any monsters there
+function clearCell(i) {
   monsters = monsters.filter(m => {
-    if (m.cell === i) { m.el.remove(); return false; }
+    if (m.cell === i) { m.el.remove(); m.hpWrap.remove(); return false; }
     return true;
   });
   grid[i] = null;
@@ -807,271 +666,229 @@ function removeCell(i) {
   c.innerHTML = '';
 }
 
-function renderMonsterInCell(i) {
-  // preserve monster elements after cell class change
-  monsters.filter(m => m.cell === i).forEach(m => {
-    const c = cellEl(i);
-    if (!c.contains(m.el)) c.appendChild(m.el);
-    if (!c.contains(m.hpWrap)) c.appendChild(m.hpWrap);
-  });
+// ===================== MODE / TABS =====================
+function setMode(m) {
+  mode = m;
+  document.querySelectorAll('.tool-btn').forEach(b => b.classList.remove('active','active-m'));
+
+  const isMonster = !!MONSTER_DEFS[m];
+  const id = isMonster ? 'tb-'+m : 'tb-'+m;
+  const el = document.getElementById(id);
+  if (el) el.classList.add(isMonster ? 'active-m' : 'active');
+
+  const names = {
+    corridor:'🪨 통로 건설 중', room:'🏠 방 건설 중',
+    trap:'⚙️ 함정 설치 중', delete:'🗑️ 철거 중',
+    goblin:'👺 고블린 배치 중', orc:'👹 오크 배치 중',
+    skeleton:'💀 스켈레톤 배치 중', troll:'🧌 트롤 배치 중',
+  };
+  showModeIndicator(names[m] || m);
+}
+
+function showModeIndicator(text) {
+  const el = document.getElementById('mode-indicator');
+  el.textContent = text;
+  el.classList.remove('hidden');
+  clearTimeout(el._t);
+  el._t = setTimeout(() => el.classList.add('hidden'), 3000);
+}
+
+function showModeHint() {
+  showModeIndicator('⬇ 아래에서 도구를 선택하세요');
+}
+
+function switchTab(t) {
+  document.querySelectorAll('.tab').forEach(b => b.classList.remove('active','active-purple'));
+  document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('visible'));
+  document.getElementById('tab-'+t).classList.add(t==='monster'?'active-purple':'active');
+  document.getElementById('content-'+t).classList.add('visible');
+  // reset mode when switching tabs
+  mode = null;
+  document.querySelectorAll('.tool-btn').forEach(b=>b.classList.remove('active','active-m'));
+  layoutMap();
 }
 
 // ===================== GOLD =====================
 function spendGold(amount) {
-  if (gold < amount) {
-    addLog(`골드 부족! (필요: ${amount}g)`, 'danger');
-    return false;
-  }
-  gold -= amount;
-  updateHUD();
-  return true;
+  if (gold < amount) { addLog(`골드 부족! (필요:${amount}g)`,'danger'); return false; }
+  gold -= amount; updateHUD(); return true;
 }
-
 function addGold(amount) {
-  if (UPGRADES.loot.bought) amount = Math.floor(amount * 1.5);
-  gold += amount;
-  updateHUD();
+  if (UPGRADES.loot.bought) amount = Math.floor(amount*1.5);
+  gold += amount; updateHUD();
 }
 
 // ===================== MONSTERS =====================
 function placeMonster(cell, type) {
   const def = MONSTER_DEFS[type];
-
   const wrap = document.createElement('div');
-  wrap.className = 'entity';
-  wrap.textContent = def.icon;
+  wrap.className = 'entity'; wrap.textContent = def.icon;
 
-  const hpWrap = document.createElement('div');
-  hpWrap.className = 'hp-bar-wrap';
-  const hpBar = document.createElement('div');
-  hpBar.className = 'hp-bar monster-bar';
-  hpBar.style.width = '100%';
+  const hpWrap = document.createElement('div'); hpWrap.className='hpbar-wrap';
+  const hpBar  = document.createElement('div'); hpBar.className='hpbar'; hpBar.style.width='100%';
   hpWrap.appendChild(hpBar);
 
   cellEl(cell).appendChild(wrap);
   cellEl(cell).appendChild(hpWrap);
 
-  const m = {
-    id: eid++,
-    cell, type,
-    hp: def.hp, maxHp: def.hp,
-    atk: def.atk,
-    icon: def.icon,
-    regen: def.regen || 0,
-    el: wrap, hpWrap, hpBar,
-    tickCd: 0,
-  };
-  monsters.push(m);
-  addLog(`${def.icon} ${type} 배치 완료 (${cell}번 방)`, 'good');
+  monsters.push({ id:eid++, cell, type,
+    hp:def.hp, maxHp:def.hp, atk:def.atk,
+    regen:def.regen||0,
+    el:wrap, hpWrap, hpBar });
+  addLog(`${def.icon} 배치 완료`, 'good');
 }
 
-// ===================== WAVE / HEROES =====================
-const HERO_TYPES = [
-  { icon: '⚔️', hp: 100, atk: 12, name: '전사' },
-  { icon: '🏹', hp: 70,  atk: 18, name: '궁수' },
-  { icon: '🧙', hp: 60,  atk: 22, name: '마법사' },
-  { icon: '🛡️', hp: 160, atk: 8,  name: '기사' },
-];
-
-function startWave() {
-  if (waveActive || gameOver) return;
-  // Check path exists
-  const path = bfs(ENTRANCE_CELL, NEST_CELL);
-  if (!path) {
-    addLog('⚠ 영웅이 둥지로 가는 경로가 없습니다!', 'danger');
-    return;
-  }
-  wave++;
-  waveActive = true;
-  document.getElementById('round-btn').disabled = true;
-  updateHUD();
-
-  const count = 3 + Math.floor(wave * 1.5);
-  addLog(`━━ 웨이브 ${wave} 시작! 영웅 ${count}명 ━━`, 'wave');
-
-  let spawned = 0;
-  const interval = setInterval(() => {
-    if (spawned >= count) { clearInterval(interval); return; }
-    spawnHero(wave);
-    spawned++;
-  }, 900);
-}
-
-function spawnHero(waveNum) {
-  const path = bfs(ENTRANCE_CELL, NEST_CELL);
-  if (!path) return;
-
-  const tier = Math.min(Math.floor((waveNum - 1) / 3), HERO_TYPES.length - 1);
-  const base = HERO_TYPES[Math.floor(Math.random() * (tier + 1))];
-  const scale = 1 + (waveNum - 1) * 0.15;
-  const hp = Math.floor(base.hp * scale);
-  const atk = Math.floor(base.atk * scale);
-
-  const wrap = document.createElement('div');
-  wrap.className = 'entity';
-  wrap.textContent = base.icon;
-
-  const hpWrap = document.createElement('div');
-  hpWrap.className = 'hp-bar-wrap';
-  const hpBar = document.createElement('div');
-  hpBar.className = 'hp-bar hero-bar';
-  hpBar.style.width = '100%';
-  hpWrap.appendChild(hpBar);
-
-  cellEl(ENTRANCE_CELL).appendChild(wrap);
-  cellEl(ENTRANCE_CELL).appendChild(hpWrap);
-
-  heroes.push({
-    id: eid++,
-    cell: ENTRANCE_CELL,
-    hp, maxHp: hp, atk,
-    icon: base.icon,
-    name: base.name,
-    el: wrap, hpWrap, hpBar,
-    path, pathIdx: 0,
-    tickCd: 0,
-    moveDelay: 0,
-  });
-}
-
-// ===================== BFS PATHFINDING =====================
+// ===================== BFS =====================
 function bfs(start, goal) {
-  const passable = new Set([...Object.keys(grid).map(Number).filter(i => grid[i] && grid[i] !== null), ENTRANCE_CELL, NEST_CELL]);
-  const queue = [[start]];
-  const visited = new Set([start]);
-
+  const pass = new Set(Object.keys(grid).map(Number).filter(i => grid[i]));
+  const queue = [[start]], visited = new Set([start]);
   while (queue.length) {
     const path = queue.shift();
-    const cur = path[path.length - 1];
+    const cur = path[path.length-1];
     if (cur === goal) return path;
-    for (const nb of neighbors(cur)) {
-      if (!visited.has(nb) && passable.has(nb)) {
-        visited.add(nb);
-        queue.push([...path, nb]);
+    for (const nb of nbrs(cur)) {
+      if (!visited.has(nb) && pass.has(nb)) {
+        visited.add(nb); queue.push([...path, nb]);
       }
     }
   }
   return null;
 }
+function nbrs(i) {
+  const x=i%SIZE, y=Math.floor(i/SIZE), r=[];
+  if(x>0) r.push(i-1); if(x<SIZE-1) r.push(i+1);
+  if(y>0) r.push(i-SIZE); if(y<SIZE-1) r.push(i+SIZE);
+  return r;
+}
 
-function neighbors(i) {
-  const x = i % SIZE, y = Math.floor(i / SIZE);
-  const result = [];
-  if (x > 0) result.push(i - 1);
-  if (x < SIZE - 1) result.push(i + 1);
-  if (y > 0) result.push(i - SIZE);
-  if (y < SIZE - 1) result.push(i + SIZE);
-  return result;
+// ===================== WAVE =====================
+function startWave() {
+  if (waveActive || gameOver) return;
+  const path = bfs(ENTER_IDX, NEST_IDX);
+  if (!path) { addLog('⚠ 입구→둥지 경로 없음!','danger'); return; }
+  wave++; waveActive = true;
+  document.getElementById('wave-btn').disabled = true;
+  updateHUD();
+
+  const count = 3 + Math.floor(wave * 1.5);
+  addLog(`━━ 웨이브 ${wave} 시작! 영웅 ${count}명 ━━`, 'wave-c');
+
+  let spawned = 0;
+  const iv = setInterval(() => {
+    if (gameOver) { clearInterval(iv); return; }
+    if (spawned >= count) { clearInterval(iv); return; }
+    spawnHero(); spawned++;
+  }, 900);
+}
+
+function spawnHero() {
+  const path = bfs(ENTER_IDX, NEST_IDX);
+  if (!path) return;
+  const tier = Math.min(Math.floor((wave-1)/3), HERO_TYPES.length-1);
+  const base = HERO_TYPES[Math.floor(Math.random()*(tier+1))];
+  const scale = 1 + (wave-1)*0.15;
+  const hp = Math.floor(base.hp*scale), atk = Math.floor(base.atk*scale);
+
+  const wrap = document.createElement('div');
+  wrap.className='entity'; wrap.textContent=base.icon;
+
+  const hpWrap = document.createElement('div'); hpWrap.className='hpbar-wrap';
+  const hpBar  = document.createElement('div'); hpBar.className='hpbar'; hpBar.style.width='100%';
+  hpWrap.appendChild(hpBar);
+
+  cellEl(ENTER_IDX).appendChild(wrap);
+  cellEl(ENTER_IDX).appendChild(hpWrap);
+
+  heroes.push({ id:eid++, cell:ENTER_IDX, hp, maxHp:hp, atk,
+    icon:base.icon, name:base.name,
+    el:wrap, hpWrap, hpBar,
+    path, pathIdx:0, moveDelay:0 });
 }
 
 // ===================== GAME LOOP =====================
-let lastTick = 0;
-const TICK_MS = 350;
+let lastTick=0; const TICK=360;
 
-function gameLoop(ts) {
-  if (!gameOver) requestAnimationFrame(gameLoop);
-  if (ts - lastTick < TICK_MS) return;
-  lastTick = ts;
+requestAnimationFrame(function loop(ts) {
+  if (!gameOver) requestAnimationFrame(loop);
+  if (ts-lastTick < TICK) return;
+  lastTick=ts;
+  if (!waveActive) return;
   tick();
-}
+});
 
 function tick() {
-  if (!waveActive) return;
-
   // Dragon regen
-  if (UPGRADES.regen.bought && dragonHp < DRAGON_MAX_HP) {
-    dragonHp = Math.min(DRAGON_MAX_HP, dragonHp + 2);
-  }
+  if (UPGRADES.regen.bought && dragonHp < DRAGON_MAX)
+    dragonHp = Math.min(DRAGON_MAX, dragonHp+2);
 
   // Troll regen
-  monsters.forEach(m => {
-    if (m.regen > 0) m.hp = Math.min(m.maxHp, m.hp + m.regen);
-  });
+  monsters.forEach(m => { if(m.regen>0) m.hp=Math.min(m.maxHp,m.hp+m.regen); });
 
-  // Move heroes
-  heroes.forEach(h => {
-    h.moveDelay = (h.moveDelay || 0) + 1;
-    const spd = 1;
-    if (h.moveDelay < spd) return;
+  // Hero movement
+  const heroSnap = [...heroes];
+  heroSnap.forEach(h => {
+    if (!heroes.includes(h)) return;
+    h.moveDelay++;
+    if (h.moveDelay < 1) return;
     h.moveDelay = 0;
 
-    if (h.pathIdx < h.path.length - 1) {
-      const next = h.path[h.pathIdx + 1];
-      moveEntity(h, next);
-      h.pathIdx++;
+    if (h.pathIdx >= h.path.length-1) {
+      const newPath = bfs(h.cell, NEST_IDX);
+      if (newPath) { h.path=newPath; h.pathIdx=0; } else return;
+    }
 
-      // Trap damage
-      if (grid[next] === 'trap') {
-        let dmg = 15 + wave * 5;
-        if (UPGRADES.trap.bought) dmg *= 2;
-        h.hp -= dmg;
-        showFloaty(next, `-${dmg}`, '#f97316');
-        flashCell(next);
-        updateHpBar(h, 'hero');
-        if (h.hp <= 0) { killHero(h); return; }
-      }
+    const next = h.path[h.pathIdx+1];
+    if (next === undefined) return;
+    moveEnt(h, next); h.pathIdx++;
 
-      // Fire nest
-      if (UPGRADES.fire.bought) {
-        const nbs = neighbors(NEST_CELL);
-        if (nbs.includes(next)) {
-          const dmg = 20;
-          h.hp -= dmg;
-          showFloaty(next, `🔥-${dmg}`, '#f97316');
-          updateHpBar(h, 'hero');
-          if (h.hp <= 0) { killHero(h); return; }
-        }
-      }
-
-      // Reached nest
-      if (next === NEST_CELL) {
-        // Attack dragon
-        dragonHp -= h.atk;
-        showFloaty(NEST_CELL, `-${h.atk}`, '#ef4444');
-        flashCell(NEST_CELL);
-        killHero(h);
-        updateHUD();
-        if (dragonHp <= 0) { triggerGameOver(); return; }
-        return;
-      }
+    // Trap hit
+    if (grid[next]==='trap') {
+      let dmg = 15+wave*5;
+      if (UPGRADES.trap.bought) dmg*=2;
+      h.hp-=dmg; floaty(next,`-${dmg}`,'#f97316'); flash(next);
+      updateBar(h,'hero');
+      if (h.hp<=0) { killHero(h); return; }
+    }
+    // Fire nest
+    if (UPGRADES.fire.bought && nbrs(NEST_IDX).includes(next)) {
+      h.hp-=20; floaty(next,'🔥-20','#f97316');
+      updateBar(h,'hero');
+      if (h.hp<=0) { killHero(h); return; }
+    }
+    // Reached nest
+    if (next===NEST_IDX) {
+      dragonHp -= h.atk; floaty(NEST_IDX,`-${h.atk}`,'#ef4444'); flash(NEST_IDX);
+      killHero(h); updateHUD();
+      if (dragonHp<=0) { triggerGameOver(); return; }
+      return;
     }
   });
 
-  // Battles (heroes vs monsters in same cell)
-  heroes.forEach(h => {
-    monsters.forEach(m => {
-      if (h.cell !== m.cell) return;
-
-      // Combat
-      m.hp -= h.atk;
-      h.hp -= m.atk;
-      showFloaty(m.cell, `-${h.atk}`, '#fbbf24');
-      showFloaty(m.cell, `-${m.atk}`, '#ef4444');
-      flashCell(m.cell);
-
-      updateHpBar(m, 'monster');
-      updateHpBar(h, 'hero');
-
-      if (m.hp <= 0) killMonster(m);
-      if (h.hp <= 0) killHero(h);
+  // Combat
+  const ms = [...monsters], hs = [...heroes];
+  hs.forEach(h => {
+    ms.forEach(m => {
+      if (!heroes.includes(h)||!monsters.includes(m)) return;
+      if (h.cell!==m.cell) return;
+      m.hp-=h.atk; h.hp-=m.atk;
+      floaty(m.cell,`-${h.atk}`,'#fbbf24');
+      floaty(m.cell,`-${m.atk}`,'#ef4444');
+      flash(m.cell);
+      updateBar(m,'monster'); updateBar(h,'hero');
+      if (m.hp<=0) killMonster(m);
+      if (h.hp<=0) killHero(h);
     });
-  });
-
-  // Re-path heroes that are stuck (path invalidated)
-  heroes.forEach(h => {
-    if (h.pathIdx >= h.path.length - 1) {
-      const newPath = bfs(h.cell, NEST_CELL);
-      if (newPath) { h.path = newPath; h.pathIdx = 0; }
-    }
   });
 
   updateHUD();
   checkWaveEnd();
 }
 
-function moveEntity(e, to) {
-  cellEl(e.cell).removeChild(e.el);
-  cellEl(e.cell).removeChild(e.hpWrap);
+function moveEnt(e, to) {
+  try {
+    cellEl(e.cell).removeChild(e.el);
+    cellEl(e.cell).removeChild(e.hpWrap);
+  } catch(_) {}
   e.cell = to;
   cellEl(to).appendChild(e.el);
   cellEl(to).appendChild(e.hpWrap);
@@ -1079,150 +896,110 @@ function moveEntity(e, to) {
 
 function killHero(h) {
   if (!heroes.includes(h)) return;
-  h.el.remove();
-  h.hpWrap.remove();
-  heroes = heroes.filter(x => x.id !== h.id);
+  try { h.el.remove(); h.hpWrap.remove(); } catch(_) {}
+  heroes = heroes.filter(x=>x.id!==h.id);
 }
 
 function killMonster(m) {
   if (!monsters.includes(m)) return;
-  m.el.remove();
-  m.hpWrap.remove();
-  monsters = monsters.filter(x => x.id !== m.id);
+  try { m.el.remove(); m.hpWrap.remove(); } catch(_) {}
+  monsters = monsters.filter(x=>x.id!==m.id);
   kills++;
-  const reward = MONSTER_DEFS[m.type].reward;
-  addGold(reward);
-  addLog(`${m.icon} 처치! +${reward}g`, 'gold');
+  const r = MONSTER_DEFS[m.type].reward;
+  addGold(r);
+  addLog(`${m.icon} 처치! +${r}g`, 'gold-c');
   updateHUD();
 }
 
 function checkWaveEnd() {
-  if (heroes.length === 0 && waveActive) {
-    const totalSpawn = 3 + Math.floor(wave * 1.5);
-    // Check if all spawned (rough heuristic: wait a bit after wave started)
-    // Use a flag approach: track remaining spawns
-    waveActive = false;
-    document.getElementById('round-btn').disabled = false;
-    const bonus = wave * 30;
-    addGold(bonus);
-    addLog(`✓ 웨이브 ${wave} 방어 성공! +${bonus}g 보너스`, 'good');
+  if (heroes.length===0 && waveActive) {
+    waveActive=false;
+    document.getElementById('wave-btn').disabled=false;
+    const bonus=wave*30; addGold(bonus);
+    addLog(`✓ 웨이브 ${wave} 방어 성공! +${bonus}g`, 'good');
     updateHUD();
   }
 }
 
-// ===================== GAME OVER / WIN =====================
+// ===================== GAME OVER =====================
 function triggerGameOver() {
-  dragonHp = 0;
-  gameOver = true;
-  updateHUD();
-  const ol = document.getElementById('overlay');
-  document.getElementById('overlay-title').textContent = '💀 드래곤 사망';
-  document.getElementById('overlay-title').style.color = '#ef4444';
-  document.getElementById('overlay-sub').textContent = `웨이브 ${wave}까지 방어 · 처치 ${kills}마리`;
-  ol.classList.add('show');
-}
-
-function restartGame() {
-  location.reload();
-}
-
-// ===================== UI HELPERS =====================
-function updateHpBar(e, type) {
-  const pct = Math.max(0, e.hp / e.maxHp * 100);
-  e.hpBar.style.width = pct + '%';
-  if (pct < 30) e.hpBar.style.background = '#ef4444';
-  else if (pct < 60) e.hpBar.style.background = '#f97316';
-}
-
-function flashCell(i) {
-  const c = cellEl(i);
-  c.classList.add('flash');
-  setTimeout(() => c.classList.remove('flash'), 150);
-}
-
-function showFloaty(cell, text, color) {
-  const c = cellEl(cell);
-  const f = document.createElement('div');
-  f.className = 'floaty';
-  f.textContent = text;
-  f.style.color = color;
-  f.style.left = (4 + Math.random() * 16) + 'px';
-  f.style.top = '4px';
-  c.appendChild(f);
-  setTimeout(() => f.remove(), 800);
-}
-
-function updateHUD() {
-  document.getElementById('stat-gold').textContent = gold;
-  document.getElementById('stat-dragon-hp').textContent = Math.max(0, dragonHp);
-  document.getElementById('stat-wave-num').textContent = wave;
-  document.getElementById('stat-kills').textContent = kills;
-  document.getElementById('dragon-hp-bar').style.width = Math.max(0, dragonHp / DRAGON_MAX_HP * 100) + '%';
-}
-
-function addLog(msg, cls = '') {
-  const log = document.getElementById('log');
-  const e = document.createElement('div');
-  e.className = 'log-entry ' + cls;
-  e.textContent = msg;
-  log.insertBefore(e, log.firstChild);
-  while (log.children.length > 60) log.removeChild(log.lastChild);
+  dragonHp=0; gameOver=true; updateHUD();
+  document.getElementById('overlay-title').textContent='💀 드래곤 사망';
+  document.getElementById('overlay-title').style.color='#ef4444';
+  document.getElementById('overlay-sub').textContent=`웨이브 ${wave}까지 방어 · 처치 ${kills}마리`;
+  document.getElementById('overlay').classList.add('show');
 }
 
 // ===================== UPGRADES =====================
 function buyUpgrade(key) {
-  const u = UPGRADES[key];
+  const u=UPGRADES[key];
   if (u.bought) return;
   if (!spendGold(u.cost)) return;
-  u.bought = true;
-  document.getElementById('upg-' + key).disabled = true;
-  document.getElementById('upg-' + key).style.opacity = '0.5';
-  addLog(`✓ ${u.name} 업그레이드 완료!`, 'good');
+  u.bought=true;
+  const btn=document.getElementById('upg-'+key);
+  btn.disabled=true; btn.classList.add('bought');
+  btn.querySelector('.ub-cost').textContent='✓';
+  addLog(`✓ ${u.name} 완료!`, 'good');
 }
 
-// ===================== WAVE BAR ANIMATION =====================
-function animateWaveBar() {
-  const bar = document.getElementById('wave-bar');
-  let pct = 0;
-  const iv = setInterval(() => {
-    if (!waveActive) { clearInterval(iv); bar.style.width = '0%'; return; }
-    pct = Math.min(100, pct + 1);
-    bar.style.width = pct + '%';
-  }, 200);
+// ===================== UI HELPERS =====================
+function updateHUD() {
+  document.getElementById('stat-gold').textContent=gold;
+  document.getElementById('stat-hp').textContent=Math.max(0,dragonHp);
+  document.getElementById('stat-wave').textContent=wave;
+  document.getElementById('stat-kills').textContent=kills;
+  document.getElementById('dragon-bar').style.width=Math.max(0,dragonHp/DRAGON_MAX*100)+'%';
 }
 
-// Override startWave to also animate
-const _startWave = startWave;
-// Patch
-document.getElementById('round-btn').onclick = () => {
-  startWave();
-  animateWaveBar();
-};
-document.querySelector('.round-btn').onclick = () => {
-  startWave();
-  animateWaveBar();
-};
+function updateBar(e, type) {
+  const pct=Math.max(0,e.hp/e.maxHp*100);
+  e.hpBar.style.width=pct+'%';
+  e.hpBar.style.background=pct<30?'#ef4444':pct<60?'#f97316':
+    type==='hero'?'#3b82f6':'#a855f7';
+}
 
-// ===================== MOUSE DRAG BUILDING =====================
-mapEl.addEventListener('mousedown', e => {
-  const cell = e.target.closest('.cell');
-  if (cell) { isMouseDown = true; handleCellAction(+cell.dataset.idx); }
-});
-mapEl.addEventListener('mouseover', e => {
-  if (!isMouseDown) return;
-  const cell = e.target.closest('.cell');
-  if (cell) handleCellAction(+cell.dataset.idx);
-});
-document.addEventListener('mouseup', () => { isMouseDown = false; });
+function floaty(cell, text, color) {
+  const c=cellEl(cell);
+  const f=document.createElement('div');
+  f.className='floaty'; f.textContent=text; f.style.color=color;
+  f.style.left=(2+Math.random()*20)+'px'; f.style.top='2px';
+  c.appendChild(f); setTimeout(()=>f.remove(),750);
+}
+
+function flash(i) {
+  const c=cellEl(i); c.classList.add('flash');
+  setTimeout(()=>c.classList.remove('flash'),150);
+}
+
+function addLog(msg, cls='') {
+  const log=document.getElementById('log');
+  const e=document.createElement('div');
+  e.className='log-entry '+cls; e.textContent=msg;
+  log.insertBefore(e,log.firstChild);
+  while(log.children.length>80) log.removeChild(log.lastChild);
+}
+
+function toggleLog() {
+  document.getElementById('log-panel').classList.toggle('open');
+}
+
+function dismissToast() {
+  const t=document.getElementById('toast');
+  t.classList.add('hidden');
+}
 
 // ===================== INIT =====================
 buildMap();
-addLog('🐉 드래곤의 둥지를 수호하라!', 'wave');
-addLog('통로/방을 건설하고 몬스터를 배치하세요.', '');
-addLog('함정은 통로나 방 위에 설치됩니다.', '');
-addLog('준비가 되면 웨이브를 시작하세요!', 'good');
 updateHUD();
-requestAnimationFrame(gameLoop);
+// layout after fonts/panel render
+setTimeout(layoutMap, 100);
+setTimeout(() => {
+  layoutMap();
+  setTimeout(()=>document.getElementById('toast').classList.add('hidden'), 6000);
+}, 200);
+
+addLog('🐉 드래곤의 둥지를 수호하라!','wave-c');
+addLog('아래 건설 탭에서 시작하세요','good');
 </script>
 
 </body>
