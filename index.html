@@ -53,7 +53,6 @@
         .quest-pending { background: rgba(249, 115, 22, 0.1); border-color: rgba(249, 115, 22, 0.3); }
         .quest-complete { background: rgba(16, 185, 129, 0.1); border-color: rgba(16, 185, 129, 0.5); box-shadow: 0 0 10px rgba(16, 185, 129, 0.2); }
 
-        /* ✨ 주간 보너스 요약창 스타일 */
         .bonus-summary {
             background: rgba(56, 189, 248, 0.05);
             border: 1px dashed rgba(56, 189, 248, 0.2);
@@ -159,12 +158,13 @@
         </div>
     </main>
 
-    <nav class="bg-slate-950 border-t border-slate-800 grid grid-cols-5 h-20 z-20 shrink-0">
-        <button onclick="location.href='gym.html'" class="flex flex-col items-center justify-center text-slate-400"><span class="text-2xl">🏋️</span><span class="text-[8px] font-bold mt-1 uppercase">Gym (운동)</span></button>
-        <button onclick="location.href='brain.html'" class="flex flex-col items-center justify-center text-slate-400"><span class="text-2xl">🧩</span><span class="text-[8px] font-bold mt-1 uppercase">Brain (두뇌)</span></button>
-        <button onclick="location.href='exploration.html'" class="flex flex-col items-center justify-center text-blue-400"><span class="text-2xl">⚔️</span><span class="text-[8px] font-bold mt-1 uppercase">Exp (탐험)</span></button>
-        <button onclick="location.href='defense.html'" class="flex flex-col items-center justify-center text-slate-400"><span class="text-2xl">🛡️</span><span class="text-[8px] font-bold mt-1 uppercase">Def (방어)</span></button>
-        <button onclick="location.href='shop.html'" class="flex flex-col items-center justify-center text-slate-400"><span class="text-2xl">🏪</span><span class="text-[8px] font-bold mt-1 uppercase">Shop (상점)</span></button>
+    <nav class="bg-slate-950 border-t border-slate-800 grid grid-cols-6 h-20 z-20 shrink-0">
+        <button onclick="location.href='gym.html'" class="flex flex-col items-center justify-center text-slate-400"><span class="text-xl">🏋️</span><span class="text-[7px] font-bold mt-1 uppercase">Gym (운동)</span></button>
+        <button onclick="location.href='brain.html'" class="flex flex-col items-center justify-center text-slate-400"><span class="text-xl">🧩</span><span class="text-[7px] font-bold mt-1 uppercase">Brain (두뇌)</span></button>
+        <button onclick="location.href='exploration.html'" class="flex flex-col items-center justify-center text-slate-400"><span class="text-xl">⚔️</span><span class="text-[7px] font-bold mt-1 uppercase">Exp (탐험)</span></button>
+        <button onclick="location.href='dungeon.html'" class="flex flex-col items-center justify-center text-red-500"><span class="text-xl">💀</span><span class="text-[7px] font-bold mt-1 uppercase">Dungeon (던전)</span></button>
+        <button onclick="location.href='defense.html'" class="flex flex-col items-center justify-center text-slate-400"><span class="text-xl">🛡️</span><span class="text-[7px] font-bold mt-1 uppercase">Def (방어)</span></button>
+        <button onclick="location.href='shop.html'" class="flex flex-col items-center justify-center text-slate-400"><span class="text-xl">🏪</span><span class="text-[7px] font-bold mt-1 uppercase">Shop (상점)</span></button>
     </nav>
 
     <script>
@@ -244,7 +244,6 @@
                 histDiv.innerHTML = historyHTML;
             }
 
-            // ⭐ 주간 보너스 수치 업데이트 (Gym 데이터 연동)
             const weekly = JSON.parse(localStorage.getItem('weekly_workout_data')) || { totalHpBonus: 0, totalAtkSpd: 0, totalMoveSpd: 0, totalDef: 0 };
             document.getElementById('bonus-atk').innerText = `+${weekly.totalAtkSpd || 0}`;
             document.getElementById('bonus-move').innerText = `+${weekly.totalMoveSpd || 0}`;
