@@ -9,7 +9,7 @@
 <style>
 *,*::before,*::after{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
 html,body{width:100%;height:100%;overflow:hidden;background:#04060e;color:#e0e8f0;font-family:'Cinzel',serif;user-select:none;}
-#app{display:flex;flex-direction:column;height:100%;}
+#app{display:flex;flex-direction:column;height:100%;height:100dvh;}
 #hud{flex-shrink:0;background:linear-gradient(180deg,#0f1828,#0b1018);border-bottom:2px solid #1a2a44;padding:6px 8px 4px;}
 #hrow{display:flex;align-items:center;gap:3px;flex-wrap:wrap;margin-bottom:3px;}
 #gtitle{font-family:'Cinzel Decorative',cursive;font-size:11px;background:linear-gradient(135deg,#f5a020,#ffe080,#f5a020);-webkit-background-clip:text;-webkit-text-fill-color:transparent;flex-shrink:0;margin-right:3px;}
@@ -17,7 +17,7 @@ html,body{width:100%;height:100%;overflow:hidden;background:#04060e;color:#e0e8f
 .sp .v{font-weight:700;color:#f5a020;}.sp.shp .v{color:#ff5555;}.sp.swv .v{color:#b05ef7;}
 #hpbg{height:4px;background:rgba(255,255,255,.08);border-radius:3px;overflow:hidden;}
 #hpfill{height:100%;width:100%;background:linear-gradient(90deg,#c02020,#e05020);border-radius:3px;transition:width .4s;}
-#mwrap{flex:1;overflow:auto;background:#04060e;min-height:0;-webkit-overflow-scrolling:touch;}
+#mwrap{flex:1;overflow:auto;background:#04060e;min-height:100px;-webkit-overflow-scrolling:touch;}
 #mwrap::-webkit-scrollbar{display:none;}
 #mgrid{display:inline-grid;margin:6px;position:relative;}
 .cell{position:relative;}
@@ -64,7 +64,7 @@ html,body{width:100%;height:100%;overflow:hidden;background:#04060e;color:#e0e8f
 .flash{animation:cf .12s ease;}
 .fog-overlay{position:absolute;inset:0;background:rgba(4,6,14,.88);z-index:15;pointer-events:none;transition:opacity .35s;}
 .fog-overlay.clear{opacity:0;}
-#panel{flex-shrink:0;background:linear-gradient(0deg,#0f1828,#0b1018);border-top:2px solid #1a2a44;padding:4px 7px 8px;}
+#panel{flex-shrink:0;background:linear-gradient(0deg,#0f1828,#0b1018);border-top:2px solid #1a2a44;padding:4px 7px 6px;max-height:46vh;overflow-y:auto;}
 #viewrow{display:flex;gap:4px;margin-bottom:4px;}
 .vtbtn{flex:1;font-size:8.5px;font-family:'Cinzel',serif;padding:5px 4px;border-radius:7px;cursor:pointer;border:1.5px solid #1a2a44;background:rgba(255,255,255,.04);color:#556070;transition:all .18s;}
 .vtbtn.vda{background:rgba(40,200,100,.16);border-color:#28c864;color:#28c864;font-weight:700;}
@@ -78,10 +78,12 @@ html,body{width:100%;height:100%;overflow:hidden;background:#04060e;color:#e0e8f
 .tab.ts{background:rgba(40,200,100,.14);border-color:#28c864;color:#28c864;}
 .page{display:none;flex-direction:column;gap:4px;}.page.on{display:flex;}
 #bi{display:flex;gap:5px;align-items:flex-end;}
-#btools{flex:1;display:flex;flex-direction:column;gap:4px;}
-.brow{display:flex;gap:3px;flex-wrap:wrap;}
-.bt{flex:1;min-width:44px;min-height:40px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;background:rgba(255,255,255,.05);border:1.5px solid #1a2a44;border-radius:7px;cursor:pointer;font-family:'Cinzel',serif;transition:all .12s;}
-.bt .i{font-size:14px;}.bt .l{font-size:6px;color:#708090;line-height:1.2;text-align:center;}.bt .c{font-size:6px;color:#705010;}
+#btools{flex:1;display:flex;flex-direction:column;gap:3px;overflow:hidden;}
+/* 건설 버튼: 가로 스크롤 한 줄 */
+.brow{display:flex;gap:3px;overflow-x:auto;padding-bottom:2px;flex-wrap:nowrap;}
+.brow::-webkit-scrollbar{height:2px;}.brow::-webkit-scrollbar-thumb{background:#2a3a54;border-radius:2px;}
+.bt{flex-shrink:0;width:56px;min-height:52px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;background:rgba(255,255,255,.05);border:1.5px solid #1a2a44;border-radius:7px;cursor:pointer;font-family:'Cinzel',serif;transition:all .12s;}
+.bt .i{font-size:15px;}.bt .l{font-size:6px;color:#708090;line-height:1.2;text-align:center;white-space:nowrap;}.bt .c{font-size:6px;color:#705010;white-space:nowrap;}
 .bt.sb{background:rgba(74,158,255,.2);border-color:#4a9eff;}
 .bt.sg{background:rgba(46,200,100,.2);border-color:#2ec864;}
 .bt.sr{background:rgba(220,60,60,.2);border-color:#dc3c3c;}
